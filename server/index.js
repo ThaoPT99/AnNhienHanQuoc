@@ -67,6 +67,14 @@ db.serialize(() => {
     message TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS gallery (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    url TEXT NOT NULL,
+    category TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
 // Routes
@@ -112,6 +120,67 @@ app.delete('/api/contacts/:id', requireAdmin, (req, res) => {
       return;
     }
     res.json({ message: 'Contact deleted successfully' });
+  });
+});
+
+// Gallery routes
+app.get('/api/gallery', (req, res) => {
+  db.all('SELECT * FROM gallery ORDER BY created_at DESC', (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
+app.post('/api/gallery', requireAdmin, (req, res) => {
+  const { title, url, category } = req.body;
+  if (!title || !url || !category) {
+    return res.status(400).json({ error: 'Thiếu title, url hoặc category' });
+  }
+
+  db.run(
+    'INSERT INTO gallery (title, url, category) VALUES (?, ?, ?)',
+    [title, url, category],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ id: this.lastID, title, url, category });
+    }
+  );
+});
+
+app.put('/api/gallery/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { title, url, category } = req.body;
+  if (!title || !url || !category) {
+    return res.status(400).json({ error: 'Thiếu title, url hoặc category' });
+  }
+
+  db.run(
+    'UPDATE gallery SET title = ?, url = ?, category = ? WHERE id = ?',
+    [title, url, category, id],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ id, title, url, category });
+    }
+  );
+});
+
+app.delete('/api/gallery/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  db.run('DELETE FROM gallery WHERE id = ?', [id], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Xóa ảnh thành công' });
   });
 });
 

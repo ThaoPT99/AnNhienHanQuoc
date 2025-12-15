@@ -78,7 +78,10 @@ const Admin = () => {
     <div className="admin-page">
       <div className="admin-header">
         <h1>Quản lý thông tin liên hệ</h1>
-        <button onClick={fetchContacts} className="refresh-btn">🔄 Làm mới</button>
+        <div className="admin-actions">
+          <button onClick={fetchContacts} className="refresh-btn">🔄 Làm mới</button>
+          <button onClick={() => navigate('/admin-gallery')} className="refresh-btn">🖼 Quản lý thư viện ảnh</button>
+        </div>
       </div>
 
       <div className="admin-content">
