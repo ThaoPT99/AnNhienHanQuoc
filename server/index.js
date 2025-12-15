@@ -28,6 +28,31 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Simple admin auth config (set these in environment variables in production)
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'anhien123'; // nên đổi trong env
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'simple-admin-token-change-in-env';
+
+// Admin login route
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    return res.json({ token: ADMIN_TOKEN });
+  }
+
+  return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng' });
+});
+
+// Middleware bảo vệ routes admin
+const requireAdmin = (req, res, next) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'Không có quyền truy cập' });
+  }
+  next();
+};
+
 // Database setup
 const dbPath = path.join(__dirname, 'contacts.db');
 const db = new sqlite3.Database(dbPath);
@@ -46,7 +71,7 @@ db.serialize(() => {
 
 // Routes
 // Get all contacts (for admin)
-app.get('/api/contacts', (req, res) => {
+app.get('/api/contacts', requireAdmin, (req, res) => {
   db.all('SELECT * FROM contacts ORDER BY created_at DESC', (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -79,7 +104,7 @@ app.post('/api/contacts', (req, res) => {
 });
 
 // Delete contact
-app.delete('/api/contacts/:id', (req, res) => {
+app.delete('/api/contacts/:id', requireAdmin, (req, res) => {
   const id = req.params.id;
   db.run('DELETE FROM contacts WHERE id = ?', [id], function(err) {
     if (err) {

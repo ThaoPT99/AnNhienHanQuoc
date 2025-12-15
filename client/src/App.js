@@ -8,6 +8,7 @@ import Services from './pages/Services';
 import Gallery from './pages/Gallery';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
+import AdminLogin from './pages/AdminLogin';
 import './App.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
         <Footer />
