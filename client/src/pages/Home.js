@@ -29,7 +29,7 @@ const Home = () => {
         </div>
         <div className="hero-image">
           <img 
-            src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1600&h=1000&fit=crop&q=80"
+            src="https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg"
             alt="Khuôn viên đại học tại Seoul, Hàn Quốc"
             className="hero-img"
           />
