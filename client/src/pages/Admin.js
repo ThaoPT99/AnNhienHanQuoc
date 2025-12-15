@@ -11,7 +11,8 @@ const Admin = () => {
     fetchContacts();
   }, []);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // Use env if set; fallback to deployed backend to avoid localhost in production
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   const fetchContacts = async () => {
     try {
