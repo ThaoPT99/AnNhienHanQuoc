@@ -4,6 +4,39 @@ import { motion } from 'framer-motion';
 import './Home.css';
 
 const Home = () => {
+  const schoolSpots = [
+    {
+      name: 'Đại học Korea',
+      city: 'Seoul',
+      img: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&h=800&fit=crop&q=80', // Main building Korea Univ
+    },
+    {
+      name: 'Đại học Yonsei',
+      city: 'Seoul',
+      img: 'https://images.unsplash.com/photo-1524499982521-1ffd58dd89ea?w=1200&h=800&fit=crop&q=80', // Yonsei ivy campus
+    },
+    {
+      name: 'Đại học Sungkyunkwan',
+      city: 'Seoul',
+      img: 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=1200&h=800&fit=crop&q=80', // SKKU autumn path
+    },
+    {
+      name: 'Đại học Hanyang',
+      city: 'Seoul',
+      img: 'https://images.unsplash.com/photo-1600585154340-0ef3c08dc63d?w=1200&h=800&fit=crop&q=80', // Hanyang modern building
+    },
+    {
+      name: 'Đại học Kyung Hee',
+      city: 'Seoul',
+      img: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1200&h=800&fit=crop&q=80', // Kyung Hee hall
+    },
+    {
+      name: 'Đại học Pusan',
+      city: 'Busan',
+      img: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200&h=800&fit=crop&q=80', // Busan coastal campus
+    },
+  ];
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -29,7 +62,7 @@ const Home = () => {
         </div>
         <div className="hero-image">
           <img 
-            src="https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg"
+            src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=1600&h=1000&fit=crop&q=80"
             alt="Khuôn viên đại học tại Seoul, Hàn Quốc"
             className="hero-img"
           />
@@ -90,6 +123,37 @@ const Home = () => {
             <h3>Hợp tác với nhiều trường</h3>
             <p>Mạng lưới đối tác rộng khắp tại Hàn Quốc</p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Schools Gallery */}
+      <section className="schools section">
+        <div className="section-heading">
+          <h2 className="section-title">Các trường tiêu biểu tại Hàn Quốc</h2>
+          <p className="section-subtitle">
+            Ngắm nhìn khuôn viên và không khí học tập tại những trường đại học đối tác của chúng tôi
+          </p>
+        </div>
+
+        <div className="schools-grid">
+          {schoolSpots.map((school, idx) => (
+            <motion.div
+              key={school.name}
+              className="school-card"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.05 }}
+            >
+              <div className="school-image">
+                <img src={school.img} alt={school.name} loading="lazy" />
+              </div>
+              <div className="school-info">
+                <h3>{school.name}</h3>
+                <p>{school.city}, Hàn Quốc</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 

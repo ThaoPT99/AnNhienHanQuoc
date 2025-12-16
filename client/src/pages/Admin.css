@@ -15,12 +15,6 @@
   gap: 20px;
 }
 
-.admin-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .admin-header h1 {
   font-size: 2.5rem;
   font-weight: 800;
@@ -50,33 +44,6 @@
 .admin-content {
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.admin-login-form {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  margin-bottom: 30px;
-}
-
-.admin-login-form h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 15px;
-}
-
-.form-group input {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 1rem;
 }
 
 .loading,

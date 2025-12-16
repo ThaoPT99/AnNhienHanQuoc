@@ -1,39 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Gallery.css';
 
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-
-  useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`${API_URL}/api/gallery`);
-        setImages(res.data || []);
-        setError(null);
-      } catch (err) {
-        setError('Không thể tải thư viện ảnh. Vui lòng thử lại sau.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGallery();
-  }, [API_URL]);
-
-  const groupedByCategory = images.reduce((acc, item) => {
-    const cat = item.category || 'Khác';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(item);
-    return acc;
-  }, {});
+  // Hình ảnh thực tế về Hàn Quốc từ Unsplash
+  const imageCategories = [
+    {
+      title: 'Trường học Hàn Quốc',
+      images: [
+        {
+          id: 1,
+          url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&q=80',
+          alt: 'Đại học Quốc gia Seoul'
+        },
+        {
+          id: 2,
+          url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&h=600&fit=crop&q=80',
+          alt: 'Khuôn viên trường đại học Hàn Quốc'
+        },
+        {
+          id: 3,
+          url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=600&fit=crop&q=80',
+          alt: 'Thư viện trường đại học'
+        },
+        {
+          id: 4,
+          url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&q=80',
+          alt: 'Sinh viên trong lớp học'
+        },
+        {
+          id: 5,
+          url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=600&fit=crop&q=80',
+          alt: 'Khuôn viên trường đại học hiện đại'
+        },
+        {
+          id: 6,
+          url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&h=600&fit=crop&q=80',
+          alt: 'Tòa nhà giảng đường'
+        }
+      ]
+    },
+    {
+      title: 'Cảnh đẹp Hàn Quốc',
+      images: [
+        {
+          id: 7,
+          url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=600&fit=crop&q=80',
+          alt: 'Seoul về đêm'
+        },
+        {
+          id: 8,
+          url: 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&h=600&fit=crop&q=80',
+          alt: 'Tháp Namsan Seoul'
+        },
+        {
+          id: 9,
+          url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=800&h=600&fit=crop&q=80',
+          alt: 'Sông Hàn'
+        },
+        {
+          id: 10,
+          url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop&q=80',
+          alt: 'Phố cổ Bukchon Hanok'
+        },
+        {
+          id: 11,
+          url: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=800&h=600&fit=crop&q=80',
+          alt: 'Núi Seoraksan'
+        },
+        {
+          id: 12,
+          url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop&q=80',
+          alt: 'Đảo Jeju'
+        }
+      ]
+    },
+    {
+      title: 'Cuộc sống sinh viên',
+      images: [
+        {
+          id: 13,
+          url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&q=80',
+          alt: 'Sinh viên học tập'
+        },
+        {
+          id: 14,
+          url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop&q=80',
+          alt: 'Hoạt động ngoại khóa'
+        },
+        {
+          id: 15,
+          url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=600&fit=crop&q=80',
+          alt: 'Ký túc xá sinh viên'
+        },
+        {
+          id: 16,
+          url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=600&fit=crop&q=80',
+          alt: 'Sinh viên trong thư viện'
+        },
+        {
+          id: 17,
+          url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&h=600&fit=crop&q=80',
+          alt: 'Hoạt động thể thao'
+        },
+        {
+          id: 18,
+          url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&h=600&fit=crop&q=80',
+          alt: 'Lễ hội trường học'
+        }
+      ]
+    },
+    {
+      title: 'Văn hóa Hàn Quốc',
+      images: [
+        {
+          id: 19,
+          url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&q=80',
+          alt: 'Cung điện Gyeongbokgung'
+        },
+        {
+          id: 20,
+          url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop&q=80',
+          alt: 'Làng cổ truyền thống'
+        },
+        {
+          id: 21,
+          url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=600&fit=crop&q=80',
+          alt: 'Ẩm thực Hàn Quốc'
+        },
+        {
+          id: 22,
+          url: 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&h=600&fit=crop&q=80',
+          alt: 'Lễ hội truyền thống'
+        },
+        {
+          id: 23,
+          url: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800&h=600&fit=crop&q=80',
+          alt: 'Nghệ thuật Hàn Quốc'
+        },
+        {
+          id: 24,
+          url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&q=80',
+          alt: 'Di sản văn hóa'
+        }
+      ]
+    }
+  ];
 
   const openModal = (image) => {
     setSelectedImage(image);
@@ -51,18 +165,11 @@ const Gallery = () => {
       </div>
 
       <section className="gallery-section section">
-        {loading && <div className="loading">Đang tải thư viện ảnh...</div>}
-        {error && <div className="error-message">{error}</div>}
-
-        {!loading && !error && images.length === 0 && (
-          <div className="no-data">Chưa có ảnh nào. Vui lòng quay lại sau.</div>
-        )}
-
-        {!loading && !error && Object.keys(groupedByCategory).map((category) => (
-          <div key={category} className="gallery-category">
-            <h2 className="category-title">{category}</h2>
+        {imageCategories.map((category, categoryIndex) => (
+          <div key={categoryIndex} className="gallery-category">
+            <h2 className="category-title">{category.title}</h2>
             <div className="gallery-grid">
-              {groupedByCategory[category].map((image, index) => (
+              {category.images.map((image, index) => (
                 <motion.div
                   key={image.id}
                   className="gallery-item"
@@ -75,7 +182,7 @@ const Gallery = () => {
                   <div className="image-wrapper">
                     <img 
                       src={image.url} 
-                      alt={image.title || 'Ảnh thư viện'}
+                      alt={image.alt}
                       className="gallery-image"
                       loading="lazy"
                     />

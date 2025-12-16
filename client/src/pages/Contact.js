@@ -20,8 +20,7 @@ const Contact = () => {
     });
   };
 
-  // Use env if set; fallback to deployed backend to avoid localhost in production
-  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,6 +69,14 @@ const Contact = () => {
                 <div>
                   <h3>Điện thoại</h3>
                   <p><a href="tel:0961321930">0961321930</a></p>
+                </div>
+              </div>
+              
+              <div className="info-item">
+                <div className="info-icon">📧</div>
+                <div>
+                  <h3>Email</h3>
+                  <p><a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
                 </div>
               </div>
               
