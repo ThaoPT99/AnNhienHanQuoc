@@ -95,24 +95,73 @@ const Home = () => {
 
       {/* Stats Section */}
       <section className="stats-section">
+        <div className="korea-pattern"></div>
         <div className="stats-container">
-          <div className="stat-item">
-            <h3>1000+</h3>
-            <p>Học sinh đã du học</p>
-          </div>
-          <div className="stat-item">
-            <h3>50+</h3>
-            <p>Trường đối tác</p>
-          </div>
-          <div className="stat-item">
-            <h3>95%</h3>
-            <p>Tỷ lệ thành công</p>
-          </div>
-          <div className="stat-item">
-            <h3>10+</h3>
-            <p>Năm kinh nghiệm</p>
-          </div>
+          <motion.div
+            className="stat-item"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="stat-icon">🇰🇷</div>
+            <div className="stat-number-wrapper">
+              <h3 className="stat-number">1000+</h3>
+              <span className="stat-plus">+</span>
+            </div>
+            <p className="stat-label">Học sinh đã du học</p>
+            <p className="stat-korean">한국 유학생</p>
+          </motion.div>
+          
+          <motion.div
+            className="stat-item"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="stat-icon">🏛️</div>
+            <div className="stat-number-wrapper">
+              <h3 className="stat-number">50+</h3>
+              <span className="stat-plus">+</span>
+            </div>
+            <p className="stat-label">Trường đối tác</p>
+            <p className="stat-korean">파트너 학교</p>
+          </motion.div>
+          
+          <motion.div
+            className="stat-item"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="stat-icon">🏆</div>
+            <div className="stat-number-wrapper">
+              <h3 className="stat-number">95%</h3>
+              <span className="stat-percent">%</span>
+            </div>
+            <p className="stat-label">Tỷ lệ thành công</p>
+            <p className="stat-korean">성공률</p>
+          </motion.div>
+          
+          <motion.div
+            className="stat-item"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div className="stat-icon">⭐</div>
+            <div className="stat-number-wrapper">
+              <h3 className="stat-number">10+</h3>
+              <span className="stat-plus">+</span>
+            </div>
+            <p className="stat-label">Năm kinh nghiệm</p>
+            <p className="stat-korean">경험 연수</p>
+          </motion.div>
         </div>
+        <div className="korea-pattern-bottom"></div>
       </section>
 
       {/* CTA Section */}

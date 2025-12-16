@@ -156,35 +156,160 @@
   color: #666;
 }
 
-/* Stats Section */
+/* Stats Section - Korean Style */
 .stats-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 80px 20px;
+  position: relative;
+  background: linear-gradient(135deg, #CE1126 0%, #0047A0 50%, #CE1126 100%);
+  padding: 100px 20px;
   margin: 80px 0;
+  overflow: hidden;
+}
+
+/* Korean Pattern Background */
+.korea-pattern,
+.korea-pattern-bottom {
+  position: absolute;
+  width: 100%;
+  height: 100px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 20px,
+    transparent 20px,
+    transparent 40px
+  );
+  pointer-events: none;
+}
+
+.korea-pattern {
+  top: 0;
+  left: 0;
+}
+
+.korea-pattern-bottom {
+  bottom: 0;
+  right: 0;
+  transform: rotate(180deg);
 }
 
 .stats-container {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 40px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-item {
   text-align: center;
   color: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
 }
 
-.stat-item h3 {
+.stat-item::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-10px) scale(1.05);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-item:hover::before {
+  opacity: 1;
+}
+
+.stat-icon {
   font-size: 4rem;
-  font-weight: 800;
+  margin-bottom: 15px;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.stat-item:nth-child(2) .stat-icon {
+  animation-delay: 0.5s;
+}
+
+.stat-item:nth-child(3) .stat-icon {
+  animation-delay: 1s;
+}
+
+.stat-item:nth-child(4) .stat-icon {
+  animation-delay: 1.5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.stat-number-wrapper {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
   margin-bottom: 10px;
 }
 
-.stat-item p {
-  font-size: 1.2rem;
-  opacity: 0.9;
+.stat-number {
+  font-size: 4.5rem;
+  font-weight: 900;
+  margin: 0;
+  background: linear-gradient(135deg, #FFD700 0%, #FFFFFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+  line-height: 1;
+}
+
+.stat-plus,
+.stat-percent {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #FFD700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.stat-label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.stat-korean {
+  font-size: 1rem;
+  opacity: 0.85;
+  font-weight: 500;
+  color: #FFD700;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  margin-top: 5px;
 }
 
 /* CTA Section */
@@ -231,12 +356,39 @@
     height: 300px;
   }
 
-  .stats-container {
-    grid-template-columns: repeat(2, 1fr);
+  .stats-section {
+    padding: 60px 20px;
   }
 
-  .stat-item h3 {
-    font-size: 2.5rem;
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .stat-item {
+    padding: 30px 15px;
+  }
+
+  .stat-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+
+  .stat-number {
+    font-size: 3rem;
+  }
+
+  .stat-plus,
+  .stat-percent {
+    font-size: 1.8rem;
+  }
+
+  .stat-label {
+    font-size: 1.1rem;
+  }
+
+  .stat-korean {
+    font-size: 0.9rem;
   }
 
   .cta-content h2 {
