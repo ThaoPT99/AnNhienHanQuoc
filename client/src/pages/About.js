@@ -121,6 +121,13 @@ const About = () => {
                 <p><a href="tel:0961321930">0961321930</a></p>
               </div>
             </div>
+            <div className="contact-item">
+              <span className="contact-icon">📧</span>
+              <div>
+                <h4>Email</h4>
+                <p><a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
