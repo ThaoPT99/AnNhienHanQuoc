@@ -46,8 +46,27 @@ const Gallery = () => {
   return (
     <div className="gallery-page">
       <div className="page-header">
-        <h1>Thư viện ảnh</h1>
-        <p>Khám phá vẻ đẹp của Hàn Quốc và cuộc sống du học</p>
+        <div className="header-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="header-emoji">📸</div>
+          <h1 className="header-title">
+            <span className="gradient-text-header">Thư viện ảnh</span>
+          </h1>
+          <p className="header-subtitle">
+            <span className="subtitle-icon">🌟</span>
+            Khám phá vẻ đẹp của Hàn Quốc và cuộc sống du học
+            <span className="subtitle-icon">🌟</span>
+          </p>
+        </motion.div>
       </div>
 
       <section className="gallery-section section">
@@ -60,16 +79,33 @@ const Gallery = () => {
 
         {!loading && !error && Object.keys(groupedByCategory).map((category) => (
           <div key={category} className="gallery-category">
-            <h2 className="category-title">{category}</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="category-title">
+                <span className="category-icon">📁</span>
+                {category}
+                <span className="category-icon">📁</span>
+              </h2>
+            </motion.div>
             <div className="gallery-grid">
               {groupedByCategory[category].map((image, index) => (
                 <motion.div
                   key={image.id}
                   className="gallery-item"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                  whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  transition={{ 
+                    duration: 0.5, 
+                    delay: index * 0.05,
+                    type: "spring",
+                    stiffness: 100
+                  }}
+                  whileHover={{ scale: 1.05, rotate: 2, zIndex: 10 }}
                   onClick={() => openModal(image)}
                 >
                   <div className="image-wrapper">
@@ -80,8 +116,15 @@ const Gallery = () => {
                       loading="lazy"
                     />
                     <div className="image-overlay">
-                      <span className="zoom-icon">🔍</span>
+                      <div className="overlay-content">
+                        <span className="zoom-icon">🔍</span>
+                        {image.title && (
+                          <p className="image-title">{image.title}</p>
+                        )}
+                      </div>
+                      <div className="image-glow"></div>
                     </div>
+                    <div className="gallery-item-badge">View</div>
                   </div>
                 </motion.div>
               ))}
@@ -101,17 +144,30 @@ const Gallery = () => {
           >
             <motion.div
               className="modal-content"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
+              initial={{ scale: 0.8, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0.8, rotate: 10 }}
+              transition={{ type: "spring", stiffness: 100 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button className="close-button" onClick={closeModal}>×</button>
-              <img 
-                src={selectedImage.url} 
-                alt={selectedImage.alt}
-                className="modal-image"
-              />
+              <motion.button 
+                className="close-button" 
+                onClick={closeModal}
+                whileHover={{ scale: 1.2, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                ×
+              </motion.button>
+              <div className="modal-image-wrapper">
+                <img 
+                  src={selectedImage.url} 
+                  alt={selectedImage.alt || selectedImage.title}
+                  className="modal-image"
+                />
+                {selectedImage.title && (
+                  <div className="modal-image-title">{selectedImage.title}</div>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}

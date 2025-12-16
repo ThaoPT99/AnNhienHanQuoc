@@ -42,8 +42,27 @@ const Contact = () => {
   return (
     <div className="contact-page">
       <div className="page-header">
-        <h1>Liên hệ với chúng tôi</h1>
-        <p>Hãy để lại thông tin, chúng tôi sẽ tư vấn miễn phí cho bạn</p>
+        <div className="header-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="header-emoji">💬</div>
+          <h1 className="header-title">
+            <span className="gradient-text-header">Liên hệ</span> với chúng tôi
+          </h1>
+          <p className="header-subtitle">
+            <span className="subtitle-icon">🚀</span>
+            Hãy để lại thông tin, chúng tôi sẽ tư vấn miễn phí cho bạn
+            <span className="subtitle-icon">🚀</span>
+          </p>
+        </motion.div>
       </div>
 
       <section className="contact-section section">
@@ -55,39 +74,87 @@ const Contact = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2>Thông tin liên hệ</h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="section-icon">📋</span>
+              Thông tin liên hệ
+            </motion.h2>
             <div className="info-items">
-              <div className="info-item">
-                <div className="info-icon">📍</div>
+              <motion.div
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                whileHover={{ scale: 1.02, x: 10 }}
+              >
+                <div className="info-icon-wrapper">
+                  <div className="info-icon">📍</div>
+                  <div className="info-icon-glow"></div>
+                </div>
                 <div>
                   <h3>Địa chỉ</h3>
                   <p>219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</p>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="info-item">
-                <div className="info-icon">📞</div>
+              <motion.div
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                whileHover={{ scale: 1.02, x: 10 }}
+              >
+                <div className="info-icon-wrapper">
+                  <div className="info-icon">📞</div>
+                  <div className="info-icon-glow"></div>
+                </div>
                 <div>
                   <h3>Điện thoại</h3>
                   <p><a href="tel:0961321930">0961321930</a></p>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="info-item">
-                <div className="info-icon">📧</div>
+              <motion.div
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                whileHover={{ scale: 1.02, x: 10 }}
+              >
+                <div className="info-icon-wrapper">
+                  <div className="info-icon">📧</div>
+                  <div className="info-icon-glow"></div>
+                </div>
                 <div>
                   <h3>Email</h3>
                   <p><a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="info-item">
-                <div className="info-icon">⏰</div>
+              <motion.div
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                whileHover={{ scale: 1.02, x: 10 }}
+              >
+                <div className="info-icon-wrapper">
+                  <div className="info-icon">⏰</div>
+                  <div className="info-icon-glow"></div>
+                </div>
                 <div>
                   <h3>Giờ làm việc</h3>
                   <p>Thứ 2 - Thứ 6: 8:00 - 18:00<br />Thứ 7: 8:00 - 12:00</p>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             <div className="map-container">
@@ -110,10 +177,27 @@ const Contact = () => {
             transition={{ duration: 0.6 }}
           >
             <form className="contact-form" onSubmit={handleSubmit}>
-              <h2>Gửi tin nhắn</h2>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <span className="form-icon">✉️</span>
+                Gửi tin nhắn
+              </motion.h2>
               
-              <div className="form-group">
-                <label htmlFor="name">Họ và tên *</label>
+              <motion.div
+                className="form-group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <label htmlFor="name">
+                  <span className="label-icon">👤</span>
+                  Họ và tên *
+                </label>
                 <input
                   type="text"
                   id="name"
@@ -123,10 +207,19 @@ const Contact = () => {
                   required
                   placeholder="Nhập họ và tên của bạn"
                 />
-              </div>
+              </motion.div>
 
-              <div className="form-group">
-                <label htmlFor="email">Email *</label>
+              <motion.div
+                className="form-group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <label htmlFor="email">
+                  <span className="label-icon">📧</span>
+                  Email *
+                </label>
                 <input
                   type="email"
                   id="email"
@@ -136,10 +229,19 @@ const Contact = () => {
                   required
                   placeholder="Nhập email của bạn"
                 />
-              </div>
+              </motion.div>
 
-              <div className="form-group">
-                <label htmlFor="phone">Số điện thoại *</label>
+              <motion.div
+                className="form-group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <label htmlFor="phone">
+                  <span className="label-icon">📞</span>
+                  Số điện thoại *
+                </label>
                 <input
                   type="tel"
                   id="phone"
@@ -149,10 +251,19 @@ const Contact = () => {
                   required
                   placeholder="Nhập số điện thoại của bạn"
                 />
-              </div>
+              </motion.div>
 
-              <div className="form-group">
-                <label htmlFor="message">Tin nhắn</label>
+              <motion.div
+                className="form-group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <label htmlFor="message">
+                  <span className="label-icon">💬</span>
+                  Tin nhắn
+                </label>
                 <textarea
                   id="message"
                   name="message"
@@ -161,17 +272,37 @@ const Contact = () => {
                   rows="5"
                   placeholder="Nhập tin nhắn của bạn (tùy chọn)"
                 ></textarea>
-              </div>
+              </motion.div>
 
               {submitStatus && (
-                <div className={`submit-status ${submitStatus.type}`}>
+                <motion.div
+                  className={`submit-status ${submitStatus.type}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <span className="status-icon">
+                    {submitStatus.type === 'success' ? '✅' : '❌'}
+                  </span>
                   {submitStatus.message}
-                </div>
+                </motion.div>
               )}
 
-              <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
-              </button>
+              <motion.button
+                type="submit"
+                className="contact-submit-button"
+                disabled={isSubmitting}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="button-text">
+                  {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
+                </span>
+                <span className="button-icon">
+                  {isSubmitting ? '⏳' : '🚀'}
+                </span>
+                <div className="button-shine"></div>
+              </motion.button>
             </form>
           </motion.div>
         </div>

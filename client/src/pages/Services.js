@@ -46,8 +46,27 @@ const Services = () => {
   return (
     <div className="services-page">
       <div className="page-header">
-        <h1>Dịch vụ của chúng tôi</h1>
-        <p>Hỗ trợ toàn diện cho hành trình du học Hàn Quốc của bạn</p>
+        <div className="header-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="header-emoji">🎯</div>
+          <h1 className="header-title">
+            <span className="gradient-text-header">Dịch vụ</span> của chúng tôi
+          </h1>
+          <p className="header-subtitle">
+            <span className="subtitle-icon">🚀</span>
+            Hỗ trợ toàn diện cho hành trình du học Hàn Quốc của bạn
+            <span className="subtitle-icon">🚀</span>
+          </p>
+        </motion.div>
       </div>
 
       <section className="services-section section">
@@ -56,19 +75,32 @@ const Services = () => {
             <motion.div
               key={index}
               className="service-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ scale: 1.05, rotate: index % 2 === 0 ? 1 : -1 }}
             >
-              <div className="service-icon">{service.icon}</div>
-              <h3>{service.title}</h3>
+              <div className="service-icon-wrapper">
+                <div className="service-icon">{service.icon}</div>
+                <div className="service-icon-glow"></div>
+              </div>
+              <h3 className="service-title">{service.title}</h3>
               <p className="service-description">{service.description}</p>
               <ul className="service-features">
                 {service.features.map((feature, idx) => (
-                  <li key={idx}>✓ {feature}</li>
+                  <motion.li
+                    key={idx}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + idx * 0.1 }}
+                  >
+                    <span className="feature-check">✓</span> {feature}
+                  </motion.li>
                 ))}
               </ul>
+              <div className="service-badge">Popular</div>
             </motion.div>
           ))}
         </div>
@@ -80,60 +112,85 @@ const Services = () => {
           <div className="process-steps">
             <motion.div
               className="process-step"
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: -30, scale: 0.9 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <div className="step-number">1</div>
+              <div className="step-number-wrapper">
+                <div className="step-number">1</div>
+                <div className="step-number-glow"></div>
+              </div>
+              <div className="step-icon">📞</div>
               <h3>Tiếp nhận thông tin</h3>
               <p>Liên hệ và cung cấp thông tin cơ bản về nhu cầu du học</p>
             </motion.div>
             
             <motion.div
               className="process-step"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <div className="step-number">2</div>
+              <div className="step-number-wrapper">
+                <div className="step-number">2</div>
+                <div className="step-number-glow"></div>
+              </div>
+              <div className="step-icon">🎓</div>
               <h3>Tư vấn và chọn trường</h3>
               <p>Phân tích hồ sơ và tư vấn chọn trường phù hợp</p>
             </motion.div>
             
             <motion.div
               className="process-step"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <div className="step-number">3</div>
+              <div className="step-number-wrapper">
+                <div className="step-number">3</div>
+                <div className="step-number-glow"></div>
+              </div>
+              <div className="step-icon">📝</div>
               <h3>Chuẩn bị hồ sơ</h3>
               <p>Hỗ trợ chuẩn bị và hoàn thiện tất cả giấy tờ cần thiết</p>
             </motion.div>
             
             <motion.div
               className="process-step"
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: 30, scale: 0.9 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <div className="step-number">4</div>
+              <div className="step-number-wrapper">
+                <div className="step-number">4</div>
+                <div className="step-number-glow"></div>
+              </div>
+              <div className="step-icon">✈️</div>
               <h3>Nộp hồ sơ và xin visa</h3>
               <p>Nộp hồ sơ và hỗ trợ quá trình xin visa</p>
             </motion.div>
             
             <motion.div
               className="process-step"
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: 30, scale: 0.9 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <div className="step-number">5</div>
+              <div className="step-number-wrapper">
+                <div className="step-number">5</div>
+                <div className="step-number-glow"></div>
+              </div>
+              <div className="step-icon">🇰🇷</div>
               <h3>Hỗ trợ sau khi sang</h3>
               <p>Tiếp tục đồng hành và hỗ trợ sau khi sang Hàn Quốc</p>
             </motion.div>
@@ -142,11 +199,43 @@ const Services = () => {
       </section>
 
       <section className="cta-section">
-        <div className="cta-content">
-          <h2>Bắt đầu hành trình của bạn ngay hôm nay</h2>
-          <p>Liên hệ với chúng tôi để được tư vấn miễn phí</p>
-          <Link to="/contact" className="btn-primary">Liên hệ ngay</Link>
+        <div className="cta-background-animation">
+          <div className="cta-blob cta-blob-1"></div>
+          <div className="cta-blob cta-blob-2"></div>
         </div>
+        <div className="cta-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+        </div>
+        <motion.div
+          className="cta-content"
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="cta-emoji">🎉</div>
+          <h2 className="cta-title">
+            <span className="cta-title-line">Bắt đầu hành trình</span>
+            <span className="cta-title-line gradient-text-cta">ngay hôm nay!</span>
+          </h2>
+          <p className="cta-subtitle">
+            <span className="cta-subtitle-icon">💬</span>
+            Liên hệ với chúng tôi để được tư vấn miễn phí
+            <span className="cta-subtitle-icon">💬</span>
+          </p>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link to="/contact" className="cta-button">
+              <span className="cta-button-text">Liên hệ ngay</span>
+              <span className="cta-button-icon">👉</span>
+              <div className="cta-button-shine"></div>
+            </Link>
+          </motion.div>
+        </motion.div>
       </section>
     </div>
   );
