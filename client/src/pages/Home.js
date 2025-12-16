@@ -164,12 +164,63 @@ const Home = () => {
         <div className="korea-pattern-bottom"></div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section - Gen Z Style */}
       <section className="cta-section">
+        <div className="cta-background-animation">
+          <div className="cta-blob cta-blob-1"></div>
+          <div className="cta-blob cta-blob-2"></div>
+          <div className="cta-blob cta-blob-3"></div>
+        </div>
+        <div className="cta-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+        </div>
         <div className="cta-content">
-          <h2>Sẵn sàng bắt đầu hành trình của bạn?</h2>
-          <p>Liên hệ ngay để được tư vấn miễn phí</p>
-          <Link to="/contact" className="btn-primary">Liên hệ ngay</Link>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="cta-emoji">🚀</div>
+            <h2 className="cta-title">
+              <span className="cta-title-line">Sẵn sàng bắt đầu</span>
+              <span className="cta-title-line gradient-text-cta">hành trình của bạn?</span>
+            </h2>
+            <p className="cta-subtitle">
+              <span className="cta-subtitle-icon">💬</span>
+              Liên hệ ngay để được tư vấn miễn phí
+              <span className="cta-subtitle-icon">💬</span>
+            </p>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to="/contact" className="cta-button">
+                <span className="cta-button-text">Liên hệ ngay</span>
+                <span className="cta-button-icon">👉</span>
+                <div className="cta-button-shine"></div>
+              </Link>
+            </motion.div>
+            <div className="cta-features">
+              <div className="cta-feature-item">
+                <span className="cta-feature-icon">✅</span>
+                <span>Miễn phí 100%</span>
+              </div>
+              <div className="cta-feature-item">
+                <span className="cta-feature-icon">⚡</span>
+                <span>Phản hồi nhanh</span>
+              </div>
+              <div className="cta-feature-item">
+                <span className="cta-feature-icon">🎯</span>
+                <span>Tư vấn chuyên nghiệp</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>
