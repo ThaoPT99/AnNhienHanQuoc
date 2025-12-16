@@ -105,6 +105,18 @@ function initializeDatabase() {
         console.error('Error creating gallery index:', err.message);
       }
     });
+
+    // Create admin table (for future use, currently using env vars)
+    db.run(`CREATE TABLE IF NOT EXISTS admins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating admins table:', err.message);
+      }
+    });
   });
 }
 

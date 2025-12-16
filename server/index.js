@@ -81,6 +81,60 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Admin authentication
+// Simple admin login (using environment variables for credentials)
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // Get admin credentials from environment variables or use defaults
+  const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+  if (!username || !password) {
+    res.status(400).json({ error: 'Username and password are required' });
+    return;
+  }
+
+  // Simple authentication (in production, use proper password hashing)
+  if (username === adminUsername && password === adminPassword) {
+    // Generate a simple token (in production, use JWT)
+    const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
+    res.json({ 
+      token,
+      message: 'Login successful',
+      username: username
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid username or password' });
+  }
+});
+
+// Middleware to verify admin token (simple check)
+const verifyAdminToken = (req, res, next) => {
+  const token = req.headers['x-admin-token'];
+  
+  if (!token) {
+    res.status(401).json({ error: 'No token provided' });
+    return;
+  }
+
+  // Simple token verification (in production, use JWT)
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf-8');
+    const [username] = decoded.split(':');
+    
+    // Verify username matches admin
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    if (username === adminUsername) {
+      next();
+    } else {
+      res.status(401).json({ error: 'Invalid token' });
+    }
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token format' });
+  }
+};
+
 // Routes
 // Get all contacts (for admin)
 app.get('/api/contacts', (req, res) => {
