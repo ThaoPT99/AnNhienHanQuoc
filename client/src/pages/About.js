@@ -1,10 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 import './About.css';
 
 const About = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "Về chúng tôi - Du học An Nhiên",
+    "description": "Tìm hiểu về Du học An Nhiên - Đơn vị tư vấn du học Hàn Quốc uy tín với nhiều năm kinh nghiệm",
+    "url": "https://duhocannhien.vercel.app/about",
+    "mainEntity": {
+      "@type": "EducationalOrganization",
+      "name": "Du học An Nhiên",
+      "description": "Đơn vị tư vấn du học Hàn Quốc chuyên nghiệp"
+    }
+  };
+
   return (
     <div className="about-page">
+      <SEO
+        title="Về chúng tôi - Du học An Nhiên"
+        description="Tìm hiểu về Du học An Nhiên - Đơn vị tư vấn du học Hàn Quốc uy tín với nhiều năm kinh nghiệm, đồng hành cùng hàng nghìn học sinh trên hành trình du học."
+        keywords="về du học An Nhiên, giới thiệu du học Hàn Quốc, công ty tư vấn du học, đơn vị du học uy tín"
+        url="https://duhocannhien.vercel.app/about"
+        structuredData={structuredData}
+      />
       <div className="page-header">
         <div className="header-sparkles">
           <span className="sparkle">✨</span>

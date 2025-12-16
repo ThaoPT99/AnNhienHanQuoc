@@ -1,9 +1,51 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 import './Services.css';
 
 const Services = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Tư vấn du học Hàn Quốc",
+    "provider": {
+      "@type": "EducationalOrganization",
+      "name": "Du học An Nhiên"
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "Vietnam"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Dịch vụ du học Hàn Quốc",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Tư vấn chọn trường"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Làm hồ sơ du học"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Xin visa Hàn Quốc"
+          }
+        }
+      ]
+    }
+  };
+
   const services = [
     {
       icon: '📋',
@@ -45,6 +87,13 @@ const Services = () => {
 
   return (
     <div className="services-page">
+      <SEO
+        title="Dịch vụ - Du học An Nhiên"
+        description="Dịch vụ tư vấn du học Hàn Quốc chuyên nghiệp: Tư vấn chọn trường, làm hồ sơ du học, xin visa, tìm chỗ ở, hỗ trợ đón sân bay và hỗ trợ sau khi sang Hàn Quốc."
+        keywords="dịch vụ du học Hàn Quốc, tư vấn chọn trường, làm hồ sơ du học, xin visa Hàn Quốc, hỗ trợ du học sinh"
+        url="https://duhocannhien.vercel.app/services"
+        structuredData={structuredData}
+      />
       <div className="page-header">
         <div className="header-sparkles">
           <span className="sparkle">✨</span>

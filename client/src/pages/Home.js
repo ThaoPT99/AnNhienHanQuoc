@@ -1,11 +1,52 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 import './Home.css';
 
 const Home = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Du học An Nhiên",
+    "description": "Tư vấn du học Hàn Quốc uy tín, chuyên nghiệp",
+    "url": "https://duhocannhien.vercel.app",
+    "logo": "https://duhocannhien.vercel.app/logo.png",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "219 P. Trung Kính, Trung Hòa",
+      "addressLocality": "Cầu Giấy",
+      "addressRegion": "Hà Nội",
+      "addressCountry": "VN"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+84-961-321-930",
+      "contactType": "customer service",
+      "email": "annhienduhochan@gmail.com",
+      "areaServed": "VN",
+      "availableLanguage": "Vietnamese"
+    },
+    "sameAs": [
+      "https://www.facebook.com/duhocannhien/",
+      "https://www.tiktok.com/@hoanghannhat"
+    ],
+    "areaServed": {
+      "@type": "Country",
+      "name": "Vietnam"
+    },
+    "serviceType": "Du học Hàn Quốc"
+  };
+
   return (
     <div className="home">
+      <SEO
+        title="Du học An Nhiên - Du học Hàn Quốc chuyên nghiệp"
+        description="Du học An Nhiên - Tư vấn du học Hàn Quốc uy tín, chuyên nghiệp. Đồng hành cùng bạn trên hành trình chinh phục ước mơ du học tại xứ sở Kim Chi. Dịch vụ tư vấn chọn trường, làm hồ sơ, xin visa Hàn Quốc."
+        keywords="du học Hàn Quốc, tư vấn du học Hàn Quốc, du học Seoul, học bổng Hàn Quốc, visa Hàn Quốc, du học An Nhiên, tư vấn du học, làm hồ sơ du học Hàn Quốc"
+        url="https://duhocannhien.vercel.app"
+        structuredData={structuredData}
+      />
       {/* Hero Section - Gen Z Style */}
       <section className="hero">
         <div className="hero-background">

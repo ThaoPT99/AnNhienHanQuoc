@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEO from '../components/SEO';
 import './Gallery.css';
 
 const Gallery = () => {
@@ -45,6 +46,12 @@ const Gallery = () => {
 
   return (
     <div className="gallery-page">
+      <SEO
+        title="Thư viện ảnh - Du học An Nhiên"
+        description="Thư viện ảnh du học Hàn Quốc - Xem những hình ảnh về cuộc sống, trường học và trải nghiệm của học sinh tại Hàn Quốc."
+        keywords="ảnh du học Hàn Quốc, hình ảnh du học sinh, thư viện ảnh du học, cuộc sống du học Hàn Quốc"
+        url="https://duhocannhien.vercel.app/gallery"
+      />
       <div className="page-header">
         <div className="header-sparkles">
           <span className="sparkle">✨</span>

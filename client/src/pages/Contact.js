@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import SEO from '../components/SEO';
 import './Contact.css';
 
 const Contact = () => {
@@ -39,8 +40,42 @@ const Contact = () => {
     }
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": "Liên hệ - Du học An Nhiên",
+    "description": "Liên hệ với Du học An Nhiên để được tư vấn du học Hàn Quốc miễn phí",
+    "url": "https://duhocannhien.vercel.app/contact",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "Du học An Nhiên",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "219 P. Trung Kính, Trung Hòa",
+        "addressLocality": "Cầu Giấy",
+        "addressRegion": "Hà Nội",
+        "addressCountry": "VN"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+84-961-321-930",
+        "contactType": "customer service",
+        "email": "annhienduhochan@gmail.com",
+        "areaServed": "VN",
+        "availableLanguage": "Vietnamese"
+      }
+    }
+  };
+
   return (
     <div className="contact-page">
+      <SEO
+        title="Liên hệ - Du học An Nhiên"
+        description="Liên hệ với Du học An Nhiên để được tư vấn du học Hàn Quốc miễn phí. Địa chỉ: 219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội. Hotline: 0961321930"
+        keywords="liên hệ du học Hàn Quốc, tư vấn du học miễn phí, địa chỉ du học An Nhiên, hotline du học Hàn Quốc"
+        url="https://duhocannhien.vercel.app/contact"
+        structuredData={structuredData}
+      />
       <div className="page-header">
         <div className="header-sparkles">
           <span className="sparkle">✨</span>
