@@ -6,6 +6,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { dbHelpers } = require('./database');
+const { 
+  isCloudinaryConfigured, 
+  uploadToCloudinary, 
+  uploadBufferToCloudinary,
+  deleteFromCloudinary,
+  extractPublicId 
+} = require('./cloudinary');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -298,7 +305,7 @@ app.get('/api/gallery/:id', (req, res) => {
 
 // Upload new gallery image (supports both file upload and URL)
 // Use single() but handle case when no file is provided
-app.post('/api/gallery', (req, res, next) => {
+app.post('/api/gallery', async (req, res, next) => {
   // Check if request has file upload
   if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
     // Use multer middleware for file upload
@@ -307,7 +314,7 @@ app.post('/api/gallery', (req, res, next) => {
     // Skip multer for JSON requests (URL only)
     next();
   }
-}, (req, res) => {
+}, async (req, res) => {
   const { title, category, description, url } = req.body;
 
   // Check if file is uploaded or URL is provided
@@ -318,20 +325,65 @@ app.post('/api/gallery', (req, res, next) => {
 
   let imageData;
 
+  // Handle file upload with Cloudinary or local storage
   if (req.file) {
-    // Handle file upload
-    const filePath = `/uploads/gallery/${req.file.filename}`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+    // Read file buffer for Cloudinary upload
+    const fileBuffer = fs.readFileSync(req.file.path);
+    
+    // Try to upload to Cloudinary first, fallback to local
+    if (isCloudinaryConfigured) {
+      try {
+        const cloudinaryResult = await uploadBufferToCloudinary(
+          fileBuffer, 
+          req.file.filename,
+          'gallery'
+        );
 
-    imageData = {
-      title: title || null,
-      url: fullUrl,
-      category: category || 'Khác',
-      description: description || null,
-      file_path: req.file.path,
-      file_size: req.file.size,
-      mime_type: req.file.mimetype
-    };
+        // Delete local file after successful Cloudinary upload
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+
+        imageData = {
+          title: title || null,
+          url: cloudinaryResult.url,
+          category: category || 'Khác',
+          description: description || null,
+          file_path: cloudinaryResult.public_id, // Store public_id instead of local path
+          file_size: cloudinaryResult.bytes,
+          mime_type: `image/${cloudinaryResult.format}`
+        };
+      } catch (cloudinaryError) {
+        console.error('Cloudinary upload failed, using local storage:', cloudinaryError);
+        // Fallback to local storage
+        const filePath = `/uploads/gallery/${req.file.filename}`;
+        const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+
+        imageData = {
+          title: title || null,
+          url: fullUrl,
+          category: category || 'Khác',
+          description: description || null,
+          file_path: req.file.path,
+          file_size: req.file.size,
+          mime_type: req.file.mimetype
+        };
+      }
+    } else {
+      // Use local storage
+      const filePath = `/uploads/gallery/${req.file.filename}`;
+      const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+
+      imageData = {
+        title: title || null,
+        url: fullUrl,
+        category: category || 'Khác',
+        description: description || null,
+        file_path: req.file.path,
+        file_size: req.file.size,
+        mime_type: req.file.mimetype
+      };
+    }
   } else {
     // Handle URL input
     imageData = {
@@ -345,11 +397,19 @@ app.post('/api/gallery', (req, res, next) => {
     };
   }
 
-  dbHelpers.createGalleryImage(imageData, (err, image) => {
+  dbHelpers.createGalleryImage(imageData, async (err, image) => {
     if (err) {
       // Delete uploaded file if database insert fails
       if (req.file && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
+      }
+      // If Cloudinary upload succeeded but DB failed, try to delete from Cloudinary
+      if (isCloudinaryConfigured && imageData.file_path && !imageData.file_path.includes('/') && !imageData.file_path.includes('\\')) {
+        try {
+          await deleteFromCloudinary(imageData.file_path);
+        } catch (deleteError) {
+          console.error('Failed to delete from Cloudinary:', deleteError);
+        }
       }
       res.status(500).json({ error: err.message });
       return;
@@ -357,7 +417,8 @@ app.post('/api/gallery', (req, res, next) => {
     res.status(201).json({ 
       id: image.id, 
       message: req.file ? 'Image uploaded successfully' : 'Image added successfully',
-      url: imageData.url
+      url: imageData.url,
+      storage: isCloudinaryConfigured && req.file ? 'cloudinary' : 'local'
     });
   });
 });
@@ -386,9 +447,9 @@ app.patch('/api/gallery/:id', (req, res) => {
 });
 
 // Delete gallery image
-app.delete('/api/gallery/:id', (req, res) => {
+app.delete('/api/gallery/:id', async (req, res) => {
   const id = req.params.id;
-  dbHelpers.deleteGalleryImage(id, (err, result) => {
+  dbHelpers.deleteGalleryImage(id, async (err, result) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -398,9 +459,36 @@ app.delete('/api/gallery/:id', (req, res) => {
       return;
     }
 
-    // Delete the physical file
+    // Delete from Cloudinary if it's a Cloudinary image
+    if (isCloudinaryConfigured && result.file_path) {
+      // Check if file_path is a Cloudinary public_id (doesn't contain path separators)
+      if (!result.file_path.includes('/') && !result.file_path.includes('\\')) {
+        try {
+          await deleteFromCloudinary(result.file_path);
+        } catch (cloudinaryError) {
+          console.error('Failed to delete from Cloudinary:', cloudinaryError);
+          // Continue even if Cloudinary delete fails
+        }
+      } else {
+        // Try to extract public_id from URL
+        const publicId = extractPublicId(result.url || '');
+        if (publicId) {
+          try {
+            await deleteFromCloudinary(publicId);
+          } catch (cloudinaryError) {
+            console.error('Failed to delete from Cloudinary:', cloudinaryError);
+          }
+        }
+      }
+    }
+
+    // Delete local file if it exists
     if (result.file_path && fs.existsSync(result.file_path)) {
-      fs.unlinkSync(result.file_path);
+      try {
+        fs.unlinkSync(result.file_path);
+      } catch (fileError) {
+        console.error('Failed to delete local file:', fileError);
+      }
     }
 
     res.json({ message: 'Image deleted successfully' });
