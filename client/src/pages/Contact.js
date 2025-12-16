@@ -74,6 +74,14 @@ const Contact = () => {
               </div>
               
               <div className="info-item">
+                <div className="info-icon">📧</div>
+                <div>
+                  <h3>Email</h3>
+                  <p><a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
+                </div>
+              </div>
+              
+              <div className="info-item">
                 <div className="info-icon">⏰</div>
                 <div>
                   <h3>Giờ làm việc</h3>
