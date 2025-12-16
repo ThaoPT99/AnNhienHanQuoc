@@ -64,10 +64,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads', 'gallery');
+// Support Railway Volume: set UPLOADS_DIR=/data/uploads/gallery in Railway environment variables
+const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads', 'gallery');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory:', uploadsDir);
 }
+console.log('📁 Uploads directory:', uploadsDir);
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
