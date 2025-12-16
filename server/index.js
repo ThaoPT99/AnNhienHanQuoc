@@ -267,38 +267,58 @@ app.get('/api/gallery/:id', (req, res) => {
   });
 });
 
-// Upload new gallery image
-app.post('/api/gallery', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    res.status(400).json({ error: 'No image file provided' });
+// Upload new gallery image (supports both file upload and URL)
+app.post('/api/gallery', upload.optional('image'), (req, res) => {
+  const { title, category, description, url } = req.body;
+
+  // Check if file is uploaded or URL is provided
+  if (!req.file && !url) {
+    res.status(400).json({ error: 'Either image file or URL must be provided' });
     return;
   }
 
-  const { title, category, description } = req.body;
-  const filePath = `/uploads/gallery/${req.file.filename}`;
-  const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+  let imageData;
 
-  const imageData = {
-    title: title || null,
-    url: fullUrl,
-    category: category || 'Khác',
-    description: description || null,
-    file_path: req.file.path,
-    file_size: req.file.size,
-    mime_type: req.file.mimetype
-  };
+  if (req.file) {
+    // Handle file upload
+    const filePath = `/uploads/gallery/${req.file.filename}`;
+    const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+
+    imageData = {
+      title: title || null,
+      url: fullUrl,
+      category: category || 'Khác',
+      description: description || null,
+      file_path: req.file.path,
+      file_size: req.file.size,
+      mime_type: req.file.mimetype
+    };
+  } else {
+    // Handle URL input
+    imageData = {
+      title: title || null,
+      url: url,
+      category: category || 'Khác',
+      description: description || null,
+      file_path: null,
+      file_size: null,
+      mime_type: null
+    };
+  }
 
   dbHelpers.createGalleryImage(imageData, (err, image) => {
     if (err) {
       // Delete uploaded file if database insert fails
-      fs.unlinkSync(req.file.path);
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       res.status(500).json({ error: err.message });
       return;
     }
     res.status(201).json({ 
       id: image.id, 
-      message: 'Image uploaded successfully',
-      url: fullUrl
+      message: req.file ? 'Image uploaded successfully' : 'Image added successfully',
+      url: imageData.url
     });
   });
 });
