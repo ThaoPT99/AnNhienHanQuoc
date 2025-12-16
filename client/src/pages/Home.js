@@ -6,89 +6,191 @@ import './Home.css';
 const Home = () => {
   return (
     <div className="home">
-      {/* Hero Section */}
+      {/* Hero Section - Gen Z Style */}
       <section className="hero">
+        <div className="hero-background">
+          <div className="hero-blob hero-blob-1"></div>
+          <div className="hero-blob hero-blob-2"></div>
+          <div className="hero-blob hero-blob-3"></div>
+          <div className="hero-particles">
+            {[...Array(20)].map((_, i) => (
+              <div key={i} className="particle" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${3 + Math.random() * 2}s`
+              }}></div>
+            ))}
+          </div>
+        </div>
         <div className="hero-content">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1, type: "spring", stiffness: 100 }}
           >
-            <h1 className="hero-title">
-              Du học Hàn Quốc<br />
-              <span className="gradient-text">Khởi đầu tương lai</span>
-            </h1>
-            <p className="hero-subtitle">
-              Đồng hành cùng bạn trên hành trình chinh phục ước mơ du học tại xứ sở Kim Chi
-            </p>
-            <div className="hero-buttons">
-              <Link to="/contact" className="btn-primary">Tư vấn ngay</Link>
-              <Link to="/services" className="btn-secondary">Tìm hiểu thêm</Link>
+            <div className="hero-badge">
+              <span className="badge-icon">✨</span>
+              <span>Khởi đầu hành trình mới</span>
+              <span className="badge-icon">✨</span>
             </div>
+            <h1 className="hero-title">
+              <motion.span
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                Du học Hàn Quốc
+              </motion.span>
+              <br />
+              <motion.span
+                className="gradient-text hero-title-main"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                Khởi đầu tương lai
+              </motion.span>
+            </h1>
+            <motion.p
+              className="hero-subtitle"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <span className="subtitle-icon">🌟</span>
+              Đồng hành cùng bạn trên hành trình chinh phục ước mơ du học tại xứ sở Kim Chi
+              <span className="subtitle-icon">🌟</span>
+            </motion.p>
+            <motion.div
+              className="hero-buttons"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/contact" className="btn-primary hero-btn-primary">
+                  <span className="btn-text">Tư vấn ngay</span>
+                  <span className="btn-icon">💬</span>
+                  <div className="btn-glow"></div>
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link to="/services" className="btn-secondary hero-btn-secondary">
+                  <span className="btn-text">Tìm hiểu thêm</span>
+                  <span className="btn-icon">🔍</span>
+                </Link>
+              </motion.div>
+            </motion.div>
           </motion.div>
         </div>
-        <div className="hero-image">
-          <img 
-            src="https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg"
-            alt="Khuôn viên đại học tại Seoul, Hàn Quốc"
-            className="hero-img"
-          />
-        </div>
+        <motion.div
+          className="hero-image"
+          initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 1, delay: 0.3, type: "spring" }}
+          whileHover={{ scale: 1.05, rotate: 2 }}
+        >
+          <div className="hero-image-wrapper">
+            <img 
+              src="https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg"
+              alt="Khuôn viên đại học tại Seoul, Hàn Quốc"
+              className="hero-img"
+            />
+            <div className="hero-image-glow"></div>
+            <div className="hero-image-shine"></div>
+          </div>
+        </motion.div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - Gen Z Style */}
       <section className="features section">
-        <h2 className="section-title">Tại sao chọn chúng tôi?</h2>
-        <p className="section-subtitle">
-          Với nhiều năm kinh nghiệm, chúng tôi tự hào là đối tác tin cậy của hàng nghìn học sinh
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="section-header">
+            <div className="section-badge">
+              <span className="badge-sparkle">✨</span>
+              <span>Why Choose Us</span>
+              <span className="badge-sparkle">✨</span>
+            </div>
+            <h2 className="section-title">Tại sao chọn chúng tôi?</h2>
+            <p className="section-subtitle">
+              <span className="subtitle-emoji">💫</span>
+              Với nhiều năm kinh nghiệm, chúng tôi tự hào là đối tác tin cậy của hàng nghìn học sinh
+              <span className="subtitle-emoji">💫</span>
+            </p>
+          </div>
+        </motion.div>
         <div className="features-grid">
           <motion.div
             className="feature-card"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 50, rotateX: -15 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6, type: "spring" }}
+            whileHover={{ y: -15, rotateY: 5, scale: 1.03 }}
           >
-            <div className="feature-icon">🎓</div>
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">🎓</div>
+              <div className="feature-icon-glow"></div>
+            </div>
             <h3>Tư vấn chuyên nghiệp</h3>
             <p>Đội ngũ tư vấn viên giàu kinh nghiệm, am hiểu về hệ thống giáo dục Hàn Quốc</p>
+            <div className="feature-accent"></div>
           </motion.div>
           
           <motion.div
             className="feature-card"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 50, rotateX: -15 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.6, delay: 0.1, type: "spring" }}
+            whileHover={{ y: -15, rotateY: 5, scale: 1.03 }}
           >
-            <div className="feature-icon">✈️</div>
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">✈️</div>
+              <div className="feature-icon-glow"></div>
+            </div>
             <h3>Hỗ trợ toàn diện</h3>
             <p>Từ tư vấn, làm hồ sơ đến hỗ trợ sau khi sang Hàn Quốc</p>
+            <div className="feature-accent"></div>
           </motion.div>
           
           <motion.div
             className="feature-card"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 50, rotateX: -15 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.2, type: "spring" }}
+            whileHover={{ y: -15, rotateY: 5, scale: 1.03 }}
           >
-            <div className="feature-icon">🏆</div>
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">🏆</div>
+              <div className="feature-icon-glow"></div>
+            </div>
             <h3>Tỷ lệ thành công cao</h3>
             <p>Hàng nghìn học sinh đã thành công với chúng tôi</p>
+            <div className="feature-accent"></div>
           </motion.div>
           
           <motion.div
             className="feature-card"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 50, rotateX: -15 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.3, type: "spring" }}
+            whileHover={{ y: -15, rotateY: 5, scale: 1.03 }}
           >
-            <div className="feature-icon">💼</div>
+            <div className="feature-icon-wrapper">
+              <div className="feature-icon">💼</div>
+              <div className="feature-icon-glow"></div>
+            </div>
             <h3>Hợp tác với nhiều trường</h3>
             <p>Mạng lưới đối tác rộng khắp tại Hàn Quốc</p>
+            <div className="feature-accent"></div>
           </motion.div>
         </div>
       </section>
