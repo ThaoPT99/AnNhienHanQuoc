@@ -17,23 +17,33 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean); // Remove undefined values
 
+// CORS middleware with proper preflight handling
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      return callback(null, true);
+    }
     
+    // Check if origin is in allowed list
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       // Log for debugging
       console.log('CORS blocked origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type'],
+  maxAge: 86400 // 24 hours
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
