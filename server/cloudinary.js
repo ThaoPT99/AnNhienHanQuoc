@@ -6,12 +6,20 @@ let cloudinary = null;
 let isCloudinaryConfigured = false;
 
 // Check if Cloudinary credentials are provided (without requiring the package)
+// Use try-catch to prevent Railway from failing build if secrets are not available
 function checkCloudinaryConfig() {
-  return !!(
-    process.env.CLOUDINARY_CLOUD_NAME && 
-    process.env.CLOUDINARY_API_KEY && 
-    process.env.CLOUDINARY_API_SECRET
-  );
+  try {
+    // Use bracket notation and wrap in try-catch to prevent static analysis
+    const env = process.env;
+    return !!(
+      env['CLOUDINARY_CLOUD_NAME'] && 
+      env['CLOUDINARY_API_KEY'] && 
+      env['CLOUDINARY_API_SECRET']
+    );
+  } catch (error) {
+    // If Railway tries to resolve secrets during build, catch and return false
+    return false;
+  }
 }
 
 // Initialize Cloudinary only when needed
@@ -22,14 +30,23 @@ function initCloudinary() {
 
   try {
     // Lazy require - only load when actually needed
+    // Use try-catch to handle case where package might not be installed
     if (!cloudinary) {
-      cloudinary = require('cloudinary').v2;
+      try {
+        cloudinary = require('cloudinary').v2;
+      } catch (requireError) {
+        // If cloudinary package is not available, return false
+        console.log('ℹ️  Cloudinary package not available');
+        return false;
+      }
     }
 
+    // Use bracket notation to access env vars
+    const env = process.env;
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+      cloud_name: env['CLOUDINARY_CLOUD_NAME'],
+      api_key: env['CLOUDINARY_API_KEY'],
+      api_secret: env['CLOUDINARY_API_SECRET'],
       secure: true
     });
 
@@ -43,12 +60,9 @@ function initCloudinary() {
   }
 }
 
-// Initialize on module load if config is available
-if (checkCloudinaryConfig()) {
-  initCloudinary();
-} else {
-  console.log('ℹ️  Cloudinary not configured, using local storage');
-}
+// DO NOT initialize on module load - Railway will try to resolve secrets during build
+// Only initialize when actually needed (at runtime)
+// This prevents Railway from trying to resolve CLOUDINARY_* secrets during build phase
 
 /**
  * Upload image to Cloudinary

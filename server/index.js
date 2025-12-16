@@ -499,5 +499,14 @@ app.delete('/api/gallery/:id', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Uploads directory: ${uploadsDir}`);
+  
+  // Initialize Cloudinary check at runtime (not during build)
+  // This prevents Railway from trying to resolve secrets during build phase
+  const { checkCloudinaryConfig, initCloudinary } = require('./cloudinary');
+  if (checkCloudinaryConfig()) {
+    initCloudinary();
+  } else {
+    console.log('ℹ️  Cloudinary not configured, using local storage');
+  }
 });
 

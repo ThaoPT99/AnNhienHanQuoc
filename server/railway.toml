@@ -1,0 +1,11 @@
+# Railway configuration
+# This file helps Railway understand the project structure
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "node index.js"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
