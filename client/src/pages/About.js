@@ -6,8 +6,27 @@ const About = () => {
   return (
     <div className="about-page">
       <div className="page-header">
-        <h1>Về chúng tôi</h1>
-        <p>Du học An Nhiên - Đồng hành cùng ước mơ của bạn</p>
+        <div className="header-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="header-emoji">🇰🇷</div>
+          <h1 className="header-title">
+            <span className="gradient-text-header">Về chúng tôi</span>
+          </h1>
+          <p className="header-subtitle">
+            <span className="subtitle-icon">💭</span>
+            Du học An Nhiên - Đồng hành cùng ước mơ của bạn
+            <span className="subtitle-icon">💭</span>
+          </p>
+        </motion.div>
       </div>
 
       <section className="about-section section">
@@ -19,17 +38,26 @@ const About = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2>Chúng tôi là ai?</h2>
-            <p>
-              Du học An Nhiên là công ty tư vấn du học Hàn Quốc chuyên nghiệp với nhiều năm kinh nghiệm 
-              trong lĩnh vực giáo dục quốc tế. Chúng tôi tự hào đã đồng hành cùng hàng nghìn học sinh, 
-              sinh viên Việt Nam thực hiện ước mơ du học tại xứ sở Kim Chi.
-            </p>
-            <p>
-              Với đội ngũ tư vấn viên giàu kinh nghiệm, am hiểu sâu sắc về văn hóa và hệ thống giáo dục 
-              Hàn Quốc, chúng tôi cam kết mang đến dịch vụ tư vấn chất lượng cao, hỗ trợ toàn diện từ 
-              khâu chuẩn bị hồ sơ đến khi các bạn đặt chân đến Hàn Quốc.
-            </p>
+            <div className="about-text-header">
+              <span className="about-emoji">👋</span>
+              <h2 className="about-title">
+                <span className="title-highlight">Chúng tôi</span> là ai?
+              </h2>
+            </div>
+            <div className="about-paragraph-wrapper">
+              <p className="about-paragraph">
+                <span className="paragraph-icon">🎓</span>
+                Du học An Nhiên là công ty tư vấn du học Hàn Quốc chuyên nghiệp với nhiều năm kinh nghiệm 
+                trong lĩnh vực giáo dục quốc tế. Chúng tôi tự hào đã đồng hành cùng hàng nghìn học sinh, 
+                sinh viên Việt Nam thực hiện ước mơ du học tại xứ sở Kim Chi.
+              </p>
+              <p className="about-paragraph">
+                <span className="paragraph-icon">💼</span>
+                Với đội ngũ tư vấn viên giàu kinh nghiệm, am hiểu sâu sắc về văn hóa và hệ thống giáo dục 
+                Hàn Quốc, chúng tôi cam kết mang đến dịch vụ tư vấn chất lượng cao, hỗ trợ toàn diện từ 
+                khâu chuẩn bị hồ sơ đến khi các bạn đặt chân đến Hàn Quốc.
+              </p>
+            </div>
           </motion.div>
           
           <motion.div
@@ -52,83 +80,148 @@ const About = () => {
         <div className="section">
           <h2 className="section-title">Giá trị cốt lõi</h2>
           <div className="values-grid">
-            <motion.div
-              className="value-card"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="value-icon">💎</div>
-              <h3>Uy tín</h3>
-              <p>Xây dựng niềm tin qua chất lượng dịch vụ và sự minh bạch</p>
+          <motion.div
+            className="value-card"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            whileHover={{ scale: 1.05, rotate: 1 }}
+          >
+              <div className="value-icon-wrapper">
+                <div className="value-icon">💎</div>
+                <div className="value-icon-glow"></div>
+              </div>
+              <h3 className="value-title">Uy tín</h3>
+              <p className="value-description">Xây dựng niềm tin qua chất lượng dịch vụ và sự minh bạch</p>
+              <div className="value-badge">Trusted</div>
             </motion.div>
             
             <motion.div
               className="value-card"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
+              whileHover={{ scale: 1.05, rotate: -1 }}
             >
-              <div className="value-icon">🎯</div>
-              <h3>Chuyên nghiệp</h3>
-              <p>Đội ngũ được đào tạo bài bản, quy trình làm việc chuyên nghiệp</p>
+              <div className="value-icon-wrapper">
+                <div className="value-icon">🎯</div>
+                <div className="value-icon-glow"></div>
+              </div>
+              <h3 className="value-title">Chuyên nghiệp</h3>
+              <p className="value-description">Đội ngũ được đào tạo bài bản, quy trình làm việc chuyên nghiệp</p>
+              <div className="value-badge">Pro</div>
             </motion.div>
             
             <motion.div
               className="value-card"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.05, rotate: 1 }}
             >
-              <div className="value-icon">❤️</div>
-              <h3>Tận tâm</h3>
-              <p>Luôn đặt lợi ích của học sinh lên hàng đầu</p>
+              <div className="value-icon-wrapper">
+                <div className="value-icon">❤️</div>
+                <div className="value-icon-glow"></div>
+              </div>
+              <h3 className="value-title">Tận tâm</h3>
+              <p className="value-description">Luôn đặt lợi ích của học sinh lên hàng đầu</p>
+              <div className="value-badge">Caring</div>
             </motion.div>
             
             <motion.div
               className="value-card"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
+              whileHover={{ scale: 1.05, rotate: -1 }}
             >
-              <div className="value-icon">🚀</div>
-              <h3>Đổi mới</h3>
-              <p>Không ngừng cập nhật thông tin và cải thiện dịch vụ</p>
+              <div className="value-icon-wrapper">
+                <div className="value-icon">🚀</div>
+                <div className="value-icon-glow"></div>
+              </div>
+              <h3 className="value-title">Đổi mới</h3>
+              <p className="value-description">Không ngừng cập nhật thông tin và cải thiện dịch vụ</p>
+              <div className="value-badge">Innovative</div>
             </motion.div>
           </div>
         </div>
       </section>
 
       <section className="contact-info-section section">
+        <div className="contact-info-background">
+          <div className="contact-blob contact-blob-1"></div>
+          <div className="contact-blob contact-blob-2"></div>
+        </div>
         <div className="contact-info-card">
-          <h2>Thông tin liên hệ</h2>
-          <div className="contact-details">
-            <div className="contact-item">
-              <span className="contact-icon">📍</span>
-              <div>
-                <h4>Địa chỉ</h4>
-                <p>219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</p>
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="contact-header">
+              <span className="contact-header-icon">💬</span>
+              <h2 className="contact-title">Thông tin liên hệ</h2>
+              <span className="contact-header-icon">💬</span>
             </div>
-            <div className="contact-item">
-              <span className="contact-icon">📞</span>
-              <div>
-                <h4>Điện thoại</h4>
-                <p><a href="tel:0961321930">0961321930</a></p>
-              </div>
+            <div className="contact-details">
+              <motion.div
+                className="contact-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="contact-icon-wrapper">
+                  <span className="contact-icon">📍</span>
+                  <div className="contact-icon-pulse"></div>
+                </div>
+                <div>
+                  <h4>Địa chỉ</h4>
+                  <p>219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</p>
+                </div>
+              </motion.div>
+              <motion.div
+                className="contact-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="contact-icon-wrapper">
+                  <span className="contact-icon">📞</span>
+                  <div className="contact-icon-pulse"></div>
+                </div>
+                <div>
+                  <h4>Điện thoại</h4>
+                  <p><a href="tel:0961321930">0961321930</a></p>
+                </div>
+              </motion.div>
+              <motion.div
+                className="contact-item"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="contact-icon-wrapper">
+                  <span className="contact-icon">📧</span>
+                  <div className="contact-icon-pulse"></div>
+                </div>
+                <div>
+                  <h4>Email</h4>
+                  <p><a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
+                </div>
+              </motion.div>
             </div>
-            <div className="contact-item">
-              <span className="contact-icon">📧</span>
-              <div>
-                <h4>Email</h4>
-                <p><a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>
