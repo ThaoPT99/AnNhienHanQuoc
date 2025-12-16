@@ -44,5 +44,33 @@
     <priority>0.8</priority>
   </url>
   
+  <!-- Blog Page -->
+  <url>
+    <loc>https://duhocannhien.vercel.app/blog</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Blog Posts -->
+  <url>
+    <loc>https://duhocannhien.vercel.app/blog/huong-dan-du-hoc-han-quoc-2024</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://duhocannhien.vercel.app/blog/chi-phi-du-hoc-han-quoc</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://duhocannhien.vercel.app/blog/hoc-bong-du-hoc-han-quoc</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
 </urlset>
 

@@ -21,6 +21,7 @@ const Navbar = () => {
     { path: '/about', label: 'Về chúng tôi', icon: '👥' },
     { path: '/services', label: 'Dịch vụ', icon: '🎯' },
     { path: '/gallery', label: 'Thư viện ảnh', icon: '📸' },
+    { path: '/blog', label: 'Blog', icon: '📚' },
     { path: '/contact', label: 'Liên hệ', icon: '💬' }
   ];
 
