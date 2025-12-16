@@ -1,21 +1,51 @@
-const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const path = require('path');
 
-// Configure Cloudinary if credentials are provided
-const isCloudinaryConfigured = 
-  process.env.CLOUDINARY_CLOUD_NAME && 
-  process.env.CLOUDINARY_API_KEY && 
-  process.env.CLOUDINARY_API_SECRET;
+// Lazy load cloudinary only if configured
+let cloudinary = null;
+let isCloudinaryConfigured = false;
 
-if (isCloudinaryConfigured) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true
-  });
-  console.log('✅ Cloudinary configured successfully');
+// Check if Cloudinary credentials are provided (without requiring the package)
+function checkCloudinaryConfig() {
+  return !!(
+    process.env.CLOUDINARY_CLOUD_NAME && 
+    process.env.CLOUDINARY_API_KEY && 
+    process.env.CLOUDINARY_API_SECRET
+  );
+}
+
+// Initialize Cloudinary only when needed
+function initCloudinary() {
+  if (!checkCloudinaryConfig()) {
+    return false;
+  }
+
+  try {
+    // Lazy require - only load when actually needed
+    if (!cloudinary) {
+      cloudinary = require('cloudinary').v2;
+    }
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true
+    });
+
+    isCloudinaryConfigured = true;
+    console.log('✅ Cloudinary configured successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to initialize Cloudinary:', error.message);
+    isCloudinaryConfigured = false;
+    return false;
+  }
+}
+
+// Initialize on module load if config is available
+if (checkCloudinaryConfig()) {
+  initCloudinary();
 } else {
   console.log('ℹ️  Cloudinary not configured, using local storage');
 }
@@ -27,7 +57,7 @@ if (isCloudinaryConfigured) {
  * @returns {Promise<Object>} Cloudinary upload result
  */
 async function uploadToCloudinary(filePath, folder = 'gallery') {
-  if (!isCloudinaryConfigured) {
+  if (!initCloudinary()) {
     throw new Error('Cloudinary is not configured');
   }
 
@@ -66,7 +96,7 @@ async function uploadToCloudinary(filePath, folder = 'gallery') {
  * @returns {Promise<Object>} Cloudinary upload result
  */
 async function uploadBufferToCloudinary(buffer, filename, folder = 'gallery') {
-  if (!isCloudinaryConfigured) {
+  if (!initCloudinary()) {
     throw new Error('Cloudinary is not configured');
   }
 
@@ -111,7 +141,7 @@ async function uploadBufferToCloudinary(buffer, filename, folder = 'gallery') {
  * @returns {Promise<Object>} Deletion result
  */
 async function deleteFromCloudinary(publicId) {
-  if (!isCloudinaryConfigured) {
+  if (!initCloudinary()) {
     throw new Error('Cloudinary is not configured');
   }
 
@@ -146,8 +176,17 @@ function extractPublicId(url) {
   }
 }
 
+// Export getter function to check if configured
+function getIsCloudinaryConfigured() {
+  return isCloudinaryConfigured || checkCloudinaryConfig();
+}
+
 module.exports = {
-  isCloudinaryConfigured,
+  get isCloudinaryConfigured() {
+    return getIsCloudinaryConfigured();
+  },
+  checkCloudinaryConfig,
+  initCloudinary,
   uploadToCloudinary,
   uploadBufferToCloudinary,
   deleteFromCloudinary,

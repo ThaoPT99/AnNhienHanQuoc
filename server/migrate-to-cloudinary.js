@@ -13,11 +13,12 @@
 
 require('dotenv').config();
 const { dbHelpers } = require('./database');
-const { uploadToCloudinary, isCloudinaryConfigured } = require('./cloudinary');
+const { uploadToCloudinary, isCloudinaryConfigured: getIsCloudinaryConfigured } = require('./cloudinary');
 const fs = require('fs');
 const path = require('path');
 
 async function migrateImages() {
+  const isCloudinaryConfigured = getIsCloudinaryConfigured;
   if (!isCloudinaryConfigured) {
     console.error('❌ Cloudinary is not configured!');
     console.error('Please set the following environment variables:');

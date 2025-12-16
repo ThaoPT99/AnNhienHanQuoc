@@ -7,7 +7,8 @@ const path = require('path');
 const fs = require('fs');
 const { dbHelpers } = require('./database');
 const { 
-  isCloudinaryConfigured, 
+  isCloudinaryConfigured,
+  checkCloudinaryConfig,
   uploadToCloudinary, 
   uploadBufferToCloudinary,
   deleteFromCloudinary,
@@ -331,7 +332,7 @@ app.post('/api/gallery', async (req, res, next) => {
     const fileBuffer = fs.readFileSync(req.file.path);
     
     // Try to upload to Cloudinary first, fallback to local
-    if (isCloudinaryConfigured) {
+    if (checkCloudinaryConfig()) {
       try {
         const cloudinaryResult = await uploadBufferToCloudinary(
           fileBuffer, 
@@ -404,7 +405,7 @@ app.post('/api/gallery', async (req, res, next) => {
         fs.unlinkSync(req.file.path);
       }
       // If Cloudinary upload succeeded but DB failed, try to delete from Cloudinary
-      if (isCloudinaryConfigured && imageData.file_path && !imageData.file_path.includes('/') && !imageData.file_path.includes('\\')) {
+      if (checkCloudinaryConfig() && imageData.file_path && !imageData.file_path.includes('/') && !imageData.file_path.includes('\\')) {
         try {
           await deleteFromCloudinary(imageData.file_path);
         } catch (deleteError) {
@@ -418,7 +419,7 @@ app.post('/api/gallery', async (req, res, next) => {
       id: image.id, 
       message: req.file ? 'Image uploaded successfully' : 'Image added successfully',
       url: imageData.url,
-      storage: isCloudinaryConfigured && req.file ? 'cloudinary' : 'local'
+      storage: checkCloudinaryConfig() && req.file ? 'cloudinary' : 'local'
     });
   });
 });
@@ -460,7 +461,7 @@ app.delete('/api/gallery/:id', async (req, res) => {
     }
 
     // Delete from Cloudinary if it's a Cloudinary image
-    if (isCloudinaryConfigured && result.file_path) {
+    if (checkCloudinaryConfig() && result.file_path) {
       // Check if file_path is a Cloudinary public_id (doesn't contain path separators)
       if (!result.file_path.includes('/') && !result.file_path.includes('\\')) {
         try {
