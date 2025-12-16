@@ -211,10 +211,52 @@ const dbHelpers = {
   },
 
   updateGalleryImage: (id, image, callback) => {
-    const { title, category, description } = image;
+    const { title, category, description, url, file_path, file_size, mime_type } = image;
+    
+    // Build dynamic update query based on provided fields
+    const updates = [];
+    const values = [];
+    
+    if (title !== undefined) {
+      updates.push('title = ?');
+      values.push(title);
+    }
+    if (category !== undefined) {
+      updates.push('category = ?');
+      values.push(category);
+    }
+    if (description !== undefined) {
+      updates.push('description = ?');
+      values.push(description);
+    }
+    if (url !== undefined) {
+      updates.push('url = ?');
+      values.push(url);
+    }
+    if (file_path !== undefined) {
+      updates.push('file_path = ?');
+      values.push(file_path);
+    }
+    if (file_size !== undefined) {
+      updates.push('file_size = ?');
+      values.push(file_size);
+    }
+    if (mime_type !== undefined) {
+      updates.push('mime_type = ?');
+      values.push(mime_type);
+    }
+    
+    if (updates.length === 0) {
+      callback(new Error('No fields to update'), null);
+      return;
+    }
+    
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+    
     db.run(
-      'UPDATE gallery SET title = ?, category = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [title, category, description, id],
+      `UPDATE gallery SET ${updates.join(', ')} WHERE id = ?`,
+      values,
       function(err) {
         if (err) {
           callback(err, null);

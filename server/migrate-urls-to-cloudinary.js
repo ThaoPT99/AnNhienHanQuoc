@@ -13,7 +13,7 @@
 
 require('dotenv').config();
 const { dbHelpers } = require('./database');
-const { uploadBufferToCloudinary, isCloudinaryConfigured: getIsCloudinaryConfigured, initCloudinary } = require('./cloudinary');
+const { uploadBufferToCloudinary, checkCloudinaryConfig, initCloudinary } = require('./cloudinary');
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
@@ -43,8 +43,7 @@ async function downloadImage(url) {
 }
 
 async function migrateImages() {
-  const isCloudinaryConfigured = getIsCloudinaryConfigured;
-  if (!isCloudinaryConfigured) {
+  if (!checkCloudinaryConfig()) {
     console.error('❌ Cloudinary is not configured!');
     console.error('Please set the following environment variables:');
     console.error('  - CLOUDINARY_CLOUD_NAME');

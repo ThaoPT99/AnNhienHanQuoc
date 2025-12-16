@@ -13,18 +13,23 @@
 
 require('dotenv').config();
 const { dbHelpers } = require('./database');
-const { uploadToCloudinary, isCloudinaryConfigured: getIsCloudinaryConfigured } = require('./cloudinary');
+const { uploadToCloudinary, checkCloudinaryConfig, initCloudinary } = require('./cloudinary');
 const fs = require('fs');
 const path = require('path');
 
 async function migrateImages() {
-  const isCloudinaryConfigured = getIsCloudinaryConfigured;
-  if (!isCloudinaryConfigured) {
+  if (!checkCloudinaryConfig()) {
     console.error('❌ Cloudinary is not configured!');
     console.error('Please set the following environment variables:');
     console.error('  - CLOUDINARY_CLOUD_NAME');
     console.error('  - CLOUDINARY_API_KEY');
     console.error('  - CLOUDINARY_API_SECRET');
+    process.exit(1);
+  }
+
+  // Initialize Cloudinary
+  if (!initCloudinary()) {
+    console.error('❌ Failed to initialize Cloudinary');
     process.exit(1);
   }
 
