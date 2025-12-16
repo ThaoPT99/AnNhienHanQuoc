@@ -294,7 +294,17 @@ app.get('/api/gallery/:id', (req, res) => {
 });
 
 // Upload new gallery image (supports both file upload and URL)
-app.post('/api/gallery', upload.optional('image'), (req, res) => {
+// Use single() but handle case when no file is provided
+app.post('/api/gallery', (req, res, next) => {
+  // Check if request has file upload
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    // Use multer middleware for file upload
+    upload.single('image')(req, res, next);
+  } else {
+    // Skip multer for JSON requests (URL only)
+    next();
+  }
+}, (req, res) => {
   const { title, category, description, url } = req.body;
 
   // Check if file is uploaded or URL is provided
