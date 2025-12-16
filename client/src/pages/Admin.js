@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Admin.css';
 
@@ -6,21 +7,29 @@ const Admin = () => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // Use env if set; fallback to deployed backend to avoid localhost in production
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/api/contacts`);
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        navigate('/admin-login');
+        return;
+      }
+
+      const response = await axios.get(`${API_URL}/api/contacts`, {
+        headers: {
+          'x-admin-token': token,
+        },
+      });
       setContacts(response.data);
       setError(null);
     } catch (err) {
-      setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server.');
+      setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
       console.error('Error fetching contacts:', err);
     } finally {
       setLoading(false);
@@ -30,7 +39,17 @@ const Admin = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa liên hệ này?')) {
       try {
-        await axios.delete(`${API_URL}/api/contacts/${id}`);
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          navigate('/admin-login');
+          return;
+        }
+
+        await axios.delete(`${API_URL}/api/contacts/${id}`, {
+          headers: {
+            'x-admin-token': token,
+          },
+        });
         setContacts(contacts.filter(contact => contact.id !== id));
       } catch (err) {
         alert('Không thể xóa liên hệ. Vui lòng thử lại.');
@@ -50,11 +69,19 @@ const Admin = () => {
     });
   };
 
+  useEffect(() => {
+    fetchContacts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="admin-page">
       <div className="admin-header">
         <h1>Quản lý thông tin liên hệ</h1>
-        <button onClick={fetchContacts} className="refresh-btn">🔄 Làm mới</button>
+        <div className="admin-actions">
+          <button onClick={fetchContacts} className="refresh-btn">🔄 Làm mới</button>
+          <button onClick={() => navigate('/admin-gallery')} className="refresh-btn">🖼 Quản lý thư viện ảnh</button>
+        </div>
       </div>
 
       <div className="admin-content">
@@ -69,7 +96,7 @@ const Admin = () => {
             <table className="contacts-table">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>STT</th>
                   <th>Họ và tên</th>
                   <th>Email</th>
                   <th>Số điện thoại</th>
@@ -79,9 +106,9 @@ const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {contacts.map((contact) => (
+                {contacts.map((contact, index) => (
                   <tr key={contact.id}>
-                    <td>{contact.id}</td>
+                    <td>{index + 1}</td>
                     <td>{contact.name}</td>
                     <td>
                       <a href={`mailto:${contact.email}`}>{contact.email}</a>

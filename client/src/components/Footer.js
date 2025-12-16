@@ -16,7 +16,6 @@ const Footer = () => {
             <h4>Liên hệ</h4>
             <p>📍 219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</p>
             <p>📞 <a href="tel:0961321930">0961321930</a></p>
-            <p>📧 <a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a></p>
           </div>
           
           <div className="footer-section">
