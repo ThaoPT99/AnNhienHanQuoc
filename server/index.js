@@ -2,90 +2,102 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3').verbose();
+const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const { dbHelpers } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS: allow deployed frontend + local dev
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'https://duhocannhien.vercel.app',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000'
-].filter(Boolean);
-
+// Middleware
 app.use(cors({
-  origin: (origin, callback) => {
-    // allow requests with no origin (e.g. mobile apps, curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('CORS not allowed for this origin'));
-  },
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Simple admin auth config (set these in environment variables in production)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'anhien123'; // nên đổi trong env
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'simple-admin-token-change-in-env';
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads', 'gallery');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
-// Admin login route
-app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body;
-
-  if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-    return res.json({ token: ADMIN_TOKEN });
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'gallery-' + uniqueSuffix + ext);
   }
-
-  return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng' });
 });
 
-// Middleware bảo vệ routes admin
-const requireAdmin = (req, res, next) => {
-  const token = req.headers['x-admin-token'];
-  if (!token || token !== ADMIN_TOKEN) {
-    return res.status(401).json({ error: 'Không có quyền truy cập' });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (extname && mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file ảnh (jpeg, jpg, png, gif, webp)'));
+    }
   }
-  next();
-};
+});
 
-// Database setup
-const dbPath = path.join(__dirname, 'contacts.db');
-const db = new sqlite3.Database(dbPath);
+// Serve static files (images)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Initialize database
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    message TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS gallery (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    url TEXT NOT NULL,
-    category TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Routes
 // Get all contacts (for admin)
-app.get('/api/contacts', requireAdmin, (req, res) => {
-  db.all('SELECT * FROM contacts ORDER BY created_at DESC', (err, rows) => {
+app.get('/api/contacts', (req, res) => {
+  dbHelpers.getAllContacts((err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
     res.json(rows);
+  });
+});
+
+// Get contact by ID
+app.get('/api/contacts/:id', (req, res) => {
+  const id = req.params.id;
+  dbHelpers.getContactById(id, (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!row) {
+      res.status(404).json({ error: 'Contact not found' });
+      return;
+    }
+    res.json(row);
+  });
+});
+
+// Get statistics
+app.get('/api/contacts/stats/summary', (req, res) => {
+  dbHelpers.getStats((err, stats) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(stats);
   });
 });
 
@@ -98,93 +110,173 @@ app.post('/api/contacts', (req, res) => {
     return;
   }
 
-  db.run(
-    'INSERT INTO contacts (name, email, phone, message) VALUES (?, ?, ?, ?)',
-    [name, email, phone, message || ''],
-    function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({ id: this.lastID, message: 'Contact saved successfully' });
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  dbHelpers.createContact({ name, email, phone, message }, (err, contact) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
     }
-  );
+    res.status(201).json({ id: contact.id, message: 'Contact saved successfully' });
+  });
+});
+
+// Update contact status
+app.patch('/api/contacts/:id/status', (req, res) => {
+  const id = req.params.id;
+  const { status } = req.body;
+  
+  const validStatuses = ['new', 'read', 'replied', 'archived'];
+  if (!status || !validStatuses.includes(status)) {
+    res.status(400).json({ error: 'Invalid status. Must be one of: ' + validStatuses.join(', ') });
+    return;
+  }
+
+  dbHelpers.updateContactStatus(id, status, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Contact not found' });
+      return;
+    }
+    res.json({ message: 'Contact status updated successfully', ...result });
+  });
 });
 
 // Delete contact
-app.delete('/api/contacts/:id', requireAdmin, (req, res) => {
+app.delete('/api/contacts/:id', (req, res) => {
   const id = req.params.id;
-  db.run('DELETE FROM contacts WHERE id = ?', [id], function(err) {
+  dbHelpers.deleteContact(id, (err, result) => {
     if (err) {
       res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!result.deleted) {
+      res.status(404).json({ error: 'Contact not found' });
       return;
     }
     res.json({ message: 'Contact deleted successfully' });
   });
 });
 
-// Gallery routes
+// Gallery Routes
+// Get all gallery images
 app.get('/api/gallery', (req, res) => {
-  db.all('SELECT * FROM gallery ORDER BY created_at DESC', (err, rows) => {
+  dbHelpers.getAllGalleryImages((err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+    res.json(rows || []);
   });
 });
 
-app.post('/api/gallery', requireAdmin, (req, res) => {
-  const { title, url, category } = req.body;
-  if (!title || !url || !category) {
-    return res.status(400).json({ error: 'Thiếu title, url hoặc category' });
-  }
-
-  db.run(
-    'INSERT INTO gallery (title, url, category) VALUES (?, ?, ?)',
-    [title, url, category],
-    function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({ id: this.lastID, title, url, category });
-    }
-  );
-});
-
-app.put('/api/gallery/:id', requireAdmin, (req, res) => {
-  const { id } = req.params;
-  const { title, url, category } = req.body;
-  if (!title || !url || !category) {
-    return res.status(400).json({ error: 'Thiếu title, url hoặc category' });
-  }
-
-  db.run(
-    'UPDATE gallery SET title = ?, url = ?, category = ? WHERE id = ?',
-    [title, url, category, id],
-    function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({ id, title, url, category });
-    }
-  );
-});
-
-app.delete('/api/gallery/:id', requireAdmin, (req, res) => {
-  const { id } = req.params;
-  db.run('DELETE FROM gallery WHERE id = ?', [id], function(err) {
+// Get gallery image by ID
+app.get('/api/gallery/:id', (req, res) => {
+  const id = req.params.id;
+  dbHelpers.getGalleryImageById(id, (err, row) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json({ message: 'Xóa ảnh thành công' });
+    if (!row) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+    res.json(row);
+  });
+});
+
+// Upload new gallery image
+app.post('/api/gallery', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: 'No image file provided' });
+    return;
+  }
+
+  const { title, category, description } = req.body;
+  const filePath = `/uploads/gallery/${req.file.filename}`;
+  const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+
+  const imageData = {
+    title: title || null,
+    url: fullUrl,
+    category: category || 'Khác',
+    description: description || null,
+    file_path: req.file.path,
+    file_size: req.file.size,
+    mime_type: req.file.mimetype
+  };
+
+  dbHelpers.createGalleryImage(imageData, (err, image) => {
+    if (err) {
+      // Delete uploaded file if database insert fails
+      fs.unlinkSync(req.file.path);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json({ 
+      id: image.id, 
+      message: 'Image uploaded successfully',
+      url: fullUrl
+    });
+  });
+});
+
+// Update gallery image (metadata only, not the file)
+app.patch('/api/gallery/:id', (req, res) => {
+  const id = req.params.id;
+  const { title, category, description } = req.body;
+
+  if (!title && !category && !description) {
+    res.status(400).json({ error: 'At least one field (title, category, description) is required' });
+    return;
+  }
+
+  dbHelpers.updateGalleryImage(id, { title, category, description }, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+    res.json({ message: 'Image updated successfully', ...result });
+  });
+});
+
+// Delete gallery image
+app.delete('/api/gallery/:id', (req, res) => {
+  const id = req.params.id;
+  dbHelpers.deleteGalleryImage(id, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!result.deleted) {
+      res.status(404).json({ error: 'Image not found' });
+      return;
+    }
+
+    // Delete the physical file
+    if (result.file_path && fs.existsSync(result.file_path)) {
+      fs.unlinkSync(result.file_path);
+    }
+
+    res.json({ message: 'Image deleted successfully' });
   });
 });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Uploads directory: ${uploadsDir}`);
 });
 
