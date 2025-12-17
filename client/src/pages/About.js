@@ -89,8 +89,8 @@ const About = () => {
             transition={{ duration: 0.6 }}
           >
             <img 
-              src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop&q=80" 
-              alt="Văn phòng tư vấn du học"
+              src="https://res.cloudinary.com/dy84xpayv/image/upload/v1765942857/z7335282956837_dccc007a84cec34742579005d959eaec_j7sjs7.jpg" 
+              alt="Hội thảo du học Hàn Quốc - Du học An Nhiên"
               className="about-img"
             />
           </motion.div>
