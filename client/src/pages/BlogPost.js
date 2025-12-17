@@ -10,6 +10,7 @@ const BlogPost = () => {
   const blogPosts = {
     'huong-dan-du-hoc-han-quoc-2025': {
       title: 'Hướng dẫn du học Hàn Quốc 2025: Tất cả những gì bạn cần biết',
+      excerpt: 'Tìm hiểu chi tiết về quy trình du học Hàn Quốc, điều kiện, chi phí và kinh nghiệm từ các du học sinh. Hướng dẫn đầy đủ từ A-Z cho những ai muốn du học tại xứ sở Kim Chi.',
       date: '15/01/2025',
       category: 'Hướng dẫn',
       readTime: '10 phút đọc',
@@ -68,6 +69,7 @@ const BlogPost = () => {
     },
     'chi-phi-du-hoc-han-quoc': {
       title: 'Chi phí du học Hàn Quốc: Bảng giá chi tiết 2025',
+      excerpt: 'Phân tích chi tiết các khoản chi phí khi du học Hàn Quốc: học phí, sinh hoạt phí, nhà ở và cách tiết kiệm. Bảng giá cập nhật mới nhất năm 2025.',
       date: '12/01/2025',
       category: 'Tài chính',
       readTime: '8 phút đọc',
@@ -125,6 +127,7 @@ const BlogPost = () => {
     },
     'hoc-bong-du-hoc-han-quoc': {
       title: 'Top 10 học bổng du học Hàn Quốc dành cho sinh viên Việt Nam',
+      excerpt: 'Danh sách các học bổng hấp dẫn từ chính phủ Hàn Quốc và các trường đại học hàng đầu. Hướng dẫn cách xin học bổng hiệu quả và tăng tỷ lệ thành công.',
       date: '10/01/2025',
       category: 'Học bổng',
       readTime: '12 phút đọc',
@@ -177,6 +180,7 @@ const BlogPost = () => {
     },
     'kinh-nghiem-xin-visa-han-quoc': {
       title: 'Kinh nghiệm xin visa du học Hàn Quốc: Tránh những lỗi thường gặp',
+      excerpt: 'Chia sẻ kinh nghiệm thực tế về quy trình xin visa, các giấy tờ cần thiết và cách tăng tỷ lệ thành công. Tránh những lỗi phổ biến khi xin visa D-2.',
       date: '08/01/2025',
       category: 'Visa',
       readTime: '9 phút đọc',
@@ -248,6 +252,7 @@ const BlogPost = () => {
     },
     'cuoc-song-du-hoc-sinh-han-quoc': {
       title: 'Cuộc sống du học sinh tại Hàn Quốc: Những điều bạn chưa biết',
+      excerpt: 'Khám phá cuộc sống thực tế của du học sinh Việt Nam tại Hàn Quốc: văn hóa, ẩm thực, làm thêm và kết bạn. Những trải nghiệm chân thực từ các du học sinh.',
       date: '05/01/2025',
       category: 'Trải nghiệm',
       readTime: '11 phút đọc',
@@ -335,6 +340,7 @@ const BlogPost = () => {
     },
     'chon-truong-du-hoc-han-quoc': {
       title: 'Cách chọn trường đại học phù hợp khi du học Hàn Quốc',
+      excerpt: 'Hướng dẫn chi tiết cách chọn trường dựa trên ngành học, vị trí, học phí và cơ hội việc làm sau tốt nghiệp. Tiêu chí và quy trình chọn trường đúng đắn.',
       date: '03/01/2025',
       category: 'Tư vấn',
       readTime: '10 phút đọc',
@@ -432,26 +438,51 @@ const BlogPost = () => {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": post.title,
+    "description": post.excerpt || `${post.title} - Du học An Nhiên`,
     "datePublished": post.date,
+    "dateModified": post.date,
     "author": {
       "@type": "Organization",
-      "name": "Du học An Nhiên"
+      "name": "Du học An Nhiên",
+      "url": "https://duhocannhien.vercel.app"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Du học An Nhiên"
+      "name": "Du học An Nhiên",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://duhocannhien.vercel.app/logo.png"
+      }
     },
-    "image": post.image
+    "image": {
+      "@type": "ImageObject",
+      "url": post.image,
+      "width": 1200,
+      "height": 630
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://duhocannhien.vercel.app/blog/${slug}`
+    },
+    "articleSection": post.category,
+    "keywords": `${post.category}, du học Hàn Quốc, ${post.title}`
   };
 
   return (
     <div className="blog-post-page">
       <SEO
         title={post.title}
-        description={`${post.title} - Du học An Nhiên`}
-        keywords={`${post.category}, du học Hàn Quốc, ${post.title}`}
+        description={post.excerpt || `${post.title} - Tìm hiểu chi tiết về du học Hàn Quốc với Du học An Nhiên. ${post.title}`}
+        keywords={`${post.category}, du học Hàn Quốc, ${post.title}, tư vấn du học, du học An Nhiên`}
         url={`https://duhocannhien.vercel.app/blog/${slug}`}
         image={post.image}
+        type="article"
+        article={{
+          publishedTime: post.date,
+          author: "Du học An Nhiên",
+          section: post.category,
+          tags: [post.category, "du học Hàn Quốc", "tư vấn du học"]
+        }}
         structuredData={structuredData}
       />
       
@@ -467,7 +498,14 @@ const BlogPost = () => {
         </div>
         
         <div className="post-image-wrapper">
-          <img src={post.image} alt={post.title} className="post-image" />
+          <img 
+            src={post.image} 
+            alt={`${post.title} - Du học An Nhiên`} 
+            className="post-image"
+            loading="lazy"
+            width="900"
+            height="400"
+          />
         </div>
         
         <div className="post-content" dangerouslySetInnerHTML={{ __html: post.content }} />

@@ -9,9 +9,12 @@ const Services = () => {
     "@context": "https://schema.org",
     "@type": "Service",
     "serviceType": "Tư vấn du học Hàn Quốc",
+    "name": "Dịch vụ tư vấn du học Hàn Quốc",
+    "description": "Dịch vụ tư vấn du học Hàn Quốc chuyên nghiệp: Tư vấn chọn trường, làm hồ sơ du học, xin visa, tìm chỗ ở, hỗ trợ đón sân bay và hỗ trợ sau khi nhập cảnh Hàn Quốc",
     "provider": {
       "@type": "EducationalOrganization",
-      "name": "Du học An Nhiên"
+      "name": "Du học An Nhiên",
+      "url": "https://duhocannhien.vercel.app"
     },
     "areaServed": {
       "@type": "Country",
@@ -23,23 +26,56 @@ const Services = () => {
       "itemListElement": [
         {
           "@type": "Offer",
+          "position": 1,
           "itemOffered": {
             "@type": "Service",
-            "name": "Tư vấn chọn trường"
+            "name": "Tư vấn chọn trường",
+            "description": "Tư vấn chọn trường phù hợp với năng lực và nguyện vọng của bạn"
           }
         },
         {
           "@type": "Offer",
+          "position": 2,
           "itemOffered": {
             "@type": "Service",
-            "name": "Làm hồ sơ du học"
+            "name": "Làm hồ sơ du học",
+            "description": "Hỗ trợ chuẩn bị và hoàn thiện hồ sơ du học một cách chuyên nghiệp"
           }
         },
         {
           "@type": "Offer",
+          "position": 3,
           "itemOffered": {
             "@type": "Service",
-            "name": "Xin visa Hàn Quốc"
+            "name": "Luyện thi TOPIK",
+            "description": "Chương trình luyện thi TOPIK hiệu quả với giáo viên giàu kinh nghiệm"
+          }
+        },
+        {
+          "@type": "Offer",
+          "position": 4,
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Hỗ trợ tìm nhà trọ",
+            "description": "Hỗ trợ tìm kiếm chỗ ở phù hợp khi sang Hàn Quốc"
+          }
+        },
+        {
+          "@type": "Offer",
+          "position": 5,
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Hỗ trợ đón sân bay",
+            "description": "Dịch vụ đón tại sân bay và hỗ trợ những ngày đầu tại Hàn Quốc"
+          }
+        },
+        {
+          "@type": "Offer",
+          "position": 6,
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Hỗ trợ sau khi nhập cảnh",
+            "description": "Tiếp tục đồng hành và hỗ trợ bạn sau khi đã nhập cảnh Hàn Quốc"
           }
         }
       ]

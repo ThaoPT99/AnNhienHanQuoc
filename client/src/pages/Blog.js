@@ -123,7 +123,14 @@ const Blog = () => {
             >
               <Link to={`/blog/${post.slug}`} className="blog-card-link">
                 <div className="blog-image-wrapper">
-                  <img src={post.image} alt={post.title} className="blog-image" />
+                  <img 
+                    src={post.image} 
+                    alt={`${post.title} - Du học An Nhiên`} 
+                    className="blog-image"
+                    loading="lazy"
+                    width="400"
+                    height="250"
+                  />
                   <div className="blog-category">{post.category}</div>
                 </div>
                 <div className="blog-content">

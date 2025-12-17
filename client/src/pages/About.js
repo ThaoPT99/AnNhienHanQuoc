@@ -13,7 +13,27 @@ const About = () => {
     "mainEntity": {
       "@type": "EducationalOrganization",
       "name": "Du học An Nhiên",
-      "description": "Đơn vị tư vấn du học Hàn Quốc chuyên nghiệp"
+      "description": "Đơn vị tư vấn du học Hàn Quốc chuyên nghiệp với nhiều năm kinh nghiệm",
+      "url": "https://duhocannhien.vercel.app",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "219 P. Trung Kính, Trung Hòa",
+        "addressLocality": "Cầu Giấy",
+        "addressRegion": "Hà Nội",
+        "addressCountry": "VN"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+84-961-321-930",
+        "contactType": "customer service",
+        "email": "annhienduhochan@gmail.com",
+        "areaServed": "VN",
+        "availableLanguage": "Vietnamese"
+      },
+      "sameAs": [
+        "https://www.facebook.com/duhocannhien/",
+        "https://www.tiktok.com/@hoanghannhat"
+      ]
     }
   };
 
@@ -21,8 +41,8 @@ const About = () => {
     <div className="about-page">
       <SEO
         title="Về chúng tôi - Du học An Nhiên"
-        description="Tìm hiểu về Du học An Nhiên - Đơn vị tư vấn du học Hàn Quốc uy tín với nhiều năm kinh nghiệm, đồng hành cùng hàng nghìn học sinh trên hành trình du học."
-        keywords="về du học An Nhiên, giới thiệu du học Hàn Quốc, công ty tư vấn du học, đơn vị du học uy tín"
+        description="Tìm hiểu về Du học An Nhiên - Đơn vị tư vấn du học Hàn Quốc uy tín với nhiều năm kinh nghiệm, đồng hành cùng hàng nghìn học sinh trên hành trình du học. Đội ngũ tư vấn viên chuyên nghiệp, dịch vụ hỗ trợ toàn diện từ tư vấn đến sau khi nhập cảnh."
+        keywords="về du học An Nhiên, giới thiệu du học Hàn Quốc, công ty tư vấn du học, đơn vị du học uy tín, tư vấn du học Hàn Quốc chuyên nghiệp"
         url="https://duhocannhien.vercel.app/about"
         structuredData={structuredData}
       />
@@ -90,8 +110,11 @@ const About = () => {
           >
             <img 
               src="https://res.cloudinary.com/dy84xpayv/image/upload/v1765942857/z7335282956837_dccc007a84cec34742579005d959eaec_j7sjs7.jpg" 
-              alt="Hội thảo du học Hàn Quốc - Du học An Nhiên"
+              alt="Hội thảo du học Hàn Quốc - Du học An Nhiên - Đội ngũ tư vấn viên chuyên nghiệp"
               className="about-img"
+              loading="lazy"
+              width="800"
+              height="600"
             />
           </motion.div>
         </div>

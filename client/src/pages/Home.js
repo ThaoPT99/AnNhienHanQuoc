@@ -134,8 +134,11 @@ const Home = () => {
           <div className="hero-image-wrapper">
             <img 
               src="https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg"
-              alt="Khuôn viên đại học tại Seoul, Hàn Quốc"
+              alt="Khuôn viên đại học tại Seoul, Hàn Quốc - Du học An Nhiên"
               className="hero-img"
+              loading="lazy"
+              width="800"
+              height="600"
             />
             <div className="hero-image-glow"></div>
             <div className="hero-image-shine"></div>

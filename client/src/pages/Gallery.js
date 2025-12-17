@@ -44,13 +44,26 @@ const Gallery = () => {
     setSelectedImage(null);
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "name": "Thư viện ảnh du học Hàn Quốc",
+    "description": "Thư viện ảnh du học Hàn Quốc - Xem những hình ảnh về cuộc sống, trường học và trải nghiệm của học sinh tại Hàn Quốc",
+    "url": "https://duhocannhien.vercel.app/gallery",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Du học An Nhiên"
+    }
+  };
+
   return (
     <div className="gallery-page">
       <SEO
         title="Thư viện ảnh - Du học An Nhiên"
-        description="Thư viện ảnh du học Hàn Quốc - Xem những hình ảnh về cuộc sống, trường học và trải nghiệm của học sinh tại Hàn Quốc."
-        keywords="ảnh du học Hàn Quốc, hình ảnh du học sinh, thư viện ảnh du học, cuộc sống du học Hàn Quốc"
+        description="Thư viện ảnh du học Hàn Quốc - Xem những hình ảnh về cuộc sống, trường học và trải nghiệm của học sinh tại Hàn Quốc. Khám phá vẻ đẹp của Hàn Quốc qua những bức ảnh chân thực."
+        keywords="ảnh du học Hàn Quốc, hình ảnh du học sinh, thư viện ảnh du học, cuộc sống du học Hàn Quốc, ảnh trường học Hàn Quốc"
         url="https://duhocannhien.vercel.app/gallery"
+        structuredData={structuredData}
       />
       <div className="page-header">
         <div className="header-sparkles">
@@ -118,9 +131,11 @@ const Gallery = () => {
                   <div className="image-wrapper">
                     <img 
                       src={image.url} 
-                      alt={image.title || 'Ảnh thư viện'}
+                      alt={image.title ? `${image.title} - Du học An Nhiên` : `Ảnh thư viện du học Hàn Quốc - Du học An Nhiên`}
                       className="gallery-image"
                       loading="lazy"
+                      width="400"
+                      height="300"
                     />
                     <div className="image-overlay">
                       <div className="overlay-content">
@@ -168,8 +183,11 @@ const Gallery = () => {
               <div className="modal-image-wrapper">
                 <img 
                   src={selectedImage.url} 
-                  alt={selectedImage.alt || selectedImage.title}
+                  alt={selectedImage.alt || selectedImage.title || 'Ảnh thư viện du học Hàn Quốc - Du học An Nhiên'}
                   className="modal-image"
+                  loading="lazy"
+                  width="1200"
+                  height="800"
                 />
                 {selectedImage.title && (
                   <div className="modal-image-title">{selectedImage.title}</div>
