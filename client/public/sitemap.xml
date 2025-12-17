@@ -7,7 +7,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://duhocannhien.vercel.app/</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -15,7 +15,7 @@
   <!-- About Page -->
   <url>
     <loc>https://duhocannhien.vercel.app/about</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -23,7 +23,7 @@
   <!-- Services Page -->
   <url>
     <loc>https://duhocannhien.vercel.app/services</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -31,7 +31,7 @@
   <!-- Gallery Page -->
   <url>
     <loc>https://duhocannhien.vercel.app/gallery</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -39,7 +39,7 @@
   <!-- Contact Page -->
   <url>
     <loc>https://duhocannhien.vercel.app/contact</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -47,27 +47,27 @@
   <!-- Blog Page -->
   <url>
     <loc>https://duhocannhien.vercel.app/blog</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <!-- Blog Posts -->
   <url>
-    <loc>https://duhocannhien.vercel.app/blog/huong-dan-du-hoc-han-quoc-2024</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://duhocannhien.vercel.app/blog/huong-dan-du-hoc-han-quoc-2025</loc>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://duhocannhien.vercel.app/blog/chi-phi-du-hoc-han-quoc</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://duhocannhien.vercel.app/blog/hoc-bong-du-hoc-han-quoc</loc>
-    <lastmod>2024-01-15</lastmod>
+    <lastmod>2025-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

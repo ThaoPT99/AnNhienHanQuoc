@@ -8,9 +8,9 @@ const BlogPost = () => {
   const { slug } = useParams();
 
   const blogPosts = {
-    'huong-dan-du-hoc-han-quoc-2024': {
-      title: 'Hướng dẫn du học Hàn Quốc 2024: Tất cả những gì bạn cần biết',
-      date: '15/01/2024',
+    'huong-dan-du-hoc-han-quoc-2025': {
+      title: 'Hướng dẫn du học Hàn Quốc 2025: Tất cả những gì bạn cần biết',
+      date: '15/01/2025',
       category: 'Hướng dẫn',
       readTime: '10 phút đọc',
       image: 'https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg',
@@ -67,11 +67,11 @@ const BlogPost = () => {
       `
     },
     'chi-phi-du-hoc-han-quoc': {
-      title: 'Chi phí du học Hàn Quốc: Bảng giá chi tiết 2024',
-      date: '12/01/2024',
+      title: 'Chi phí du học Hàn Quốc: Bảng giá chi tiết 2025',
+      date: '12/01/2025',
       category: 'Tài chính',
       readTime: '8 phút đọc',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
+      image: 'https://i.pinimg.com/736x/e5/bb/5f/e5bb5f88257bbe6a76e33dac821206bb.jpg',
       content: `
         <h2>1. Tổng quan về chi phí du học Hàn Quốc</h2>
         <p>Chi phí du học Hàn Quốc là một trong những mối quan tâm hàng đầu của các bạn học sinh và phụ huynh. Bài viết này sẽ phân tích chi tiết từng khoản chi phí để bạn có thể lập kế hoạch tài chính phù hợp.</p>
@@ -125,10 +125,10 @@ const BlogPost = () => {
     },
     'hoc-bong-du-hoc-han-quoc': {
       title: 'Top 10 học bổng du học Hàn Quốc dành cho sinh viên Việt Nam',
-      date: '10/01/2024',
+      date: '10/01/2025',
       category: 'Học bổng',
       readTime: '12 phút đọc',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800',
+      image: 'https://i.pinimg.com/1200x/78/99/2b/78992b4e9e818b9dc9b109c2b55a339f.jpg',
       content: `
         <h2>1. Học bổng Chính phủ Hàn Quốc (KGSP)</h2>
         <p>Học bổng KGSP là học bổng toàn phần danh giá nhất, bao gồm:</p>
@@ -172,6 +172,244 @@ const BlogPost = () => {
           <li>Đạt điểm TOPIK cao</li>
           <li>Có thành tích học tập xuất sắc</li>
           <li>Tham gia hoạt động ngoại khóa</li>
+        </ul>
+      `
+    },
+    'kinh-nghiem-xin-visa-han-quoc': {
+      title: 'Kinh nghiệm xin visa du học Hàn Quốc: Tránh những lỗi thường gặp',
+      date: '08/01/2025',
+      category: 'Visa',
+      readTime: '9 phút đọc',
+      image: 'https://i.pinimg.com/736x/33/1c/df/331cdfced60d0a6c9fa683446d252342.jpg',
+      content: `
+        <h2>1. Tổng quan về visa du học Hàn Quốc</h2>
+        <p>Visa D-2 là loại visa dành cho du học sinh muốn học tập tại Hàn Quốc. Quy trình xin visa có thể phức tạp và tốn thời gian, nhưng với sự chuẩn bị kỹ lưỡng, bạn có thể tăng tỷ lệ thành công.</p>
+        
+        <h2>2. Các loại visa du học</h2>
+        <ul>
+          <li><strong>Visa D-2-1:</strong> Du học hệ Đại học</li>
+          <li><strong>Visa D-2-2:</strong> Du học hệ Thạc sĩ</li>
+          <li><strong>Visa D-2-3:</strong> Du học hệ Tiến sĩ</li>
+          <li><strong>Visa D-2-4:</strong> Nghiên cứu sinh</li>
+        </ul>
+        
+        <h2>3. Giấy tờ cần thiết</h2>
+        <h3>3.1. Giấy tờ bắt buộc</h3>
+        <ul>
+          <li>Đơn xin visa (form có sẵn tại Đại sứ quán)</li>
+          <li>Hộ chiếu còn hạn ít nhất 6 tháng</li>
+          <li>Ảnh thẻ 3.5x4.5cm (nền trắng, chụp trong 6 tháng gần nhất)</li>
+          <li>Thư mời nhập học từ trường đại học Hàn Quốc</li>
+          <li>Bằng tốt nghiệp và bảng điểm (đã dịch thuật và công chứng)</li>
+          <li>Chứng chỉ TOPIK (nếu có)</li>
+        </ul>
+        
+        <h3>3.2. Giấy tờ chứng minh tài chính</h3>
+        <ul>
+          <li>Sổ tiết kiệm tối thiểu 10,000 USD (đã gửi ít nhất 6 tháng)</li>
+          <li>Giấy xác nhận số dư tài khoản ngân hàng</li>
+          <li>Giấy chứng nhận thu nhập của người bảo lãnh</li>
+          <li>Giấy tờ chứng minh quan hệ gia đình</li>
+        </ul>
+        
+        <h2>4. Những lỗi thường gặp và cách tránh</h2>
+        <h3>4.1. Lỗi về giấy tờ</h3>
+        <ul>
+          <li><strong>Thiếu giấy tờ:</strong> Luôn kiểm tra danh sách đầy đủ trước khi nộp</li>
+          <li><strong>Giấy tờ hết hạn:</strong> Đảm bảo tất cả giấy tờ còn hiệu lực</li>
+          <li><strong>Dịch thuật sai:</strong> Sử dụng dịch vụ dịch thuật có uy tín</li>
+        </ul>
+        
+        <h3>4.2. Lỗi về tài chính</h3>
+        <ul>
+          <li><strong>Sổ tiết kiệm chưa đủ thời gian:</strong> Phải gửi ít nhất 6 tháng</li>
+          <li><strong>Số tiền không đủ:</strong> Đảm bảo có ít nhất 10,000 USD</li>
+          <li><strong>Nguồn tiền không rõ ràng:</strong> Có giấy tờ chứng minh nguồn gốc</li>
+        </ul>
+        
+        <h2>5. Quy trình nộp hồ sơ</h2>
+        <ol>
+          <li>Chuẩn bị đầy đủ giấy tờ theo danh sách</li>
+          <li>Đặt lịch hẹn với Đại sứ quán Hàn Quốc</li>
+          <li>Nộp hồ sơ và phí visa</li>
+          <li>Phỏng vấn (nếu được yêu cầu)</li>
+          <li>Nhận kết quả (thường sau 5-7 ngày làm việc)</li>
+        </ol>
+        
+        <h2>6. Mẹo tăng tỷ lệ thành công</h2>
+        <ul>
+          <li>Chuẩn bị hồ sơ đầy đủ và chính xác</li>
+          <li>Đảm bảo tài chính rõ ràng và đủ điều kiện</li>
+          <li>Có kế hoạch học tập cụ thể</li>
+          <li>Thể hiện mục đích du học rõ ràng trong phỏng vấn</li>
+          <li>Chuẩn bị trả lời các câu hỏi về kế hoạch sau tốt nghiệp</li>
+        </ul>
+      `
+    },
+    'cuoc-song-du-hoc-sinh-han-quoc': {
+      title: 'Cuộc sống du học sinh tại Hàn Quốc: Những điều bạn chưa biết',
+      date: '05/01/2025',
+      category: 'Trải nghiệm',
+      readTime: '11 phút đọc',
+      image: 'https://i.pinimg.com/736x/76/91/8d/76918dfd976a25f56f925e8d233ff185.jpg',
+      content: `
+        <h2>1. Văn hóa và lối sống</h2>
+        <p>Hàn Quốc có nền văn hóa độc đáo với nhiều điểm khác biệt so với Việt Nam. Việc hiểu và thích nghi với văn hóa Hàn Quốc sẽ giúp bạn có trải nghiệm du học tốt hơn.</p>
+        
+        <h3>1.1. Văn hóa tôn trọng người lớn tuổi</h3>
+        <ul>
+          <li>Luôn chào hỏi và cúi đầu khi gặp người lớn tuổi</li>
+          <li>Sử dụng kính ngữ khi nói chuyện</li>
+          <li>Không được gọi tên trực tiếp người lớn tuổi</li>
+        </ul>
+        
+        <h3>1.2. Văn hóa làm việc nhóm</h3>
+        <ul>
+          <li>Người Hàn rất coi trọng tinh thần đoàn kết</li>
+          <li>Tham gia các hoạt động nhóm là cách tốt để kết bạn</li>
+          <li>Học cách làm việc nhóm hiệu quả</li>
+        </ul>
+        
+        <h2>2. Ẩm thực Hàn Quốc</h2>
+        <p>Ẩm thực Hàn Quốc rất đa dạng và phong phú. Từ các món truyền thống đến các món hiện đại, bạn sẽ có nhiều lựa chọn.</p>
+        
+        <h3>2.1. Món ăn phổ biến</h3>
+        <ul>
+          <li><strong>Kimchi:</strong> Món ăn truyền thống không thể thiếu</li>
+          <li><strong>Bibimbap:</strong> Cơm trộn với nhiều loại rau</li>
+          <li><strong>Bulgogi:</strong> Thịt nướng kiểu Hàn</li>
+          <li><strong>Kimbap:</strong> Cơm cuộn rong biển</li>
+        </ul>
+        
+        <h3>2.2. Chi phí ăn uống</h3>
+        <ul>
+          <li>Ăn ở căng tin trường: 3,000 - 5,000 KRW/bữa</li>
+          <li>Ăn ở nhà hàng: 8,000 - 15,000 KRW/bữa</li>
+          <li>Tự nấu ăn: Tiết kiệm hơn nhiều</li>
+        </ul>
+        
+        <h2>3. Làm thêm</h2>
+        <p>Du học sinh được phép làm thêm tối đa 20 giờ/tuần trong học kỳ và toàn thời gian trong kỳ nghỉ.</p>
+        
+        <h3>3.1. Các công việc phổ biến</h3>
+        <ul>
+          <li>Phục vụ nhà hàng, quán cà phê</li>
+          <li>Dạy tiếng Việt cho người Hàn</li>
+          <li>Làm tại cửa hàng tiện lợi</li>
+          <li>Phiên dịch, biên dịch</li>
+        </ul>
+        
+        <h3>3.2. Mức lương</h3>
+        <ul>
+          <li>Lương tối thiểu: 9,860 KRW/giờ (2025)</li>
+          <li>Lương trung bình: 10,000 - 15,000 KRW/giờ</li>
+          <li>Dạy tiếng: 20,000 - 30,000 KRW/giờ</li>
+        </ul>
+        
+        <h2>4. Kết bạn và hòa nhập</h2>
+        <p>Việc kết bạn và hòa nhập với cộng đồng là rất quan trọng để có trải nghiệm du học tốt.</p>
+        
+        <h3>4.1. Cách kết bạn</h3>
+        <ul>
+          <li>Tham gia các câu lạc bộ của trường</li>
+          <li>Tham gia các sự kiện văn hóa</li>
+          <li>Tham gia các hoạt động tình nguyện</li>
+          <li>Tham gia các nhóm du học sinh Việt Nam</li>
+        </ul>
+        
+        <h2>5. Khó khăn và cách vượt qua</h2>
+        <h3>5.1. Rào cản ngôn ngữ</h3>
+        <ul>
+          <li>Học tiếng Hàn trước khi sang</li>
+          <li>Thực hành giao tiếp hàng ngày</li>
+          <li>Tham gia các lớp học tiếng Hàn miễn phí</li>
+        </ul>
+        
+        <h3>5.2. Sốc văn hóa</h3>
+        <ul>
+          <li>Tìm hiểu về văn hóa Hàn Quốc trước khi sang</li>
+          <li>Giữ tinh thần cởi mở và sẵn sàng học hỏi</li>
+          <li>Tìm sự hỗ trợ từ các du học sinh khác</li>
+        </ul>
+      `
+    },
+    'chon-truong-du-hoc-han-quoc': {
+      title: 'Cách chọn trường đại học phù hợp khi du học Hàn Quốc',
+      date: '03/01/2025',
+      category: 'Tư vấn',
+      readTime: '10 phút đọc',
+      image: 'https://i.pinimg.com/736x/f7/4f/d8/f74fd8657a1b433eed6c14efc07182b6.jpg',
+      content: `
+        <h2>1. Xác định mục tiêu và nguyện vọng</h2>
+        <p>Trước khi chọn trường, bạn cần xác định rõ mục tiêu du học của mình: học gì, ở đâu, và muốn đạt được gì sau khi tốt nghiệp.</p>
+        
+        <h3>1.1. Xác định ngành học</h3>
+        <ul>
+          <li>Chọn ngành phù hợp với sở thích và khả năng</li>
+          <li>Nghiên cứu triển vọng nghề nghiệp của ngành</li>
+          <li>Xem xét nhu cầu nhân lực trong tương lai</li>
+        </ul>
+        
+        <h2>2. Tiêu chí chọn trường</h2>
+        <h3>2.1. Chất lượng giáo dục</h3>
+        <ul>
+          <li>Xếp hạng của trường (QS, Times Higher Education)</li>
+          <li>Chất lượng giảng viên</li>
+          <li>Cơ sở vật chất và trang thiết bị</li>
+          <li>Tỷ lệ sinh viên có việc làm sau tốt nghiệp</li>
+        </ul>
+        
+        <h3>2.2. Vị trí địa lý</h3>
+        <ul>
+          <li><strong>Seoul:</strong> Thủ đô, nhiều cơ hội nhưng chi phí cao</li>
+          <li><strong>Busan:</strong> Thành phố lớn thứ 2, chi phí hợp lý hơn</li>
+          <li><strong>Các thành phố khác:</strong> Chi phí thấp, môi trường yên tĩnh</li>
+        </ul>
+        
+        <h3>2.3. Học phí</h3>
+        <ul>
+          <li>Trường công lập: 2,500 - 5,000 USD/năm</li>
+          <li>Trường tư thục: 4,000 - 8,000 USD/năm</li>
+          <li>Trường top đầu: 6,000 - 10,000 USD/năm</li>
+        </ul>
+        
+        <h2>3. Cơ hội học bổng</h2>
+        <p>Nhiều trường đại học Hàn Quốc cung cấp học bổng cho sinh viên quốc tế. Hãy tìm hiểu về các chương trình học bổng trước khi quyết định.</p>
+        
+        <h3>3.1. Các loại học bổng</h3>
+        <ul>
+          <li>Học bổng toàn phần (100% học phí)</li>
+          <li>Học bổng một phần (50% học phí)</li>
+          <li>Học bổng sinh hoạt phí</li>
+          <li>Học bổng dựa trên thành tích học tập</li>
+        </ul>
+        
+        <h2>4. Cơ hội việc làm sau tốt nghiệp</h2>
+        <p>Một trong những yếu tố quan trọng khi chọn trường là cơ hội việc làm sau khi tốt nghiệp.</p>
+        
+        <h3>4.1. Yếu tố ảnh hưởng</h3>
+        <ul>
+          <li>Danh tiếng của trường</li>
+          <li>Mạng lưới cựu sinh viên</li>
+          <li>Dịch vụ hỗ trợ việc làm của trường</li>
+          <li>Quan hệ đối tác với các công ty</li>
+        </ul>
+        
+        <h2>5. Quy trình nộp hồ sơ</h2>
+        <ol>
+          <li>Nghiên cứu và chọn trường phù hợp</li>
+          <li>Chuẩn bị hồ sơ (bằng cấp, bảng điểm, chứng chỉ TOPIK)</li>
+          <li>Nộp hồ sơ trực tuyến hoặc qua bưu điện</li>
+          <li>Chờ kết quả và nhận thư mời nhập học</li>
+          <li>Xin visa và chuẩn bị lên đường</li>
+        </ol>
+        
+        <h2>6. Lời khuyên</h2>
+        <ul>
+          <li>Nộp hồ sơ vào nhiều trường để tăng cơ hội</li>
+          <li>Chuẩn bị hồ sơ sớm và cẩn thận</li>
+          <li>Liên hệ trực tiếp với trường nếu có thắc mắc</li>
+          <li>Tham khảo ý kiến từ các du học sinh đi trước</li>
         </ul>
       `
     }

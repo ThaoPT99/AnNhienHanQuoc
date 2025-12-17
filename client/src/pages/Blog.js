@@ -8,21 +8,21 @@ const Blog = () => {
   const blogPosts = [
     {
       id: 1,
-      slug: 'huong-dan-du-hoc-han-quoc-2024',
-      title: 'Hướng dẫn du học Hàn Quốc 2024: Tất cả những gì bạn cần biết',
+      slug: 'huong-dan-du-hoc-han-quoc-2025',
+      title: 'Hướng dẫn du học Hàn Quốc 2025: Tất cả những gì bạn cần biết',
       excerpt: 'Tìm hiểu chi tiết về quy trình du học Hàn Quốc, điều kiện, chi phí và kinh nghiệm từ các du học sinh.',
       image: 'https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg',
-      date: '15/01/2024',
+      date: '15/01/2025',
       category: 'Hướng dẫn',
       readTime: '10 phút đọc'
     },
     {
       id: 2,
       slug: 'chi-phi-du-hoc-han-quoc',
-      title: 'Chi phí du học Hàn Quốc: Bảng giá chi tiết 2024',
+      title: 'Chi phí du học Hàn Quốc: Bảng giá chi tiết 2025',
       excerpt: 'Phân tích chi tiết các khoản chi phí khi du học Hàn Quốc: học phí, sinh hoạt phí, nhà ở và cách tiết kiệm.',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
-      date: '12/01/2024',
+      image: 'https://i.pinimg.com/736x/e5/bb/5f/e5bb5f88257bbe6a76e33dac821206bb.jpg',
+      date: '12/01/2025',
       category: 'Tài chính',
       readTime: '8 phút đọc'
     },
@@ -31,8 +31,8 @@ const Blog = () => {
       slug: 'hoc-bong-du-hoc-han-quoc',
       title: 'Top 10 học bổng du học Hàn Quốc dành cho sinh viên Việt Nam',
       excerpt: 'Danh sách các học bổng hấp dẫn từ chính phủ Hàn Quốc và các trường đại học hàng đầu.',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800',
-      date: '10/01/2024',
+      image: 'https://i.pinimg.com/1200x/78/99/2b/78992b4e9e818b9dc9b109c2b55a339f.jpg',
+      date: '10/01/2025',
       category: 'Học bổng',
       readTime: '12 phút đọc'
     },
@@ -41,8 +41,8 @@ const Blog = () => {
       slug: 'kinh-nghiem-xin-visa-han-quoc',
       title: 'Kinh nghiệm xin visa du học Hàn Quốc: Tránh những lỗi thường gặp',
       excerpt: 'Chia sẻ kinh nghiệm thực tế về quy trình xin visa, các giấy tờ cần thiết và cách tăng tỷ lệ thành công.',
-      image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800',
-      date: '08/01/2024',
+      image: 'https://i.pinimg.com/736x/33/1c/df/331cdfced60d0a6c9fa683446d252342.jpg',
+      date: '08/01/2025',
       category: 'Visa',
       readTime: '9 phút đọc'
     },
@@ -51,8 +51,8 @@ const Blog = () => {
       slug: 'cuoc-song-du-hoc-sinh-han-quoc',
       title: 'Cuộc sống du học sinh tại Hàn Quốc: Những điều bạn chưa biết',
       excerpt: 'Khám phá cuộc sống thực tế của du học sinh Việt Nam tại Hàn Quốc: văn hóa, ẩm thực, làm thêm và kết bạn.',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800',
-      date: '05/01/2024',
+      image: 'https://i.pinimg.com/736x/76/91/8d/76918dfd976a25f56f925e8d233ff185.jpg',
+      date: '05/01/2025',
       category: 'Trải nghiệm',
       readTime: '11 phút đọc'
     },
@@ -61,8 +61,8 @@ const Blog = () => {
       slug: 'chon-truong-du-hoc-han-quoc',
       title: 'Cách chọn trường đại học phù hợp khi du học Hàn Quốc',
       excerpt: 'Hướng dẫn chi tiết cách chọn trường dựa trên ngành học, vị trí, học phí và cơ hội việc làm sau tốt nghiệp.',
-      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800',
-      date: '03/01/2024',
+      image: 'https://i.pinimg.com/736x/f7/4f/d8/f74fd8657a1b433eed6c14efc07182b6.jpg',
+      date: '03/01/2025',
       category: 'Tư vấn',
       readTime: '10 phút đọc'
     }

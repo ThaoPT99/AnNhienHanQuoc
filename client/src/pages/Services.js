@@ -79,8 +79,8 @@ const Services = () => {
     },
     {
       icon: '📚',
-      title: 'Hỗ trợ sau khi sang',
-      description: 'Tiếp tục đồng hành và hỗ trợ bạn sau khi đã sang Hàn Quốc',
+      title: 'Hỗ trợ sau khi nhập cảnh',
+      description: 'Tiếp tục đồng hành và hỗ trợ bạn sau khi đã nhập cảnh Hàn Quốc',
       features: ['Tư vấn học tập', 'Hỗ trợ tìm việc làm thêm', 'Giải đáp thắc mắc']
     }
   ];
@@ -89,7 +89,7 @@ const Services = () => {
     <div className="services-page">
       <SEO
         title="Dịch vụ - Du học An Nhiên"
-        description="Dịch vụ tư vấn du học Hàn Quốc chuyên nghiệp: Tư vấn chọn trường, làm hồ sơ du học, xin visa, tìm chỗ ở, hỗ trợ đón sân bay và hỗ trợ sau khi sang Hàn Quốc."
+        description="Dịch vụ tư vấn du học Hàn Quốc chuyên nghiệp: Tư vấn chọn trường, làm hồ sơ du học, xin visa, tìm chỗ ở, hỗ trợ đón sân bay và hỗ trợ sau khi nhập cảnh Hàn Quốc."
         keywords="dịch vụ du học Hàn Quốc, tư vấn chọn trường, làm hồ sơ du học, xin visa Hàn Quốc, hỗ trợ du học sinh"
         url="https://duhocannhien.vercel.app/services"
         structuredData={structuredData}
@@ -240,8 +240,8 @@ const Services = () => {
                 <div className="step-number-glow"></div>
               </div>
               <div className="step-icon">🇰🇷</div>
-              <h3>Hỗ trợ sau khi sang</h3>
-              <p>Tiếp tục đồng hành và hỗ trợ sau khi sang Hàn Quốc</p>
+              <h3>Hỗ trợ sau khi nhập cảnh</h3>
+              <p>Tiếp tục đồng hành và hỗ trợ sau khi nhập cảnh Hàn Quốc</p>
             </motion.div>
           </div>
         </div>

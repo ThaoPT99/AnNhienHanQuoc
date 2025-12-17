@@ -196,7 +196,7 @@ const Home = () => {
               <div className="feature-icon-glow"></div>
             </div>
             <h3>Hỗ trợ toàn diện</h3>
-            <p>Từ tư vấn, làm hồ sơ đến hỗ trợ sau khi sang Hàn Quốc</p>
+            <p>Từ tư vấn, làm hồ sơ đến hỗ trợ sau khi nhập cảnh Hàn Quốc</p>
             <div className="feature-accent"></div>
           </motion.div>
           
