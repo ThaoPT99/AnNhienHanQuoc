@@ -65,6 +65,56 @@ const Blog = () => {
       date: '03/01/2025',
       category: 'Tư vấn',
       readTime: '10 phút đọc'
+    },
+    {
+      id: 7,
+      slug: 'top-1-cong-ty-tu-van-du-hoc-han-quoc-uy-tin-nhat-hien-nay',
+      title: 'Top 1 Công Ty Tư Vấn Du Học Hàn Quốc Uy Tín Nhất Hiện Nay – Vì Sao Nhiều Học Sinh Chọn Du học An Nhiên?',
+      excerpt: 'Khám phá lý do Du học An Nhiên được đánh giá là công ty tư vấn du học Hàn Quốc uy tín nhất. Dịch vụ chuyên nghiệp, tỷ lệ thành công cao và hỗ trợ tận tâm.',
+      image: 'https://i.pinimg.com/1200x/f5/1a/eb/f51aeb3faf77215987e1461f589d10a4.jpg',
+      date: '20/01/2025',
+      category: 'Giới thiệu',
+      readTime: '12 phút đọc'
+    },
+    {
+      id: 8,
+      slug: 'di-du-hoc-han-quoc-co-de-khong-xu-huong-du-hoc-moi-cho-2k8',
+      title: 'Đi Du Học Hàn Quốc Có Dễ Không? Xu Hướng Du Học Mới Cho 2K8',
+      excerpt: 'Tìm hiểu về xu hướng du học Hàn Quốc dành cho thế hệ 2K8. Đánh giá mức độ khó dễ, cơ hội và thách thức khi du học tại xứ sở Kim Chi.',
+      image: 'https://i.pinimg.com/1200x/05/e3/e3/05e3e3ee0202cb638a616aa8653cac32.jpg',
+      date: '18/01/2025',
+      category: 'Xu hướng',
+      readTime: '11 phút đọc'
+    },
+    {
+      id: 9,
+      slug: '8-dieu-can-biet-ve-du-hoc-han-quoc-he-visa-d2-tai-du-hoc-an-nhien',
+      title: '8 Điều Cần Biết Về Du Học Hàn Quốc Hệ Visa D2 Tại Du Học An Nhiên',
+      excerpt: 'Hướng dẫn chi tiết về visa D2 - visa du học Hàn Quốc. 8 điều quan trọng bạn cần biết trước khi nộp hồ sơ xin visa D2 với Du học An Nhiên.',
+      image: 'https://i.pinimg.com/1200x/bb/90/6c/bb906c30d8ad8e7b1cabde8dda6e610e.jpg',
+      date: '16/01/2025',
+      category: 'Visa',
+      readTime: '9 phút đọc'
+    },
+    {
+      id: 10,
+      slug: 'dieu-kien-du-hoc-han-quoc-la-gi-chi-phi-bao-nhieu-va-nen-hoc-nganh-nao',
+      title: 'Điều kiện Du học Hàn Quốc là gì? Chi phí bao nhiêu và nên học ngành nào?',
+      excerpt: 'Tổng hợp đầy đủ về điều kiện du học Hàn Quốc, chi phí chi tiết và gợi ý các ngành học hot nhất hiện nay. Thông tin cập nhật 2025.',
+      image: 'https://i.pinimg.com/736x/15/79/68/157968c0a12700780eda718d6a0cc5bc.jpg',
+      date: '14/01/2025',
+      category: 'Hướng dẫn',
+      readTime: '13 phút đọc'
+    },
+    {
+      id: 11,
+      slug: 'top-8-ung-dung-can-thiet-danh-cho-du-hoc-sinh-tai-han-quoc',
+      title: 'Top 8 ứng dụng cần thiết dành cho Du học sinh tại Hàn Quốc',
+      excerpt: 'Danh sách 8 ứng dụng không thể thiếu cho du học sinh tại Hàn Quốc: giao thông, ngân hàng, học tập, mua sắm và kết nối xã hội.',
+      image: 'https://i.pinimg.com/1200x/54/5f/06/545f06e42a3a53741deb98574867aa31.jpg',
+      date: '13/01/2025',
+      category: 'Tiện ích',
+      readTime: '8 phút đọc'
     }
   ];
 
