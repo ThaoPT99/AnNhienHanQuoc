@@ -150,8 +150,8 @@ html {
 .hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 10px;
+  padding: 12px 24px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   border-radius: 50px;
@@ -162,6 +162,39 @@ html {
   margin-bottom: 25px;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
   animation: badgePulse 3s ease-in-out infinite;
+}
+
+.hero-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 4px;
+  padding-right: 12px;
+  border-right: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.hero-logo-icon {
+  font-size: 1.4rem;
+  display: inline-block;
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+.hero-logo-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(5deg);
+  }
 }
 
 @keyframes badgePulse {

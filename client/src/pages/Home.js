@@ -70,6 +70,10 @@ const Home = () => {
             transition={{ duration: 1, type: "spring", stiffness: 100 }}
           >
             <div className="hero-badge">
+              <div className="hero-logo">
+                <span className="hero-logo-icon">🇰🇷</span>
+                <span className="hero-logo-text">Du học An Nhiên</span>
+              </div>
               <span className="badge-icon">✨</span>
               <span>Khởi đầu hành trình mới</span>
               <span className="badge-icon">✨</span>
