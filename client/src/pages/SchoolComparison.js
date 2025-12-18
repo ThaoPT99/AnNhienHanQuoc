@@ -36,7 +36,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 4-6',
       description: 'Trường đại học hàng đầu Hàn Quốc, thuộc nhóm SKY. Chất lượng giáo dục xuất sắc, cơ sở vật chất hiện đại.',
       website: 'https://www.snu.ac.kr',
-      image: 'https://i.pinimg.com/1200x/be/a6/a2/bea6a28d5aa24d8b01a8f0ad61e1c6f9.jpg'
+      image: 'https://i.pinimg.com/1200x/06/d6/4c/06d64cdef9d8d312c6ea93152fa9c982.jpg'
     },
     {
       id: 2,
@@ -56,7 +56,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 4-6',
       description: 'Một trong 3 trường top (SKY), nổi tiếng về ngành Y và Kinh tế. Môi trường học tập quốc tế.',
       website: 'https://www.yonsei.ac.kr',
-      image: 'https://i.pinimg.com/1200x/7c/bb/fd/7cbbfdc0ffd039783371029d13e70fa8.jpg'
+      image: 'https://i.pinimg.com/1200x/25/76/b6/2576b625d0a45b262b3f0c3f44bfad32.jpg'
     },
     {
       id: 3,
@@ -76,7 +76,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 4-6',
       description: 'Trường top 3 (SKY), mạnh về Luật và Kinh tế. Có nhiều chương trình trao đổi quốc tế.',
       website: 'https://www.korea.ac.kr',
-      image: 'https://i.pinimg.com/736x/b7/b5/99/b7b59934d9610bf9870e169e8b16e6df.jpg'
+      image: 'https://duhocnamu.com/wp-content/uploads/2020/12/koreauni1.jpg'
     },
     {
       id: 4,
@@ -96,7 +96,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Trường đại học lâu đời nhất Hàn Quốc (600+ năm). Mạnh về Kỹ thuật và Kinh tế.',
       website: 'https://www.skku.edu',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://duhocsunny.edu.vn/wp-content/uploads/2020/05/sungkyunkwan-1.jpg'
     },
     {
       id: 5,
@@ -116,7 +116,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Nổi tiếng về Kỹ thuật và Công nghệ. Có nhiều chương trình thực tập tại các công ty lớn.',
       website: 'https://www.hanyang.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://file.hstatic.net/200000856765/article/i_4bb6a3339563496fa1cd45d41a666baa.png'
     },
     {
       id: 6,
@@ -136,7 +136,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Nổi tiếng về Y tế và Nghệ thuật. Môi trường học tập đẹp, nhiều hoạt động văn hóa.',
       website: 'https://www.khu.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://i.pinimg.com/736x/0d/3d/54/0d3d541e1e3046eb1833ddce6693c3a3.jpg'
     },
     {
       id: 7,
@@ -156,7 +156,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Trường tư thục uy tín, mạnh về Kinh tế và Nhân văn. Quy mô lớp học nhỏ, chú trọng chất lượng.',
       website: 'https://www.sogang.ac.kr',
-      image: 'https://i.pinimg.com/1200x/be/a6/a2/bea6a28d5aa24d8b01a8f0ad61e1c6f9.jpg'
+      image: 'https://i.pinimg.com/736x/b7/93/fb/b793fb948fca6762240abae0f0b45f07.jpg'
     },
     {
       id: 8,
@@ -176,7 +176,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Trường đại học nữ lớn nhất thế giới. Mạnh về Nhân văn, Nghệ thuật và Khoa học xã hội.',
       website: 'https://www.ewha.ac.kr',
-      image: 'https://i.pinimg.com/1200x/7c/bb/fd/7cbbfdc0ffd039783371029d13e70fa8.jpg'
+      image: 'https://avt.edu.vn/wp-content/uploads/2018/08/Vi-sao-ban-nen-lua-chon-dai-hoc-Ewha-Han-Quoc.jpg'
     },
     {
       id: 9,
@@ -196,7 +196,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Nổi tiếng về đào tạo ngôn ngữ và quốc tế học. Có nhiều chương trình trao đổi sinh viên.',
       website: 'https://www.hufs.ac.kr',
-      image: 'https://i.pinimg.com/736x/b7/b5/99/b7b59934d9610bf9870e169e8b16e6df.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrAsH5jiaFv5QYW5eLiYB9Liqglax_ighVAA&s'
     },
     {
       id: 10,
@@ -216,7 +216,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Nổi tiếng về Nghệ thuật và Truyền thông. Nhiều cựu sinh viên làm việc trong ngành giải trí Hàn Quốc.',
       website: 'https://www.cau.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://i.pinimg.com/736x/ce/cf/66/cecf66cdc715680422e83546315debab.jpg'
     },
     {
       id: 11,
@@ -236,7 +236,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-5',
       description: 'Trường đại học công lập hàng đầu tại Busan. Chi phí hợp lý, chất lượng tốt.',
       website: 'https://www.pusan.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://i.pinimg.com/736x/c6/79/03/c679031beb1c2fce07a2b82de2a6396b.jpg'
     },
     {
       id: 12,
@@ -256,7 +256,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Incheon. Mạnh về Kỹ thuật, chi phí hợp lý hơn Seoul.',
       website: 'https://www.inha.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://www.zila.com.vn/wp-content/uploads/2018/10/29744920_1313637758782458_2117901553225492956_o-1024x768.jpg'
     },
     {
       id: 13,
@@ -276,7 +276,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Suwon. Mạnh về Kỹ thuật và Y tế, chi phí hợp lý.',
       website: 'https://www.ajou.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRid577NB65T5ARkXDDnqhMOQ7EfY40Cs2tsg&s'
     },
     {
       id: 14,
@@ -296,7 +296,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Seoul. Mạnh về Kinh tế và Kỹ thuật.',
       website: 'https://www.konkuk.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://duhocicc.edu.vn/wp-content/uploads/2024/03/dai-hoc-konkuk.jpg'
     },
     {
       id: 15,
@@ -316,7 +316,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín, mạnh về Nghệ thuật và Nhân văn. Nhiều chương trình văn hóa.',
       website: 'https://www.dongguk.edu',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://duhochandanang.edu.vn/wp-content/uploads/2024/04/z5307975273979_caa95d399b79704f94b6ff286474ea3c.jpg'
     },
     {
       id: 16,
@@ -336,7 +336,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học công lập hàng đầu tại Daegu. Chi phí hợp lý, chất lượng tốt.',
       website: 'https://www.knu.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThIgMet0EQImuXsmZwVn-5fGM4B2Ob7RpNtA&s'
     },
     {
       id: 17,
@@ -356,7 +356,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-4',
       description: 'Trường đại học công lập tại Gwangju. Chi phí thấp, nhiều học bổng.',
       website: 'https://www.jnu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://civilis.edu.vn/wp-content/uploads/2023/09/en_main_swap_0_1678256144.jpg'
     },
     {
       id: 18,
@@ -376,7 +376,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-4',
       description: 'Trường đại học công lập tại Jeonju. Chi phí rất thấp, nhiều học bổng.',
       website: 'https://www.jbnu.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2019/05/Bieu-tuong-dac-trung-cua-khuon-vien-truong-Chonbuk.jpg'
     },
     {
       id: 19,
@@ -396,7 +396,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-4',
       description: 'Trường đại học công lập tại Jinju. Chi phí thấp, môi trường học tập tốt.',
       website: 'https://www.gnu.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2020/11/Gyeongsang-toan-canh.jpg'
     },
     {
       id: 20,
@@ -416,7 +416,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học công lập, chi phí rất thấp. Phù hợp với sinh viên có ngân sách hạn chế.',
       website: 'https://www.jbnu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://duhochiast.edu.vn/uploads/details/2024/07/images/dai-hoc-quoc-gia-chonbuk.png'
     },
     {
       id: 21,
@@ -436,7 +436,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-4',
       description: 'Trường đại học uy tín tại Gyeongsan. Chi phí hợp lý, nhiều học bổng.',
       website: 'https://www.yu.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://deajin.edu.vn/wp-content/uploads/2024/01/khuon-vien-dai-hoc-Yeungnam.jpg'
     },
     {
       id: 22,
@@ -456,7 +456,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-4',
       description: 'Trường đại học uy tín tại Daegu. Mạnh về Y tế và Nhân văn.',
       website: 'https://www.kmu.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkhnlr2ODw41dByOXge_muRP5NSBX9dhyilw&s'
     },
     {
       id: 23,
@@ -476,7 +476,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Seoul. Mạnh về Y tế và Nhân văn.',
       website: 'https://www.catholic.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://duhocsunny.edu.vn/wp-content/uploads/2021/08/dai-hoc-catholic-university-of-korea.jpg'
     },
     {
       id: 24,
@@ -496,7 +496,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Seoul. Mạnh về Kinh tế và Nghệ thuật.',
       website: 'https://www.kookmin.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2019/05/Khuon-vien-hien-dai-cua-truong-dai-hoc-Kookmin.jpg'
     },
     {
       id: 25,
@@ -516,7 +516,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Seoul. Mạnh về Nghệ thuật và Nhân văn.',
       website: 'https://www.sejong.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwoioZAUwy9SRBAoi05wRo2UX3YdFY41Mr3g&s'
     },
     {
       id: 26,
@@ -536,7 +536,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Seoul. Mạnh về Kỹ thuật và Kinh tế.',
       website: 'https://www.ssu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://jvgroup.com.vn/wp-content/uploads/2024/11/dai-hoc-soongsil-1.jpg'
     },
     {
       id: 27,
@@ -556,7 +556,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Seoul. Mạnh về Nhân văn và Kinh tế.',
       website: 'https://www.hankuk.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZO2JjHuDPtCSvg5C6cBl43ypZSedUJqpAqQ&s'
     },
     {
       id: 28,
@@ -576,7 +576,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Seoul. Chi phí hợp lý, nhiều học bổng.',
       website: 'https://www.mju.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://jvgroup.com.vn/wp-content/uploads/2024/11/temp_1629886654650100-1024x672-2.jpg'
     },
     {
       id: 29,
@@ -596,7 +596,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Seoul. Chi phí hợp lý, mạnh về Nghệ thuật.',
       website: 'https://www.smu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://duhocsunny.edu.vn/wp-content/uploads/2023/02/Sangmyung-University-3.jpg'
     },
     {
       id: 30,
@@ -616,7 +616,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Seoul. Chi phí thấp, nhiều học bổng.',
       website: 'https://www.skuniv.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsccHbueKuw5orHR9tKgcfi3oDZpglJjsc4Q&s'
     },
     {
       id: 31,
@@ -636,7 +636,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 3-4',
       description: 'Trường đại học uy tín tại Busan. Mạnh về Y tế và Kỹ thuật.',
       website: 'https://www.donga.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2019/05/Dai-hoc-tu-thuc-duy-nhat-du-dieu-kien-dao-tao-hai-nganh-Luat-va-Y.jpg'
     },
     {
       id: 32,
@@ -656,7 +656,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học công lập tại Busan. Chi phí thấp, nhiều học bổng.',
       website: 'https://www.pknu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://jvgroup.com.vn/wp-content/uploads/2024/10/du-hoc-han-quoc-dh-pukyong.jpg'
     },
     {
       id: 33,
@@ -676,7 +676,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Busan. Chi phí hợp lý, mạnh về Kỹ thuật.',
       website: 'https://www.ks.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://duhochiast.edu.vn/uploads/details/2025/05/images/dai-hoc-kyungsung.png'
     },
     {
       id: 34,
@@ -696,7 +696,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Busan. Mạnh về Y tế, chi phí hợp lý.',
       website: 'https://www.kosin.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2020/03/khuon-vien-dai-hoc-kosin.jpg'
     },
     {
       id: 35,
@@ -716,7 +716,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Busan. Chi phí thấp, mạnh về Kỹ thuật.',
       website: 'https://www.tu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2020/10/Tongmyong-University-dai-bieu-tuong.jpg'
     },
     {
       id: 36,
@@ -736,7 +736,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học công lập tại Daejeon. Chi phí rất thấp, nhiều học bổng.',
       website: 'https://www.cnu.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFxozw5S5beerThol3vUx5aruuptk80r9mTw&s'
     },
     {
       id: 37,
@@ -756,7 +756,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học công lập tại Chuncheon. Chi phí rất thấp, môi trường đẹp.',
       website: 'https://www.kangwon.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2020/04/dai-hoc-quoc-gia-kangwon-mua-thu.jpg'
     },
     {
       id: 38,
@@ -776,7 +776,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học công lập tại đảo Jeju. Chi phí rất thấp, môi trường đẹp.',
       website: 'https://www.jejunu.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://www.zila.com.vn/wp-content/uploads/2019/02/Dai-hoc-Quoc-gia-Jeju.jpg'
     },
     {
       id: 39,
@@ -796,7 +796,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Asan. Mạnh về Y tế, chi phí hợp lý.',
       website: 'https://www.sch.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRihoJv-5Ly5D7RM3WHqzjCvJ0RPJrF5h1zbQ&s'
     },
     {
       id: 40,
@@ -816,7 +816,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Iksan. Mạnh về Y tế và Kỹ thuật.',
       website: 'https://www.wonkwang.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2021/05/Khuon-vien-truong-dai-hoc-so-1-Iksan.jpg'
     },
     {
       id: 41,
@@ -836,7 +836,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Daejeon. Chi phí hợp lý, mạnh về Kỹ thuật.',
       website: 'https://www.hannam.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZmic8KMCUw-I7x5okebgrwkKP769GtB4r8Q&s'
     },
     {
       id: 42,
@@ -856,7 +856,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Gimhae. Mạnh về Y tế, chi phí thấp.',
       website: 'https://www.inje.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2020/04/khuon-vien-truong-dai-hoc-inje.jpg'
     },
     {
       id: 43,
@@ -876,7 +876,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Seongnam. Mạnh về Y tế và Kỹ thuật.',
       website: 'https://www.gachon.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2019/05/bieu-tuong-gachon.jpg'
     },
     {
       id: 44,
@@ -896,7 +896,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Yongin. Mạnh về Nghệ thuật và Nhân văn.',
       website: 'https://www.dankook.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://jvgroup.com.vn/wp-content/uploads/2025/01/tong-quan-dai-hoc-dankook1-1591711163.jpeg'
     },
     {
       id: 45,
@@ -916,7 +916,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học nữ tại Seoul. Chi phí hợp lý, mạnh về Nhân văn.',
       website: 'https://www.duksung.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://tuvanduhocmap.com/wp-content/uploads/2019/10/Co-so-chinh-dai-hoc-Nu-Duksung.jpg'
     },
     {
       id: 46,
@@ -936,7 +936,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Gwangju. Chi phí thấp, mạnh về Kỹ thuật.',
       website: 'https://www.sehan.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://vjvietnam.com.vn/wp-content/uploads/2022/09/dai-hoc-sehan-han-quoc-3-560x330.jpg'
     },
     {
       id: 47,
@@ -956,7 +956,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Asan. Chi phí thấp, mạnh về Nhân văn.',
       website: 'https://www.sunmoon.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSidqnktdVw7WVpJqeDMur45SzImI9z4QrWcw&s'
     },
     {
       id: 48,
@@ -976,7 +976,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Jeonju. Chi phí rất thấp, nhiều học bổng.',
       website: 'https://www.woosuk.ac.kr',
-      image: 'https://i.pinimg.com/736x/4e/96/c9/4e96c989ceb05d4df16868234d31c636.jpg'
+      image: 'https://bizweb.dktcdn.net/100/297/440/files/woosuk2.jpg?v=1521429547017'
     },
     {
       id: 49,
@@ -996,7 +996,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Gunsan. Chi phí rất thấp, nhiều học bổng.',
       website: 'https://www.howon.ac.kr',
-      image: 'https://i.pinimg.com/736x/d7/6f/2c/d76f2c071d38e6dfcfc2385ee0152390.jpg'
+      image: 'https://vietair.com.vn/Media/Images/vietair/Tin-tuc/2023/8/dai-hoc-howon-2.jpg?p=1&w=412'
     },
     {
       id: 50,
@@ -1016,7 +1016,7 @@ const SchoolComparison = () => {
       language: 'TOPIK 2-3',
       description: 'Trường đại học uy tín tại Busan. Chi phí thấp, mạnh về Nhân văn và Nghệ thuật.',
       website: 'https://www.silla.ac.kr',
-      image: 'https://i.pinimg.com/736x/88/b8/92/88b892e9b2d59d74897566daa6aea215.jpg'
+      image: 'https://duhocalpha.vn/wp-content/uploads/2024/02/con-duong-tho-mong-vao-mua-thu-tai-truong-dai-hoc-silla-1.jpg'
     }
   ];
 

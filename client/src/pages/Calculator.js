@@ -10,7 +10,9 @@ const Calculator = () => {
     major: 'economics',
     accommodation: 'dormitory',
     duration: 4,
-    scholarship: 0
+    scholarship: 0,
+    partTimeHours: 0,
+    partTimeWage: 9000
   });
 
   const [result, setResult] = useState(null);
@@ -58,7 +60,9 @@ const Calculator = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: (name === 'partTimeHours' || name === 'partTimeWage' || name === 'duration' || name === 'scholarship') 
+        ? (value === '' ? 0 : parseFloat(value) || 0) 
+        : value
     }));
   };
 
@@ -92,12 +96,26 @@ const Calculator = () => {
     const otherCostsPerYear = otherCostsPerMonth * 12;
     const totalOtherCosts = otherCostsPerYear * formData.duration;
 
-    // Tổng chi phí (won)
-    const totalCostWon = finalTuition + totalLivingCost + totalAccommodation + totalOtherCosts;
+    // Tính tiền làm thêm (won)
+    // Giả sử làm thêm 48 tuần/năm (trừ 4 tuần nghỉ)
+    const weeksPerYear = 48;
+    const partTimeEarningsPerWeek = formData.partTimeHours * formData.partTimeWage;
+    const partTimeEarningsPerYear = partTimeEarningsPerWeek * weeksPerYear;
+    const totalPartTimeEarnings = partTimeEarningsPerYear * formData.duration;
+
+    // Tổng chi phí (won) - trừ tiền làm thêm
+    const totalCostBeforePartTime = finalTuition + totalLivingCost + totalAccommodation + totalOtherCosts;
+    const netCostWon = totalCostBeforePartTime - totalPartTimeEarnings;
+    
+    // Nếu tiền kiếm được nhiều hơn chi phí, tính số tiền để dành
+    const savingsWon = netCostWon < 0 ? Math.abs(netCostWon) : 0;
+    const totalCostWon = netCostWon > 0 ? netCostWon : 0;
 
     // Chuyển đổi sang VNĐ (1 won ≈ 18 VNĐ)
     const exchangeRate = 18;
     const totalCostVND = totalCostWon * exchangeRate;
+    const totalCostBeforePartTimeVND = totalCostBeforePartTime * exchangeRate;
+    const savingsVND = savingsWon * exchangeRate;
 
     // Chi phí ban đầu (sổ tiết kiệm, vé máy bay, v.v.)
     const initialCost = 50000000; // 50 triệu VNĐ
@@ -120,10 +138,21 @@ const Calculator = () => {
         won: Math.round(totalOtherCosts),
         vnd: Math.round(totalOtherCosts * exchangeRate)
       },
+      partTime: {
+        won: Math.round(totalPartTimeEarnings),
+        vnd: Math.round(totalPartTimeEarnings * exchangeRate),
+        hoursPerWeek: formData.partTimeHours,
+        wagePerHour: formData.partTimeWage
+      },
       total: {
         won: Math.round(totalCostWon),
         vnd: Math.round(totalCostVND),
-        withInitial: Math.round(totalCostVND + initialCost)
+        withInitial: Math.round(totalCostVND + initialCost),
+        beforePartTime: Math.round(totalCostBeforePartTimeVND),
+        savings: {
+          won: Math.round(savingsWon),
+          vnd: Math.round(savingsVND)
+        }
       },
       scholarship: {
         amount: Math.round(scholarshipAmount * exchangeRate),
@@ -285,6 +314,37 @@ const Calculator = () => {
                 <small className="form-hint">Nhập % học bổng bạn có thể nhận được (0-100%)</small>
               </div>
 
+              <div className="form-group">
+                <label htmlFor="partTimeHours">Số giờ làm thêm/tuần</label>
+                <input
+                  type="number"
+                  id="partTimeHours"
+                  name="partTimeHours"
+                  min="0"
+                  max="40"
+                  value={formData.partTimeHours}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+                <small className="form-hint">Sinh viên được phép làm thêm tối đa 20 giờ/tuần trong học kỳ, 40 giờ/tuần trong kỳ nghỉ</small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="partTimeWage">Mức lương làm thêm (won/giờ)</label>
+                <input
+                  type="number"
+                  id="partTimeWage"
+                  name="partTimeWage"
+                  min="8000"
+                  max="15000"
+                  step="500"
+                  value={formData.partTimeWage}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+                <small className="form-hint">Mức lương tối thiểu: 8,000 won/giờ. Trung bình: 9,000-12,000 won/giờ</small>
+              </div>
+
               <button onClick={calculateCost} className="calculate-btn">
                 <span>🧮</span>
                 Tính chi phí
@@ -303,18 +363,51 @@ const Calculator = () => {
                 <h2 className="result-title">Kết quả tính toán</h2>
                 
                 <div className="result-summary">
-                  <div className="summary-item">
-                    <span className="summary-label">Tổng chi phí</span>
-                    <span className="summary-value highlight">
-                      {formatNumber(result.total.vnd)} VNĐ
-                    </span>
-                  </div>
-                  <div className="summary-item">
-                    <span className="summary-label">Bao gồm chi phí ban đầu</span>
-                    <span className="summary-value">
-                      {formatNumber(result.total.withInitial)} VNĐ
-                    </span>
-                  </div>
+                  {result.total.savings.vnd > 0 ? (
+                    <>
+                      <div className="summary-item">
+                        <span className="summary-label">💰 Tiền để dành được</span>
+                        <span className="summary-value highlight savings-highlight">
+                          {formatNumber(result.total.savings.vnd)} VNĐ
+                        </span>
+                      </div>
+                      <div className="summary-item">
+                        <span className="summary-label">Tổng chi phí (đã được trang trải hoàn toàn)</span>
+                        <span className="summary-value" style={{ fontSize: '1.2rem', textDecoration: 'line-through', opacity: 0.7 }}>
+                          {formatNumber(result.total.beforePartTime)} VNĐ
+                        </span>
+                      </div>
+                      <div className="summary-item">
+                        <span className="summary-label">Tiền làm thêm kiếm được</span>
+                        <span className="summary-value" style={{ fontSize: '1.2rem' }}>
+                          {formatNumber(result.partTime.vnd)} VNĐ
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="summary-item">
+                        <span className="summary-label">Tổng chi phí {result.partTime.hoursPerWeek > 0 ? '(sau khi trừ tiền làm thêm)' : ''}</span>
+                        <span className="summary-value highlight">
+                          {formatNumber(result.total.vnd)} VNĐ
+                        </span>
+                      </div>
+                      {result.partTime.hoursPerWeek > 0 && result.total.beforePartTime > result.total.vnd && (
+                        <div className="summary-item">
+                          <span className="summary-label">Tổng chi phí (chưa trừ tiền làm thêm)</span>
+                          <span className="summary-value" style={{ fontSize: '1.2rem', textDecoration: 'line-through', opacity: 0.7 }}>
+                            {formatNumber(result.total.beforePartTime)} VNĐ
+                          </span>
+                        </div>
+                      )}
+                      <div className="summary-item">
+                        <span className="summary-label">Bao gồm chi phí ban đầu</span>
+                        <span className="summary-value">
+                          {formatNumber(result.total.withInitial)} VNĐ
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="result-breakdown">
@@ -353,6 +446,30 @@ const Calculator = () => {
                     </span>
                   </div>
 
+                  {result.partTime.hoursPerWeek > 0 && (
+                    <div className="breakdown-item part-time-earnings">
+                      <span className="breakdown-label">Tiền làm thêm ({result.breakdown.duration} năm)</span>
+                      <span className="breakdown-value positive">
+                        -{formatNumber(result.partTime.vnd)} VNĐ
+                      </span>
+                      <span className="breakdown-note">
+                        ({result.partTime.hoursPerWeek} giờ/tuần × {formatNumber(result.partTime.wagePerHour)} won/giờ × 48 tuần/năm)
+                      </span>
+                    </div>
+                  )}
+
+                  {result.total.savings.vnd > 0 && (
+                    <div className="breakdown-item savings-item">
+                      <span className="breakdown-label">💰 Tiền để dành được (sau khi trừ tất cả chi phí)</span>
+                      <span className="breakdown-value savings-value">
+                        +{formatNumber(result.total.savings.vnd)} VNĐ
+                      </span>
+                      <span className="breakdown-note">
+                        (Tiền làm thêm đã trang trải hoàn toàn chi phí và còn dư {formatNumber(result.total.savings.vnd)} VNĐ)
+                      </span>
+                    </div>
+                  )}
+
                   <div className="breakdown-item">
                     <span className="breakdown-label">Chi phí ban đầu</span>
                     <span className="breakdown-value">
@@ -380,7 +497,11 @@ const Calculator = () => {
                   <ul>
                     <li>Chi phí trên là ước tính, có thể thay đổi tùy theo trường và thời điểm</li>
                     <li>Chưa bao gồm chi phí học tiếng Hàn (nếu cần)</li>
-                    <li>Chi phí có thể giảm nếu bạn làm thêm (8,000-12,000 won/giờ)</li>
+                    {result.partTime.hoursPerWeek > 0 ? (
+                      <li>Đã trừ tiền làm thêm: {formatNumber(result.partTime.vnd)} VNĐ ({result.partTime.hoursPerWeek} giờ/tuần × {formatNumber(result.partTime.wagePerHour)} won/giờ)</li>
+                    ) : (
+                      <li>Chi phí có thể giảm nếu bạn làm thêm (8,000-12,000 won/giờ). Sinh viên được phép làm tối đa 20 giờ/tuần trong học kỳ</li>
+                    )}
                     <li>Liên hệ Du học An Nhiên để được tư vấn chi tiết hơn</li>
                   </ul>
                 </div>

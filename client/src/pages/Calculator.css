@@ -256,6 +256,12 @@
   color: #FFD700;
 }
 
+.summary-value.highlight.savings-highlight {
+  color: #4caf50;
+  font-size: 2.2rem;
+  text-shadow: 0 2px 10px rgba(76, 175, 80, 0.3);
+}
+
 .result-breakdown {
   margin-bottom: 30px;
 }
@@ -293,6 +299,28 @@
   font-size: 0.9rem;
   color: #666;
   font-style: italic;
+}
+
+.breakdown-item.part-time-earnings {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4caf50;
+}
+
+.breakdown-value.positive {
+  color: #2e7d32;
+  font-weight: 800;
+}
+
+.breakdown-item.savings-item {
+  background: linear-gradient(135deg, #e8f5e9 0%, #a5d6a7 100%);
+  border: 3px solid #4caf50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+}
+
+.breakdown-value.savings-value {
+  color: #1b5e20;
+  font-weight: 900;
+  font-size: 1.5rem;
 }
 
 .result-info,
