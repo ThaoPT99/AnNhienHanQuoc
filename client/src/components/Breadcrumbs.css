@@ -1,9 +1,14 @@
 .breadcrumbs {
   margin: 20px 0;
-  padding: 0 20px;
-  max-width: 1200px;
+  padding: 15px 20px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  position: relative;
+  z-index: 10;
 }
 
 .breadcrumb-list {
@@ -14,6 +19,7 @@
   margin: 0;
   align-items: center;
   font-size: 0.9rem;
+  color: white;
 }
 
 .breadcrumb-item {
@@ -22,24 +28,26 @@
 }
 
 .breadcrumb-link {
-  color: #667eea;
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .breadcrumb-link:hover {
-  color: #764ba2;
+  color: #FFD700;
   text-decoration: underline;
 }
 
 .breadcrumb-current {
-  color: #666;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
 }
 
 .breadcrumb-separator {
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
   margin: 0 8px;
+  font-weight: 300;
 }
 
 @media (max-width: 768px) {

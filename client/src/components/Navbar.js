@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Navbar.css';
@@ -6,7 +6,9 @@ import './Navbar.css';
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const location = useLocation();
+  const moreMenuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,14 +18,38 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const mainNavItems = [
     { path: '/', label: 'Trang chủ', icon: '🏠' },
     { path: '/about', label: 'Về chúng tôi', icon: '👥' },
     { path: '/services', label: 'Dịch vụ', icon: '🎯' },
-    { path: '/gallery', label: 'Thư viện ảnh', icon: '📸' },
     { path: '/blog', label: 'Blog', icon: '📚' },
     { path: '/contact', label: 'Liên hệ', icon: '💬' }
   ];
+
+  const moreNavItems = [
+    { path: '/gallery', label: 'Thư viện ảnh', icon: '📸' },
+    { path: '/faq', label: 'FAQ', icon: '❓' },
+    { path: '/testimonials', label: 'Đánh giá', icon: '⭐' },
+    { path: '/calculator', label: 'Tính chi phí', icon: '💰' },
+    { path: '/school-comparison', label: 'So sánh trường', icon: '🏫' },
+    { path: '/quiz', label: 'Quiz tìm trường', icon: '🎯' },
+    { path: '/resources', label: 'Tài liệu miễn phí', icon: '📥' },
+    { path: '/events', label: 'Sự kiện', icon: '📅' },
+    { path: '/videos', label: 'Video', icon: '🎥' },
+    { path: '/recruitment', label: 'Tuyển dụng', icon: '💼' }
+  ];
+
+  const allNavItems = [...mainNavItems, ...moreNavItems];
 
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
@@ -58,7 +84,8 @@ const Navbar = () => {
         </motion.div>
         
         <div className={`navbar-menu ${isMobileMenuOpen ? 'active' : ''}`}>
-          {navItems.map((item, index) => (
+          {/* Main Navigation Items */}
+          {mainNavItems.map((item, index) => (
             <motion.div
               key={item.path}
               initial={{ opacity: 0, y: -20 }}
@@ -68,6 +95,7 @@ const Navbar = () => {
               <Link
                 to={item.path}
                 className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span className="nav-text">{item.label}</span>
@@ -76,6 +104,78 @@ const Navbar = () => {
               </Link>
             </motion.div>
           ))}
+
+          {/* More Menu Dropdown (Desktop) */}
+          <div className="more-menu-wrapper" ref={moreMenuRef}>
+            <motion.button
+              className={`more-menu-btn ${isMoreMenuOpen ? 'active' : ''} ${moreNavItems.some(item => location.pathname === item.path) ? 'has-active' : ''}`}
+              onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="nav-icon">⋯</span>
+              <span className="nav-text">Thêm</span>
+              <div className="nav-link-bg"></div>
+              <div className="nav-link-accent"></div>
+              <motion.svg
+                className="dropdown-arrow"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                animate={{ rotate: isMoreMenuOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </motion.svg>
+            </motion.button>
+
+            <AnimatePresence>
+              {isMoreMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="more-menu-dropdown"
+                >
+                  {moreNavItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`dropdown-item ${location.pathname === item.path ? 'active' : ''}`}
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <span className="dropdown-icon">{item.icon}</span>
+                      <span className="dropdown-text">{item.label}</span>
+                    </Link>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Mobile: Show all items */}
+          {isMobileMenuOpen && (
+            <div className="mobile-more-items">
+              {moreNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-text">{item.label}</span>
+                  <div className="nav-link-bg"></div>
+                  <div className="nav-link-accent"></div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         <motion.button

@@ -100,6 +100,47 @@ function initializeDatabase() {
       }
     });
 
+    // Create newsletter table
+    db.run(`CREATE TABLE IF NOT EXISTS newsletter (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      name TEXT,
+      status TEXT DEFAULT 'active',
+      subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      unsubscribed_at DATETIME,
+      source TEXT DEFAULT 'website'
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating newsletter table:', err.message);
+      } else {
+        console.log('✅ Newsletter table ready');
+      }
+    });
+
+    // Create index for newsletter
+    db.run(`CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter(email)`, (err) => {
+      if (err) {
+        console.error('Error creating newsletter index:', err.message);
+      }
+    });
+
+    // Create events table
+    db.run(`CREATE TABLE IF NOT EXISTS events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'pending'
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating events table:', err.message);
+      } else {
+        console.log('✅ Events table ready');
+      }
+    });
+
     db.run(`CREATE INDEX IF NOT EXISTS idx_gallery_created_at ON gallery(created_at)`, (err) => {
       if (err) {
         console.error('Error creating gallery index:', err.message);
@@ -282,6 +323,67 @@ const dbHelpers = {
         }
       });
     });
+  },
+
+  // Newsletter functions
+  subscribeNewsletter: (subscriber, callback) => {
+    const { email, name, source } = subscriber;
+    db.run(
+      'INSERT OR IGNORE INTO newsletter (email, name, source) VALUES (?, ?, ?)',
+      [email, name || null, source || 'website'],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else if (this.changes === 0) {
+          // Email already exists
+          callback(new Error('Email already subscribed'), null);
+        } else {
+          callback(null, { id: this.lastID, email, name, subscribed: true });
+        }
+      }
+    );
+  },
+
+  unsubscribeNewsletter: (email, callback) => {
+    db.run(
+      'UPDATE newsletter SET status = ?, unsubscribed_at = CURRENT_TIMESTAMP WHERE email = ?',
+      ['unsubscribed', email],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { email, unsubscribed: this.changes > 0 });
+        }
+      }
+    );
+  },
+
+  getAllNewsletterSubscribers: (callback) => {
+    db.all('SELECT * FROM newsletter WHERE status = ? ORDER BY subscribed_at DESC', ['active'], callback);
+  },
+
+  // Events registration functions
+  registerEvent: (registration, callback) => {
+    const { eventId, name, email, phone } = registration;
+    db.run(
+      'INSERT INTO events (event_id, name, email, phone) VALUES (?, ?, ?, ?)',
+      [eventId, name, email, phone],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, eventId, name, email, phone });
+        }
+      }
+    );
+  },
+
+  getEventRegistrations: (eventId, callback) => {
+    db.all('SELECT * FROM events WHERE event_id = ? ORDER BY registered_at DESC', [eventId], callback);
+  },
+
+  getAllEventRegistrations: (callback) => {
+    db.all('SELECT * FROM events ORDER BY registered_at DESC', callback);
   }
 };
 

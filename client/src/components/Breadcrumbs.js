@@ -12,7 +12,14 @@ const Breadcrumbs = () => {
     'services': 'Dịch vụ',
     'gallery': 'Thư viện ảnh',
     'blog': 'Blog',
-    'contact': 'Liên hệ'
+    'contact': 'Liên hệ',
+    'recruitment': 'Tuyển dụng',
+    'faq': 'FAQ',
+    'testimonials': 'Đánh giá',
+    'calculator': 'Tính chi phí',
+    'school-comparison': 'So sánh trường',
+    'quiz': 'Quiz tìm trường',
+    'resources': 'Tài liệu miễn phí'
   };
 
   const getBreadcrumbName = (path) => {

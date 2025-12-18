@@ -236,6 +236,60 @@ app.post('/api/contacts', (req, res) => {
   });
 });
 
+// Newsletter routes
+app.post('/api/newsletter/subscribe', (req, res) => {
+  const { email, name } = req.body;
+  
+  if (!email) {
+    res.status(400).json({ error: 'Email is required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  dbHelpers.subscribeNewsletter({ email, name, source: 'website' }, (err, subscriber) => {
+    if (err) {
+      if (err.message === 'Email already subscribed') {
+        res.status(409).json({ error: 'Email already subscribed' });
+      } else {
+        res.status(500).json({ error: err.message });
+      }
+      return;
+    }
+    res.status(201).json({ message: 'Subscribed successfully', subscriber });
+  });
+});
+
+// Events registration routes
+app.post('/api/events/register', (req, res) => {
+  const { eventId, name, email, phone } = req.body;
+  
+  if (!eventId || !name || !email || !phone) {
+    res.status(400).json({ error: 'Event ID, name, email, and phone are required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  dbHelpers.registerEvent({ eventId, name, email, phone }, (err, registration) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json({ message: 'Registered successfully', registration });
+  });
+});
+
 // Update contact status
 app.patch('/api/contacts/:id/status', (req, res) => {
   const id = req.params.id;

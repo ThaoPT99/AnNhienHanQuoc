@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import Newsletter from '../components/Newsletter';
 import './Home.css';
 
 const Home = () => {
@@ -373,6 +374,9 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Newsletter Section */}
+      <Newsletter />
     </div>
   );
 };

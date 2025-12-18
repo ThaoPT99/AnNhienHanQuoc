@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import Newsletter from './Newsletter';
 import './Footer.css';
 
 const Footer = () => {
@@ -8,7 +9,9 @@ const Footer = () => {
     { path: '/', label: 'Trang chủ', icon: '🏠' },
     { path: '/about', label: 'Về chúng tôi', icon: '👥' },
     { path: '/services', label: 'Dịch vụ', icon: '🎯' },
-    { path: '/gallery', label: 'Thư viện ảnh', icon: '📸' },
+    { path: '/blog', label: 'Blog', icon: '📚' },
+    { path: '/faq', label: 'FAQ', icon: '❓' },
+    { path: '/calculator', label: 'Tính chi phí', icon: '💰' },
     { path: '/contact', label: 'Liên hệ', icon: '💬' }
   ];
 
@@ -150,6 +153,11 @@ const Footer = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Newsletter Section in Footer */}
+        <div className="footer-newsletter">
+          <Newsletter variant="inline" />
+        </div>
         
         <motion.div
           className="footer-bottom"
@@ -161,7 +169,7 @@ const Footer = () => {
           <div className="footer-divider"></div>
           <p className="copyright">
             <span className="copyright-icon">©</span>
-            2024 Du học An Nhiên. All rights reserved.
+            2025 Du học An Nhiên. All rights reserved.
             <span className="copyright-heart">💜</span>
           </p>
         </motion.div>

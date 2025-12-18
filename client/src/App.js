@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Breadcrumbs from './components/Breadcrumbs';
 import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
@@ -11,6 +10,15 @@ import Gallery from './pages/Gallery';
 import Contact from './pages/Contact';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
+import Recruitment from './pages/Recruitment';
+import FAQ from './pages/FAQ';
+import Testimonials from './pages/Testimonials';
+import Calculator from './pages/Calculator';
+import SchoolComparison from './pages/SchoolComparison';
+import Quiz from './pages/Quiz';
+import Resources from './pages/Resources';
+import Events from './pages/Events';
+import Videos from './pages/Videos';
 import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
 import AdminGallery from './pages/AdminGallery';
@@ -22,7 +30,6 @@ function App() {
       <Router>
         <div className="App">
           <Navbar />
-          <Breadcrumbs />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -31,6 +38,15 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/recruitment" element={<Recruitment />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/calculator" element={<Calculator />} />
+            <Route path="/school-comparison" element={<SchoolComparison />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/videos" element={<Videos />} />
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin-gallery" element={<AdminGallery />} />
