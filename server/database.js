@@ -177,6 +177,29 @@ function initializeDatabase() {
       }
     });
 
+    // Create consultation table
+    db.run(`CREATE TABLE IF NOT EXISTS consultation (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL,
+      current_grade TEXT,
+      interested_major TEXT,
+      interested_city TEXT,
+      budget TEXT,
+      topik_level TEXT,
+      message TEXT,
+      trigger_source TEXT DEFAULT 'general',
+      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'new'
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating consultation table:', err.message);
+      } else {
+        console.log('✅ Consultation table ready');
+      }
+    });
+
     // Create indexes
     db.run(`CREATE INDEX IF NOT EXISTS idx_recruitment_status ON recruitment(status)`, (err) => {
       if (err) console.error('Error creating recruitment index:', err.message);
@@ -490,6 +513,26 @@ const dbHelpers = {
 
   getResourceDownloads: (callback) => {
     db.all('SELECT * FROM resources_downloads ORDER BY downloaded_at DESC', callback);
+  },
+
+  // Consultation functions
+  registerConsultation: (consultation, callback) => {
+    const { name, phone, email, currentGrade, interestedMajor, interestedCity, budget, topikLevel, message, triggerSource } = consultation;
+    db.run(
+      'INSERT INTO consultation (name, phone, email, current_grade, interested_major, interested_city, budget, topik_level, message, trigger_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, phone, email, currentGrade || null, interestedMajor || null, interestedCity || null, budget || null, topikLevel || null, message || null, triggerSource || 'general'],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...consultation });
+        }
+      }
+    );
+  },
+
+  getAllConsultations: (callback) => {
+    db.all('SELECT * FROM consultation ORDER BY submitted_at DESC', callback);
   }
 };
 

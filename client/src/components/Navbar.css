@@ -101,6 +101,19 @@
   z-index: 2;
 }
 
+.navbar-search {
+  flex: 1;
+  max-width: 300px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 968px) {
+  .navbar-search {
+    display: none;
+  }
+}
+
 .navbar-logo {
   text-decoration: none;
   display: flex;

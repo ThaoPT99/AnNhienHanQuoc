@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Search from './Search';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -89,6 +90,10 @@ const Navbar = () => {
             <div className="logo-shine"></div>
           </Link>
         </motion.div>
+
+        <div className="navbar-search">
+          <Search />
+        </div>
         
         <div className={`navbar-menu ${isMobileMenuOpen ? 'active' : ''}`}>
           {/* Main Navigation Items */}

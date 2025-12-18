@@ -7,6 +7,12 @@ const SchoolComparison = () => {
   const [selectedSchools, setSelectedSchools] = useState([]);
   const [filterMajor, setFilterMajor] = useState('all');
   const [filterCity, setFilterCity] = useState('all');
+  const [filterRanking, setFilterRanking] = useState('all');
+  const [filterTuition, setFilterTuition] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [filterDormitory, setFilterDormitory] = useState('all');
+  const [filterTopik, setFilterTopik] = useState('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [sortBy, setSortBy] = useState('ranking');
 
   const structuredData = {
@@ -1038,7 +1044,30 @@ const SchoolComparison = () => {
   const filteredSchools = schools.filter(school => {
     const matchesMajor = filterMajor === 'all' || school.majors.includes(filterMajor);
     const matchesCity = filterCity === 'all' || school.city === filterCity;
-    return matchesMajor && matchesCity;
+    
+    // Advanced filters
+    const matchesRanking = filterRanking === 'all' || 
+      (filterRanking === 'top10' && school.ranking <= 10) ||
+      (filterRanking === 'top20' && school.ranking <= 20) ||
+      (filterRanking === 'top50' && school.ranking <= 50);
+    
+    const matchesTuition = filterTuition === 'all' ||
+      (filterTuition === 'low' && school.tuition < 3000000) ||
+      (filterTuition === 'medium' && school.tuition >= 3000000 && school.tuition < 4000000) ||
+      (filterTuition === 'high' && school.tuition >= 4000000);
+    
+    const matchesType = filterType === 'all' || school.type === filterType;
+    
+    const matchesDormitory = filterDormitory === 'all' || 
+      (filterDormitory === 'yes' && school.dormitory === 'Có') ||
+      (filterDormitory === 'no' && school.dormitory === 'Không');
+    
+    const matchesTopik = filterTopik === 'all' ||
+      (filterTopik === 'low' && (school.language.includes('3') || school.language.includes('4'))) ||
+      (filterTopik === 'high' && (school.language.includes('5') || school.language.includes('6')));
+    
+    return matchesMajor && matchesCity && matchesRanking && matchesTuition && 
+           matchesType && matchesDormitory && matchesTopik;
   });
 
   const sortedSchools = [...filteredSchools].sort((a, b) => {
@@ -1095,34 +1124,106 @@ const SchoolComparison = () => {
 
       <div className="comparison-content">
         <div className="filters-section">
-          <div className="filter-group">
-            <label>Lọc theo ngành:</label>
-            <select value={filterMajor} onChange={(e) => setFilterMajor(e.target.value)}>
-              {majors.map(major => (
-                <option key={major} value={major}>
-                  {major === 'all' ? 'Tất cả ngành' : major}
-                </option>
-              ))}
-            </select>
+          <div className="filters-basic">
+            <div className="filter-group">
+              <label>Lọc theo ngành:</label>
+              <select value={filterMajor} onChange={(e) => setFilterMajor(e.target.value)}>
+                {majors.map(major => (
+                  <option key={major} value={major}>
+                    {major === 'all' ? 'Tất cả ngành' : major}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Lọc theo thành phố:</label>
+              <select value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
+                {cities.map(city => (
+                  <option key={city} value={city}>
+                    {city === 'all' ? 'Tất cả thành phố' : city}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Sắp xếp theo:</label>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value="ranking">Ranking (Cao → Thấp)</option>
+                <option value="tuition-low">Học phí (Thấp → Cao)</option>
+                <option value="tuition-high">Học phí (Cao → Thấp)</option>
+              </select>
+            </div>
+            <button 
+              className="advanced-filters-toggle"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            >
+              {showAdvancedFilters ? 'Ẩn' : 'Hiện'} bộ lọc nâng cao {showAdvancedFilters ? '▲' : '▼'}
+            </button>
           </div>
-          <div className="filter-group">
-            <label>Lọc theo thành phố:</label>
-            <select value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
-              {cities.map(city => (
-                <option key={city} value={city}>
-                  {city === 'all' ? 'Tất cả thành phố' : city}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group">
-            <label>Sắp xếp theo:</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="ranking">Ranking (Cao → Thấp)</option>
-              <option value="tuition-low">Học phí (Thấp → Cao)</option>
-              <option value="tuition-high">Học phí (Cao → Thấp)</option>
-            </select>
-          </div>
+
+          {showAdvancedFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="filters-advanced"
+            >
+              <div className="filter-group">
+                <label>Ranking:</label>
+                <select value={filterRanking} onChange={(e) => setFilterRanking(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="top10">Top 10</option>
+                  <option value="top20">Top 20</option>
+                  <option value="top50">Top 50</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Học phí/kỳ:</label>
+                <select value={filterTuition} onChange={(e) => setFilterTuition(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="low">Dưới 3 triệu won</option>
+                  <option value="medium">3-4 triệu won</option>
+                  <option value="high">Trên 4 triệu won</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Loại trường:</label>
+                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="Công lập">Công lập</option>
+                  <option value="Tư thục">Tư thục</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Ký túc xá:</label>
+                <select value={filterDormitory} onChange={(e) => setFilterDormitory(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="yes">Có</option>
+                  <option value="no">Không</option>
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>Yêu cầu TOPIK:</label>
+                <select value={filterTopik} onChange={(e) => setFilterTopik(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="low">TOPIK 3-4</option>
+                  <option value="high">TOPIK 5-6</option>
+                </select>
+              </div>
+              <button 
+                className="reset-filters-btn"
+                onClick={() => {
+                  setFilterRanking('all');
+                  setFilterTuition('all');
+                  setFilterType('all');
+                  setFilterDormitory('all');
+                  setFilterTopik('all');
+                }}
+              >
+                🔄 Đặt lại bộ lọc
+              </button>
+            </motion.div>
+          )}
         </div>
 
         <div className="schools-grid">
@@ -1192,11 +1293,53 @@ const SchoolComparison = () => {
           ))}
         </div>
 
+        {/* Sticky comparison bar */}
+        {selectedSchools.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="comparison-sticky-bar"
+          >
+            <div className="sticky-bar-content">
+              <div className="selected-count">
+                <span className="count-icon">📊</span>
+                <span>Đã chọn {selectedSchools.length}/3 trường để so sánh</span>
+              </div>
+              <div className="selected-schools-list">
+                {selectedSchoolsData.map(school => (
+                  <span key={school.id} className="selected-school-badge">
+                    {school.name}
+                    <button 
+                      onClick={() => toggleSchoolSelection(school.id)}
+                      className="remove-school-btn"
+                      aria-label="Xóa"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <button 
+                onClick={() => {
+                  const comparisonSection = document.querySelector('.comparison-table-section');
+                  if (comparisonSection) {
+                    comparisonSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="view-comparison-btn"
+              >
+                Xem so sánh ↓
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {selectedSchools.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             className="comparison-table-section"
+            id="comparison-section"
           >
             <h2 className="comparison-title">
               <span>📊</span>

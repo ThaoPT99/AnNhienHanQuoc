@@ -524,6 +524,131 @@ app.get('/api/resources/downloads', (req, res) => {
   });
 });
 
+// Consultation registration
+app.post('/api/consultation/register', (req, res) => {
+  const { name, phone, email, currentGrade, interestedMajor, interestedCity, budget, topikLevel, message, triggerSource } = req.body;
+
+  if (!name || !phone || !email) {
+    res.status(400).json({ error: 'Name, phone, and email are required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  dbHelpers.registerConsultation({
+    name,
+    phone,
+    email,
+    currentGrade,
+    interestedMajor,
+    interestedCity,
+    budget,
+    topikLevel,
+    message,
+    triggerSource
+  }, (err, consultation) => {
+    if (err) {
+      console.error('Error registering consultation:', err);
+      res.status(500).json({ error: 'Failed to register consultation' });
+      return;
+    }
+    res.status(201).json({ success: true, consultation });
+  });
+});
+
+// Get all consultations (for admin)
+app.get('/api/consultation/registrations', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getAllConsultations((err, consultations) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(consultations);
+  });
+});
+
+// Dynamic Sitemap
+app.get('/sitemap.xml', (req, res) => {
+  const baseUrl = 'https://duhocannhien.vercel.app';
+  const today = new Date().toISOString().split('T')[0];
+  
+  const pages = [
+    { url: '/', priority: '1.0', changefreq: 'weekly' },
+    { url: '/about', priority: '0.8', changefreq: 'monthly' },
+    { url: '/services', priority: '0.9', changefreq: 'monthly' },
+    { url: '/gallery', priority: '0.7', changefreq: 'weekly' },
+    { url: '/contact', priority: '0.8', changefreq: 'monthly' },
+    { url: '/blog', priority: '0.9', changefreq: 'weekly' },
+    { url: '/recruitment', priority: '0.7', changefreq: 'monthly' },
+    { url: '/faq', priority: '0.9', changefreq: 'weekly' },
+    { url: '/testimonials', priority: '0.8', changefreq: 'weekly' },
+    { url: '/calculator', priority: '0.8', changefreq: 'monthly' },
+    { url: '/school-comparison', priority: '0.9', changefreq: 'monthly' },
+    { url: '/quiz', priority: '0.8', changefreq: 'monthly' },
+    { url: '/resources', priority: '0.8', changefreq: 'weekly' },
+    { url: '/events', priority: '0.8', changefreq: 'weekly' },
+    { url: '/videos', priority: '0.8', changefreq: 'weekly' },
+  ];
+
+  const blogPosts = [
+    '/blog/huong-dan-du-hoc-han-quoc-2025',
+    '/blog/chi-phi-du-hoc-han-quoc',
+    '/blog/hoc-bong-du-hoc-han-quoc',
+    '/blog/kinh-nghiem-xin-visa-han-quoc',
+    '/blog/cuoc-song-du-hoc-sinh-han-quoc',
+    '/blog/chon-truong-du-hoc-han-quoc',
+    '/blog/top-1-cong-ty-tu-van-du-hoc-han-quoc-uy-tin-nhat-hien-nay',
+    '/blog/di-du-hoc-han-quoc-co-de-khong-xu-huong-du-hoc-moi-cho-2k8',
+    '/blog/8-dieu-can-biet-ve-du-hoc-han-quoc-he-visa-d2-tai-du-hoc-an-nhien',
+    '/blog/dieu-kien-du-hoc-han-quoc-la-gi-chi-phi-bao-nhieu-va-nen-hoc-nganh-nao',
+    '/blog/top-8-ung-dung-can-thiet-danh-cho-du-hoc-sinh-tai-han-quoc',
+  ];
+
+  let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+`;
+
+  // Add main pages
+  pages.forEach(page => {
+    sitemap += `  <url>
+    <loc>${baseUrl}${page.url}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>
+`;
+  });
+
+  // Add blog posts
+  blogPosts.forEach(post => {
+    sitemap += `  <url>
+    <loc>${baseUrl}${post}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+  });
+
+  sitemap += `</urlset>`;
+
+  res.set('Content-Type', 'text/xml');
+  res.send(sitemap);
+});
+
 // Update contact status
 app.patch('/api/contacts/:id/status', (req, res) => {
   const id = req.params.id;

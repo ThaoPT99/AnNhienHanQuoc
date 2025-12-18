@@ -1,8 +1,30 @@
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://duhocannhien.vercel.app/sitemap.xml
+
+# Disallow admin pages
 Disallow: /admin
 Disallow: /admin-login
 Disallow: /admin-gallery
 
-Sitemap: https://duhocannhien.vercel.app/sitemap.xml
+# Allow all other pages
+Allow: /
+Allow: /about
+Allow: /services
+Allow: /gallery
+Allow: /contact
+Allow: /blog
+Allow: /calculator
+Allow: /school-comparison
+Allow: /quiz
+Allow: /resources
+Allow: /events
+Allow: /videos
+Allow: /faq
+Allow: /testimonials
+Allow: /recruitment
 
+# Crawl-delay
+Crawl-delay: 1
