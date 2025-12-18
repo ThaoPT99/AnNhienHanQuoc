@@ -465,6 +465,9 @@ html {
   width: 100%;
   max-width: 900px;
   padding: 0;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .section-header * {
@@ -523,6 +526,9 @@ html {
   display: block;
   box-sizing: border-box;
   align-self: center;
+  position: relative;
+  left: 0;
+  right: 0;
 }
 
 .section-subtitle {
