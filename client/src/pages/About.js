@@ -17,7 +17,7 @@ const About = () => {
       "url": "https://duhocannhien.vercel.app",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "219 P. Trung Kính, Trung Hòa",
+        "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
         "addressLocality": "Cầu Giấy",
         "addressRegion": "Hà Nội",
         "addressCountry": "VN"
@@ -227,7 +227,7 @@ const About = () => {
                 </div>
                 <div>
                   <h4>Địa chỉ</h4>
-                  <p>219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</p>
+                  <p>Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội</p>
                 </div>
               </motion.div>
               <motion.div

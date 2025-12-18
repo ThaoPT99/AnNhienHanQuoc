@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import SimpleChatbot from './components/SimpleChatbot';
 import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
@@ -52,6 +53,7 @@ function App() {
             <Route path="/admin-gallery" element={<AdminGallery />} />
           </Routes>
           <Footer />
+          <SimpleChatbot />
         </div>
       </Router>
     </HelmetProvider>

@@ -38,7 +38,7 @@ const Recruitment = () => {
       "@type": "Place",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "219 P. Trung Kính, Trung Hòa",
+        "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
         "addressLocality": "Cầu Giấy",
         "addressRegion": "Hà Nội",
         "addressCountry": "VN"
@@ -515,7 +515,7 @@ const Recruitment = () => {
                 </div>
                 <div className="contact-item">
                   <span className="contact-icon">📍</span>
-                  <span>219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</span>
+                  <span>Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội</span>
                 </div>
               </div>
             </div>

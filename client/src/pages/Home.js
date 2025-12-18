@@ -15,7 +15,7 @@ const Home = () => {
     "logo": "https://duhocannhien.vercel.app/logo.png",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "219 P. Trung Kính, Trung Hòa",
+      "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
       "addressLocality": "Cầu Giấy",
       "addressRegion": "Hà Nội",
       "addressCountry": "VN"
