@@ -1,6 +1,6 @@
 .events-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   padding-top: 80px;
 }
 
@@ -122,11 +122,41 @@
 .section-title {
   font-size: 2.2rem;
   font-weight: 700;
-  color: white;
+  color: #1a1a2e;
   margin-bottom: 30px;
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+.section-title > span:first-child {
+  display: inline-block;
+  font-size: 2.2rem;
+  flex-shrink: 0;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #1a1a2e !important;
+  filter: none !important;
+}
+
+.section-title-text {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.upcoming-events-section,
+.past-events-section {
+  background: transparent;
+}
+
+.upcoming-events-section .section-title,
+.past-events-section .section-title {
+  color: #1a1a2e;
 }
 
 /* Events Grid */
@@ -207,8 +237,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: #333;
   font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.meta-item span:not(.meta-icon) {
+  color: #333;
 }
 
 .meta-icon {
@@ -233,7 +268,8 @@
 }
 
 .stat-label {
-  color: #666;
+  color: #333;
+  font-weight: 500;
 }
 
 .stat-value {
@@ -312,7 +348,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
   padding: 20px;
   overflow-y: auto;
 }
@@ -327,6 +363,7 @@
   overflow-y: auto;
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
 }
 
 .close-modal-btn {

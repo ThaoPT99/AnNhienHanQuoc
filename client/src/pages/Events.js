@@ -210,7 +210,7 @@ const Events = () => {
           <section className="upcoming-events-section">
             <h2 className="section-title">
               <span>🎯</span>
-              Sự kiện sắp tới
+              <span className="section-title-text">Sự kiện sắp tới</span>
             </h2>
             <div className="events-grid">
               {upcomingEvents.map((event, index) => (
@@ -276,7 +276,7 @@ const Events = () => {
           <section className="past-events-section">
             <h2 className="section-title">
               <span>📚</span>
-              Sự kiện đã qua
+              <span className="section-title-text">Sự kiện đã qua</span>
             </h2>
             <div className="events-grid">
               {pastEvents.map((event, index) => (
