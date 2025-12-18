@@ -10,6 +10,7 @@ const Admin = () => {
   const [events, setEvents] = useState([]);
   const [recruitment, setRecruitment] = useState([]);
   const [resources, setResources] = useState([]);
+  const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -33,12 +34,13 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/recruitment/applications`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/resources/downloads`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/resources/downloads`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/consultation/registrations`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -46,6 +48,7 @@ const Admin = () => {
       setEvents(eventsRes.data || []);
       setRecruitment(recruitmentRes.data || []);
       setResources(resourcesRes.data || []);
+      setConsultations(consultationsRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -118,6 +121,7 @@ const Admin = () => {
 
   const tabs = [
     { id: 'contacts', label: '📞 Liên hệ', count: contacts.length, icon: '💬' },
+    { id: 'consultations', label: '🎓 Tư vấn', count: consultations.length, icon: '💬' },
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
@@ -127,6 +131,7 @@ const Admin = () => {
   const getCurrentData = () => {
     switch (activeTab) {
       case 'contacts': return contacts;
+      case 'consultations': return consultations;
       case 'newsletter': return newsletter;
       case 'events': return events;
       case 'recruitment': return recruitment;
@@ -196,6 +201,70 @@ const Admin = () => {
                           <td>
                             <button onClick={() => handleDelete('contacts', item.id)} className="delete-btn">
                               🗑️ Xóa
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'consultations' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">Đăng ký tư vấn miễn phí ({consultations.length})</h2>
+                {consultations.length === 0 ? (
+                  <div className="no-data">Chưa có đăng ký tư vấn nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Họ và tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Trình độ</th>
+                        <th>Ngành quan tâm</th>
+                        <th>Thành phố</th>
+                        <th>Ngân sách</th>
+                        <th>TOPIK</th>
+                        <th>Nguồn</th>
+                        <th>Ngày đăng ký</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {consultations.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td>{item.name}</td>
+                          <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
+                          <td><a href={`tel:${item.phone}`}>{item.phone}</a></td>
+                          <td>{item.current_grade || <em>Không có</em>}</td>
+                          <td>{item.interested_major || <em>Không có</em>}</td>
+                          <td>{item.interested_city || <em>Không có</em>}</td>
+                          <td>{item.budget || <em>Không có</em>}</td>
+                          <td>{item.topik_level || <em>Không có</em>}</td>
+                          <td>
+                            <span className="source-badge">
+                              {item.trigger_source === 'floating-button' ? '🔘 Nút nổi' : 
+                               item.trigger_source === 'general' ? '🌐 Website' : item.trigger_source}
+                            </span>
+                          </td>
+                          <td>{formatDate(item.submitted_at)}</td>
+                          <td>
+                            {item.message && (
+                              <button 
+                                onClick={() => alert(item.message || 'Không có tin nhắn')}
+                                className="view-message-btn"
+                                title="Xem tin nhắn"
+                              >
+                                💬
+                              </button>
+                            )}
+                            <button onClick={() => handleDelete('consultations', item.id)} className="delete-btn">
+                              🗑️
                             </button>
                           </td>
                         </tr>
@@ -402,9 +471,13 @@ const Admin = () => {
             <h3>📥 Tài liệu</h3>
             <p className="stat-number">{resources.length}</p>
           </div>
+          <div className="stat-card">
+            <h3>🎓 Tư vấn</h3>
+            <p className="stat-number">{consultations.length}</p>
+          </div>
           <div className="stat-card total">
             <h3>Tổng cộng</h3>
-            <p className="stat-number">{contacts.length + newsletter.length + events.length + recruitment.length + resources.length}</p>
+            <p className="stat-number">{contacts.length + consultations.length + newsletter.length + events.length + recruitment.length + resources.length}</p>
           </div>
         </div>
       </div>
