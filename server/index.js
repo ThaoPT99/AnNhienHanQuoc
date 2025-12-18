@@ -92,7 +92,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({
+const galleryUpload = multer({
   storage: storage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
@@ -106,6 +106,41 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error('Chỉ chấp nhận file ảnh (jpeg, jpg, png, gif, webp)'));
+    }
+  }
+});
+
+// Configure multer for recruitment CVs
+const recruitmentUploadsDir = process.env.RECRUITMENT_UPLOADS_DIR || path.join(__dirname, 'uploads', 'recruitment');
+if (!fs.existsSync(recruitmentUploadsDir)) {
+  fs.mkdirSync(recruitmentUploadsDir, { recursive: true });
+  console.log('📁 Created recruitment uploads directory:', recruitmentUploadsDir);
+}
+
+const recruitmentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, recruitmentUploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'cv-' + uniqueSuffix + ext);
+  }
+});
+
+const recruitmentUpload = multer({
+  storage: recruitmentStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /pdf|doc|docx/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = /pdf|msword|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/.test(file.mimetype);
+    if (extname && mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF, DOC, and DOCX files are allowed'));
     }
   }
 });
@@ -290,6 +325,194 @@ app.post('/api/events/register', (req, res) => {
   });
 });
 
+// Get all event registrations (for admin)
+app.get('/api/events/registrations', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getAllEventRegistrations((err, registrations) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(registrations);
+  });
+});
+
+// Get all newsletter subscribers (for admin)
+app.get('/api/newsletter/subscribers', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getAllNewsletterSubscribers((err, subscribers) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(subscribers);
+  });
+});
+
+// Recruitment routes
+console.log('✅ Registering recruitment endpoint: POST /api/recruitment/apply');
+app.post('/api/recruitment/apply', recruitmentUpload.single('cv'), (req, res) => {
+  console.log('📥 Received recruitment application:', { name: req.body.name, email: req.body.email, position: req.body.position });
+  const { name, email, phone, position, experience, message } = req.body;
+  
+  if (!name || !email || !phone || !position) {
+    res.status(400).json({ error: 'Name, email, phone, and position are required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  let cv_file_path = null;
+  let cv_file_name = null;
+
+  if (req.file) {
+    if (isCloudinaryConfigured()) {
+      // Upload to Cloudinary
+      uploadToCloudinary(req.file.path, 'recruitment', (err, result) => {
+        if (err) {
+          res.status(500).json({ error: 'Failed to upload CV' });
+          return;
+        }
+        cv_file_path = result.secure_url;
+        cv_file_name = req.file.originalname;
+        
+        // Delete local file after upload
+        fs.unlink(req.file.path, () => {});
+        
+        dbHelpers.createRecruitmentApplication({
+          name, email, phone, position, experience, message, cv_file_path, cv_file_name
+        }, (err, application) => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+          }
+          res.status(201).json({ message: 'Application submitted successfully', application });
+        });
+      });
+    } else {
+      // Use local storage
+      cv_file_path = req.file.path;
+      cv_file_name = req.file.originalname;
+      
+      dbHelpers.createRecruitmentApplication({
+        name, email, phone, position, experience, message, cv_file_path, cv_file_name
+      }, (err, application) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        res.status(201).json({ message: 'Application submitted successfully', application });
+      });
+    }
+  } else {
+    // No CV file
+    dbHelpers.createRecruitmentApplication({
+      name, email, phone, position, experience, message, cv_file_path, cv_file_name
+    }, (err, application) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(201).json({ message: 'Application submitted successfully', application });
+    });
+  }
+});
+
+// Get all recruitment applications (for admin)
+app.get('/api/recruitment/applications', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getAllRecruitmentApplications((err, applications) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(applications);
+  });
+});
+
+// Update recruitment status (for admin)
+app.patch('/api/recruitment/:id/status', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  const id = req.params.id;
+  const { status } = req.body;
+  
+  const validStatuses = ['pending', 'reviewing', 'accepted', 'rejected'];
+  if (!status || !validStatuses.includes(status)) {
+    res.status(400).json({ error: 'Invalid status. Must be one of: ' + validStatuses.join(', ') });
+    return;
+  }
+
+  dbHelpers.updateRecruitmentStatus(id, status, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Status updated successfully', result });
+  });
+});
+
+// Resources downloads routes
+app.post('/api/resources/download', (req, res) => {
+  const { email, resource_id, resource_title } = req.body;
+  
+  if (!email || !resource_id) {
+    res.status(400).json({ error: 'Email and resource_id are required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json({ message: 'Download recorded successfully', download });
+  });
+});
+
+// Get all resource downloads (for admin)
+app.get('/api/resources/downloads', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getResourceDownloads((err, downloads) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(downloads);
+  });
+});
+
 // Update contact status
 app.patch('/api/contacts/:id/status', (req, res) => {
   const id = req.params.id;
@@ -364,7 +587,7 @@ app.post('/api/gallery', async (req, res, next) => {
   // Check if request has file upload
   if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
     // Use multer middleware for file upload
-    upload.single('image')(req, res, next);
+    galleryUpload.single('image')(req, res, next);
   } else {
     // Skip multer for JSON requests (URL only)
     next();
@@ -659,8 +882,13 @@ app.delete('/api/gallery/:id', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Uploads directory: ${uploadsDir}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📁 Uploads directory: ${uploadsDir}`);
+  console.log(`✅ Available endpoints:`);
+  console.log(`   - POST /api/recruitment/apply`);
+  console.log(`   - POST /api/events/register`);
+  console.log(`   - POST /api/newsletter/subscribe`);
+  console.log(`   - POST /api/resources/download`);
   
   // Initialize Cloudinary check at runtime (not during build)
   // This prevents Railway from trying to resolve secrets during build phase

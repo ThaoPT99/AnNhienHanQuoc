@@ -141,6 +141,51 @@ function initializeDatabase() {
       }
     });
 
+    // Create recruitment applications table
+    db.run(`CREATE TABLE IF NOT EXISTS recruitment (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      position TEXT NOT NULL,
+      experience TEXT,
+      message TEXT,
+      cv_file_path TEXT,
+      cv_file_name TEXT,
+      applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'pending'
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating recruitment table:', err.message);
+      } else {
+        console.log('✅ Recruitment table ready');
+      }
+    });
+
+    // Create resources downloads table
+    db.run(`CREATE TABLE IF NOT EXISTS resources_downloads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      resource_id INTEGER NOT NULL,
+      resource_title TEXT,
+      downloaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating resources_downloads table:', err.message);
+      } else {
+        console.log('✅ Resources downloads table ready');
+      }
+    });
+
+    // Create indexes
+    db.run(`CREATE INDEX IF NOT EXISTS idx_recruitment_status ON recruitment(status)`, (err) => {
+      if (err) console.error('Error creating recruitment index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_resources_email ON resources_downloads(email)`, (err) => {
+      if (err) console.error('Error creating resources index:', err.message);
+    });
+
     db.run(`CREATE INDEX IF NOT EXISTS idx_gallery_created_at ON gallery(created_at)`, (err) => {
       if (err) {
         console.error('Error creating gallery index:', err.message);
@@ -384,6 +429,64 @@ const dbHelpers = {
 
   getAllEventRegistrations: (callback) => {
     db.all('SELECT * FROM events ORDER BY registered_at DESC', callback);
+  },
+
+  // Recruitment application functions
+  createRecruitmentApplication: (application, callback) => {
+    const { name, email, phone, position, experience, message, cv_file_path, cv_file_name } = application;
+    db.run(
+      'INSERT INTO recruitment (name, email, phone, position, experience, message, cv_file_path, cv_file_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, email, phone, position, experience || null, message || null, cv_file_path || null, cv_file_name || null],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...application });
+        }
+      }
+    );
+  },
+
+  getAllRecruitmentApplications: (callback) => {
+    db.all('SELECT * FROM recruitment ORDER BY applied_at DESC', callback);
+  },
+
+  getRecruitmentApplicationById: (id, callback) => {
+    db.get('SELECT * FROM recruitment WHERE id = ?', [id], callback);
+  },
+
+  updateRecruitmentStatus: (id, status, callback) => {
+    db.run(
+      'UPDATE recruitment SET status = ? WHERE id = ?',
+      [status, id],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id, status, changes: this.changes });
+        }
+      }
+    );
+  },
+
+  // Resource download functions
+  recordResourceDownload: (download, callback) => {
+    const { email, resource_id, resource_title } = download;
+    db.run(
+      'INSERT INTO resources_downloads (email, resource_id, resource_title) VALUES (?, ?, ?)',
+      [email, resource_id, resource_title || null],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...download });
+        }
+      }
+    );
+  },
+
+  getResourceDownloads: (callback) => {
+    db.all('SELECT * FROM resources_downloads ORDER BY downloaded_at DESC', callback);
   }
 };
 

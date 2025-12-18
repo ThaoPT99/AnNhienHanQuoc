@@ -136,13 +136,42 @@ const Resources = () => {
     ? resources
     : resources.filter(r => r.category === selectedCategory);
 
-  const handleDownload = (resource) => {
+  const handleDownload = async (resource) => {
     if (!submitted) {
       setSelectedResource(resource);
       return;
     }
-    // Logic download thực tế sẽ được thêm sau
-    alert(`Đang tải xuống: ${resource.title}`);
+
+    // Gửi thông tin download lên backend
+    const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+    
+    try {
+      const response = await fetch(`${API_URL}/api/resources/download`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          resource_id: resource.id,
+          resource_title: resource.title
+        }),
+      });
+
+      if (response.ok) {
+        // Logic download thực tế sẽ được thêm sau
+        alert(`Đang tải xuống: ${resource.title}`);
+        // Reset form
+        setEmail('');
+        setSubmitted(false);
+        setSelectedResource(null);
+      } else {
+        const error = await response.json();
+        alert(`Có lỗi xảy ra: ${error.error || 'Vui lòng thử lại sau.'}`);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+    }
   };
 
   const handleEmailSubmit = (e) => {

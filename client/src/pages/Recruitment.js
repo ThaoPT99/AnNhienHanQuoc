@@ -166,20 +166,46 @@ const Recruitment = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Xử lý submit form ở đây
-    alert('Cảm ơn bạn đã ứng tuyển! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      position: '',
-      experience: '',
-      message: '',
-      cv: null
-    });
-    setSelectedJob(null);
+    
+    const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', formData.name);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('phone', formData.phone);
+    formDataToSend.append('position', formData.position);
+    formDataToSend.append('experience', formData.experience || '');
+    formDataToSend.append('message', formData.message || '');
+    if (formData.cv) {
+      formDataToSend.append('cv', formData.cv);
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/recruitment/apply`, {
+        method: 'POST',
+        body: formDataToSend
+      });
+
+      if (response.ok) {
+        alert('Cảm ơn bạn đã ứng tuyển! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          position: '',
+          experience: '',
+          message: '',
+          cv: null
+        });
+        setSelectedJob(null);
+      } else {
+        const error = await response.json();
+        alert(`Có lỗi xảy ra: ${error.error || 'Vui lòng thử lại sau.'}`);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+    }
   };
 
   return (
