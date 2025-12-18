@@ -9,8 +9,7 @@ const { dbHelpers } = require('./database');
 const { 
   isCloudinaryConfigured,
   checkCloudinaryConfig,
-  uploadToCloudinary,
-  uploadFileToCloudinary, 
+  uploadToCloudinary, 
   uploadBufferToCloudinary,
   deleteFromCloudinary,
   extractPublicId 
@@ -361,72 +360,75 @@ app.get('/api/newsletter/subscribers', (req, res) => {
 
 // Recruitment routes
 console.log('✅ Registering recruitment endpoint: POST /api/recruitment/apply');
-app.post('/api/recruitment/apply', recruitmentUpload.single('cv'), async (req, res) => {
-  try {
-    console.log('📥 Received recruitment application:', { name: req.body.name, email: req.body.email, position: req.body.position });
-    const { name, email, phone, position, experience, message } = req.body;
-    
-    if (!name || !email || !phone || !position) {
-      res.status(400).json({ error: 'Name, email, phone, and position are required' });
-      return;
-    }
+app.post('/api/recruitment/apply', recruitmentUpload.single('cv'), (req, res) => {
+  console.log('📥 Received recruitment application:', { name: req.body.name, email: req.body.email, position: req.body.position });
+  const { name, email, phone, position, experience, message } = req.body;
+  
+  if (!name || !email || !phone || !position) {
+    res.status(400).json({ error: 'Name, email, phone, and position are required' });
+    return;
+  }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      res.status(400).json({ error: 'Invalid email format' });
-      return;
-    }
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
 
-    let cv_file_path = null;
-    let cv_file_name = null;
+  let cv_file_path = null;
+  let cv_file_name = null;
 
-    if (req.file) {
-      console.log('📄 Processing CV file:', req.file.originalname);
-      
-      if (isCloudinaryConfigured()) {
-        try {
-          // Upload CV file to Cloudinary as raw resource (for PDF/DOC files)
-          const result = await uploadFileToCloudinary(req.file.path, 'recruitment');
-          cv_file_path = result.url;
-          cv_file_name = req.file.originalname;
-          
-          // Delete local file after upload
-          fs.unlink(req.file.path, (err) => {
-            if (err) console.error('Error deleting local file:', err);
-          });
-          
-          console.log('✅ CV uploaded to Cloudinary:', cv_file_path);
-        } catch (uploadError) {
-          console.error('❌ Cloudinary upload error:', uploadError);
-          // Fallback to local storage if Cloudinary fails
-          cv_file_path = req.file.path;
-          cv_file_name = req.file.originalname;
-          console.log('⚠️  Using local storage as fallback');
+  if (req.file) {
+    if (isCloudinaryConfigured()) {
+      // Upload to Cloudinary
+      uploadToCloudinary(req.file.path, 'recruitment', (err, result) => {
+        if (err) {
+          res.status(500).json({ error: 'Failed to upload CV' });
+          return;
         }
-      } else {
-        // Use local storage
-        cv_file_path = req.file.path;
+        cv_file_path = result.secure_url;
         cv_file_name = req.file.originalname;
-        console.log('📁 Using local storage for CV');
-      }
+        
+        // Delete local file after upload
+        fs.unlink(req.file.path, () => {});
+        
+        dbHelpers.createRecruitmentApplication({
+          name, email, phone, position, experience, message, cv_file_path, cv_file_name
+        }, (err, application) => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+          }
+          res.status(201).json({ message: 'Application submitted successfully', application });
+        });
+      });
+    } else {
+      // Use local storage
+      cv_file_path = req.file.path;
+      cv_file_name = req.file.originalname;
+      
+      dbHelpers.createRecruitmentApplication({
+        name, email, phone, position, experience, message, cv_file_path, cv_file_name
+      }, (err, application) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        res.status(201).json({ message: 'Application submitted successfully', application });
+      });
     }
-
-    // Save to database
+  } else {
+    // No CV file
     dbHelpers.createRecruitmentApplication({
       name, email, phone, position, experience, message, cv_file_path, cv_file_name
     }, (err, application) => {
       if (err) {
-        console.error('❌ Database error:', err);
-        res.status(500).json({ error: err.message || 'Failed to save application' });
+        res.status(500).json({ error: err.message });
         return;
       }
-      console.log('✅ Application saved:', application.id);
       res.status(201).json({ message: 'Application submitted successfully', application });
     });
-  } catch (error) {
-    console.error('❌ Unexpected error:', error);
-    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
