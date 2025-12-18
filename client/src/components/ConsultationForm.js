@@ -18,7 +18,7 @@ const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,7 +60,19 @@ const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
       }
     } catch (error) {
       console.error('Error submitting consultation form:', error);
-      setSubmitStatus('error');
+      if (error.response) {
+        // Server responded with error status
+        console.error('Server error:', error.response.data);
+        setSubmitStatus('error');
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('Network error:', error.request);
+        setSubmitStatus('error');
+      } else {
+        // Something else happened
+        console.error('Error:', error.message);
+        setSubmitStatus('error');
+      }
     } finally {
       setIsSubmitting(false);
     }

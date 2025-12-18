@@ -1,7 +1,7 @@
 .consultation-floating-btn {
   position: fixed;
   bottom: 30px;
-  right: 30px;
+  left: 30px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -11,7 +11,7 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-  z-index: 9999;
+  z-index: 9998;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -33,7 +33,7 @@
 @media (max-width: 768px) {
   .consultation-floating-btn {
     bottom: 20px;
-    right: 20px;
+    left: 20px;
     padding: 12px 20px;
     font-size: 0.9rem;
   }
