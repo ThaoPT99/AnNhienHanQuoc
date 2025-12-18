@@ -200,6 +200,27 @@ function initializeDatabase() {
       }
     });
 
+    // Create consultation_booking table
+    db.run(`CREATE TABLE IF NOT EXISTS consultation_booking (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL,
+      formatted_date TEXT,
+      preferred_method TEXT DEFAULT 'zoom',
+      notes TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating consultation_booking table:', err.message);
+      } else {
+        console.log('✅ Consultation booking table ready');
+      }
+    });
+
     // Create indexes
     db.run(`CREATE INDEX IF NOT EXISTS idx_recruitment_status ON recruitment(status)`, (err) => {
       if (err) console.error('Error creating recruitment index:', err.message);
@@ -533,6 +554,26 @@ const dbHelpers = {
 
   getAllConsultations: (callback) => {
     db.all('SELECT * FROM consultation ORDER BY submitted_at DESC', callback);
+  },
+
+  // Consultation booking functions
+  bookConsultation: (booking, callback) => {
+    const { name, phone, email, date, time, formattedDate, preferredMethod, notes } = booking;
+    db.run(
+      'INSERT INTO consultation_booking (name, phone, email, date, time, formatted_date, preferred_method, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, phone, email, date, time, formattedDate, preferredMethod || 'zoom', notes || ''],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...booking });
+        }
+      }
+    );
+  },
+
+  getAllBookings: (callback) => {
+    db.all('SELECT * FROM consultation_booking ORDER BY date DESC, time DESC', callback);
   }
 };
 

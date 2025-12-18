@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import { schools } from '../data/schoolsData';
 import './SchoolComparison.css';
 
 const SchoolComparison = () => {
@@ -14,6 +15,7 @@ const SchoolComparison = () => {
   const [filterTopik, setFilterTopik] = useState('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [sortBy, setSortBy] = useState('ranking');
+  const comparisonSectionRef = useRef(null);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -23,132 +25,419 @@ const SchoolComparison = () => {
     "url": "https://duhocannhien.vercel.app/school-comparison"
   };
 
-  const schools = [
-    {
-      id: 1,
-      name: 'Đại học Quốc gia Seoul (SNU)',
-      nameKr: '서울대학교',
-      city: 'Seoul',
-      ranking: 1,
-      rankingWorld: 29,
-      type: 'Công lập',
-      tuition: 2500000,
-      tuitionRange: '2.5-4 triệu won/kỳ',
-      majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Luật', 'Khoa học'],
-      topMajors: ['Kinh tế', 'Kỹ thuật', 'Y tế'],
-      scholarship: '30-100%',
-      dormitory: 'Có',
-      dormitoryCost: '30-50 triệu/năm',
-      language: 'TOPIK 4-6',
-      description: 'Trường đại học hàng đầu Hàn Quốc, thuộc nhóm SKY. Chất lượng giáo dục xuất sắc, cơ sở vật chất hiện đại.',
-      website: 'https://www.snu.ac.kr',
-      image: 'https://i.pinimg.com/1200x/06/d6/4c/06d64cdef9d8d312c6ea93152fa9c982.jpg'
-    },
-    {
-      id: 2,
-      name: 'Đại học Yonsei',
-      nameKr: '연세대학교',
-      city: 'Seoul',
-      ranking: 2,
-      rankingWorld: 73,
-      type: 'Tư thục',
-      tuition: 4500000,
-      tuitionRange: '4.5-7 triệu won/kỳ',
-      majors: ['Kinh tế', 'Y tế', 'Kỹ thuật', 'Nghệ thuật', 'Khoa học xã hội'],
-      topMajors: ['Y tế', 'Kinh tế', 'Kỹ thuật'],
-      scholarship: '30-80%',
-      dormitory: 'Có',
-      dormitoryCost: '40-60 triệu/năm',
-      language: 'TOPIK 4-6',
-      description: 'Một trong 3 trường top (SKY), nổi tiếng về ngành Y và Kinh tế. Môi trường học tập quốc tế.',
-      website: 'https://www.yonsei.ac.kr',
-      image: 'https://i.pinimg.com/1200x/25/76/b6/2576b625d0a45b262b3f0c3f44bfad32.jpg'
-    },
-    {
-      id: 3,
-      name: 'Đại học Korea',
-      nameKr: '고려대학교',
-      city: 'Seoul',
-      ranking: 3,
-      rankingWorld: 74,
-      type: 'Tư thục',
-      tuition: 4200000,
-      tuitionRange: '4.2-6.5 triệu won/kỳ',
-      majors: ['Kinh tế', 'Luật', 'Kỹ thuật', 'Y tế', 'Nhân văn'],
-      topMajors: ['Luật', 'Kinh tế', 'Kỹ thuật'],
-      scholarship: '30-70%',
-      dormitory: 'Có',
-      dormitoryCost: '35-55 triệu/năm',
-      language: 'TOPIK 4-6',
-      description: 'Trường top 3 (SKY), mạnh về Luật và Kinh tế. Có nhiều chương trình trao đổi quốc tế.',
-      website: 'https://www.korea.ac.kr',
-      image: 'https://duhocnamu.com/wp-content/uploads/2020/12/koreauni1.jpg'
-    },
-    {
-      id: 4,
-      name: 'Đại học Sungkyunkwan',
-      nameKr: '성균관대학교',
-      city: 'Seoul',
-      ranking: 4,
-      rankingWorld: 99,
-      type: 'Tư thục',
-      tuition: 3800000,
-      tuitionRange: '3.8-6 triệu won/kỳ',
-      majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Nhân văn', 'Khoa học'],
-      topMajors: ['Kỹ thuật', 'Kinh tế', 'Y tế'],
-      scholarship: '30-90%',
-      dormitory: 'Có',
-      dormitoryCost: '35-50 triệu/năm',
-      language: 'TOPIK 3-5',
-      description: 'Trường đại học lâu đời nhất Hàn Quốc (600+ năm). Mạnh về Kỹ thuật và Kinh tế.',
-      website: 'https://www.skku.edu',
-      image: 'https://duhocsunny.edu.vn/wp-content/uploads/2020/05/sungkyunkwan-1.jpg'
-    },
-    {
-      id: 5,
-      name: 'Đại học Hanyang',
-      nameKr: '한양대학교',
-      city: 'Seoul',
-      ranking: 5,
-      rankingWorld: 156,
-      type: 'Tư thục',
-      tuition: 3500000,
-      tuitionRange: '3.5-5.5 triệu won/kỳ',
-      majors: ['Kỹ thuật', 'Kinh tế', 'Y tế', 'Nghệ thuật', 'Khoa học'],
-      topMajors: ['Kỹ thuật', 'Kinh tế', 'Y tế'],
-      scholarship: '30-80%',
-      dormitory: 'Có',
-      dormitoryCost: '30-45 triệu/năm',
-      language: 'TOPIK 3-5',
-      description: 'Nổi tiếng về Kỹ thuật và Công nghệ. Có nhiều chương trình thực tập tại các công ty lớn.',
-      website: 'https://www.hanyang.ac.kr',
-      image: 'https://file.hstatic.net/200000856765/article/i_4bb6a3339563496fa1cd45d41a666baa.png'
-    },
-    {
-      id: 6,
-      name: 'Đại học Kyung Hee',
-      nameKr: '경희대학교',
-      city: 'Seoul',
-      ranking: 6,
-      rankingWorld: 264,
-      type: 'Tư thục',
-      tuition: 3200000,
-      tuitionRange: '3.2-5 triệu won/kỳ',
-      majors: ['Y tế', 'Kinh tế', 'Nghệ thuật', 'Nhân văn', 'Khoa học'],
-      topMajors: ['Y tế', 'Nghệ thuật', 'Kinh tế'],
-      scholarship: '30-70%',
-      dormitory: 'Có',
-      dormitoryCost: '30-45 triệu/năm',
-      language: 'TOPIK 3-5',
-      description: 'Nổi tiếng về Y tế và Nghệ thuật. Môi trường học tập đẹp, nhiều hoạt động văn hóa.',
-      website: 'https://www.khu.ac.kr',
-      image: 'https://i.pinimg.com/736x/0d/3d/54/0d3d541e1e3046eb1833ddce6693c3a3.jpg'
-    },
-    {
-      id: 7,
-      name: 'Đại học Sogang',
-      nameKr: '서강대학교',
-      city: 'Seoul',
+  // Scroll to school when hash is present in URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const schoolId = hash.replace('#school-', '');
+      setTimeout(() => {
+        const element = document.getElementById(`school-${schoolId}`);
+        if (element) {
+          const offset = 100;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
+    }
+  }, []);
+
+  const majors = ['all', 'Kinh tế', 'Kỹ thuật', 'Y tế', 'Nghệ thuật', 'Nhân văn', 'Luật', 'Khoa học', 'Ngôn ngữ', 'Truyền thông', 'Khoa học xã hội'];
+
+  const cities = ['all', 'Seoul', 'Busan', 'Incheon', 'Daegu', 'Daejeon', 'Gwangju', 'Suwon', 'Jeonju', 'Asan', 'Yongin', 'Seongnam', 'Gimhae', 'Iksan', 'Gunsan', 'Chuncheon', 'Jeju', 'Jinju', 'Gyeongsan'];
+
+  const toggleSchoolSelection = (schoolId) => {
+    setSelectedSchools(prev => {
+      if (prev.includes(schoolId)) {
+        return prev.filter(id => id !== schoolId);
+      } else if (prev.length < 3) {
+        return [...prev, schoolId];
+      } else {
+        return prev;
+      }
+    });
+  };
+
+  const scrollToComparison = () => {
+    if (comparisonSectionRef.current) {
+      const offset = 100; // Offset để không bị che bởi navbar và sticky bar
+      const elementPosition = comparisonSectionRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const filteredSchools = schools.filter(school => {
+    const matchesMajor = filterMajor === 'all' || school.majors.includes(filterMajor);
+    const matchesCity = filterCity === 'all' || school.city === filterCity;
+    
+    // Advanced filters
+    const matchesRanking = filterRanking === 'all' || 
+      (filterRanking === 'top10' && school.ranking <= 10) ||
+      (filterRanking === 'top20' && school.ranking <= 20) ||
+      (filterRanking === 'top50' && school.ranking <= 50);
+    
+    const matchesTuition = filterTuition === 'all' ||
+      (filterTuition === 'low' && school.tuition < 3000000) ||
+      (filterTuition === 'medium' && school.tuition >= 3000000 && school.tuition < 4000000) ||
+      (filterTuition === 'high' && school.tuition >= 4000000);
+    
+    const matchesType = filterType === 'all' || school.type === filterType;
+    
+    const matchesDormitory = filterDormitory === 'all' || 
+      (filterDormitory === 'yes' && school.dormitory === 'Có') ||
+      (filterDormitory === 'no' && school.dormitory === 'Không');
+    
+    const matchesTopik = filterTopik === 'all' ||
+      (filterTopik === 'low' && (school.language.includes('TOPIK 3') || school.language.includes('TOPIK 4'))) ||
+      (filterTopik === 'medium' && school.language.includes('TOPIK 5')) ||
+      (filterTopik === 'high' && school.language.includes('TOPIK 6'));
+    
+    return matchesMajor && matchesCity && matchesRanking && matchesTuition && matchesType && matchesDormitory && matchesTopik;
+  });
+
+  const sortedSchools = [...filteredSchools].sort((a, b) => {
+    switch (sortBy) {
+      case 'ranking':
+        return a.ranking - b.ranking;
+      case 'tuition-low':
+        return a.tuition - b.tuition;
+      case 'tuition-high':
+        return b.tuition - a.tuition;
+      default:
+        return a.ranking - b.ranking;
+    }
+  });
+
+  const formatNumber = (num) => {
+    return new Intl.NumberFormat('vi-VN').format(num);
+  };
+
+  const selectedSchoolsData = schools.filter(s => selectedSchools.includes(s.id));
+
+  return (
+    <div className="school-comparison-page">
+      <SEO
+        title="So sánh trường đại học Hàn Quốc - Du học An Nhiên"
+        description="So sánh chi tiết các trường đại học hàng đầu tại Hàn Quốc: học phí, ranking, ngành học, vị trí. Tìm trường phù hợp nhất với bạn."
+        keywords="so sánh trường đại học Hàn Quốc, trường đại học Hàn Quốc, học phí đại học Hàn Quốc, ranking trường Hàn Quốc, SKY university, Seoul National University, Yonsei, Korea University"
+        url="https://duhocannhien.vercel.app/school-comparison"
+        structuredData={structuredData}
+      />
+      
+      <div className="page-header">
+        <div className="header-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="page-title">
+            <span className="title-icon">🏫</span>
+            So sánh trường đại học Hàn Quốc
+          </h1>
+          <p className="page-subtitle">
+            So sánh chi tiết các trường đại học hàng đầu để tìm trường phù hợp nhất với bạn
+          </p>
+        </motion.div>
+      </div>
+
+      <div className="comparison-content">
+        <div className="filters-section">
+          <div className="filters-basic">
+            <div className="filter-group">
+              <label>Lọc theo ngành:</label>
+              <select value={filterMajor} onChange={(e) => setFilterMajor(e.target.value)}>
+                {majors.map(major => (
+                  <option key={major} value={major}>
+                    {major === 'all' ? 'Tất cả ngành' : major}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Lọc theo thành phố:</label>
+              <select value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
+                {cities.map(city => (
+                  <option key={city} value={city}>
+                    {city === 'all' ? 'Tất cả thành phố' : city}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Sắp xếp theo:</label>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value="ranking">Ranking (Cao → Thấp)</option>
+                <option value="tuition-low">Học phí (Thấp → Cao)</option>
+                <option value="tuition-high">Học phí (Cao → Thấp)</option>
+              </select>
+            </div>
+          </div>
+          
+          <button 
+            className="toggle-advanced-filters"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          >
+            {showAdvancedFilters ? 'Ẩn bộ lọc nâng cao' : 'Hiện bộ lọc nâng cao'} {showAdvancedFilters ? '▲' : '▼'}
+          </button>
+          
+          {showAdvancedFilters && (
+            <div className="filters-advanced">
+              <div className="filter-group">
+                <label>Ranking:</label>
+                <select value={filterRanking} onChange={(e) => setFilterRanking(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="top10">Top 10</option>
+                  <option value="top20">Top 20</option>
+                  <option value="top50">Top 50</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>Học phí:</label>
+                <select value={filterTuition} onChange={(e) => setFilterTuition(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="low">Dưới 3 triệu won/kỳ</option>
+                  <option value="medium">3-4 triệu won/kỳ</option>
+                  <option value="high">Trên 4 triệu won/kỳ</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>Loại trường:</label>
+                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="Công lập">Công lập</option>
+                  <option value="Tư thục">Tư thục</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>Ký túc xá:</label>
+                <select value={filterDormitory} onChange={(e) => setFilterDormitory(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="yes">Có</option>
+                  <option value="no">Không</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>TOPIK:</label>
+                <select value={filterTopik} onChange={(e) => setFilterTopik(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="low">TOPIK 3-4</option>
+                  <option value="medium">TOPIK 5</option>
+                  <option value="high">TOPIK 6</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {selectedSchools.length > 0 && (
+          <div className="comparison-sticky-bar">
+            <div className="selected-schools-preview">
+              <span className="selected-count">Đã chọn {selectedSchools.length}/3 trường:</span>
+              <div className="selected-schools-list">
+                {selectedSchools.map(schoolId => {
+                  const school = schools.find(s => s.id === schoolId);
+                  return school ? (
+                    <span key={schoolId} className="selected-school-tag">
+                      {school.name}
+                      <button 
+                        onClick={() => toggleSchoolSelection(schoolId)}
+                        className="remove-school-btn"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            </div>
+            <button
+              onClick={scrollToComparison}
+              className="view-comparison-btn"
+            >
+              Xem so sánh ↓
+            </button>
+          </div>
+        )}
+
+        <div className="schools-grid">
+          {sortedSchools.map((school) => (
+            <motion.div
+              key={school.id}
+              id={`school-${school.id}`}
+              className={`school-card ${selectedSchools.includes(school.id) ? 'selected' : ''}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="school-header">
+                <div className="school-badge">#{school.ranking}</div>
+                <button
+                  className="compare-btn"
+                  onClick={() => toggleSchoolSelection(school.id)}
+                  disabled={!selectedSchools.includes(school.id) && selectedSchools.length >= 3}
+                >
+                  {selectedSchools.includes(school.id) ? '✓ Đã chọn' : 'So sánh'}
+                </button>
+              </div>
+              <div className="school-image">
+                <img src={school.image} alt={school.name} loading="lazy" width="300" height="200" />
+              </div>
+              <h3 className="school-name">{school.name}</h3>
+              <p className="school-name-kr">{school.nameKr}</p>
+              <div className="school-info">
+                <div className="info-row">
+                  <span className="info-label">📍 Thành phố:</span>
+                  <span className="info-value">{school.city}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">🏆 Ranking:</span>
+                  <span className="info-value">#{school.ranking} (Thế giới: #{school.rankingWorld})</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">💰 Học phí:</span>
+                  <span className="info-value">{formatNumber(school.tuition)} won/kỳ</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">🎓 Ngành học:</span>
+                  <span className="info-value">{school.topMajors.join(', ')}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">🏠 Ký túc xá:</span>
+                  <span className="info-value">{school.dormitory}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">📝 TOPIK:</span>
+                  <span className="info-value">{school.language}</span>
+                </div>
+              </div>
+              <div className="school-actions">
+                <a href={school.website} target="_blank" rel="noopener noreferrer" className="website-link">
+                  🌐 Website chính thức
+                </a>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {selectedSchools.length > 0 && (
+          <motion.div
+            className="comparison-table-section"
+            id="comparison-section"
+            ref={comparisonSectionRef}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="comparison-title">Bảng so sánh chi tiết</h2>
+            <div className="comparison-table-wrapper">
+              <table className="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Tiêu chí</th>
+                    {selectedSchoolsData.map(school => (
+                      <th key={school.id}>{school.name}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Thành phố</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.city}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Ranking (Hàn Quốc)</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>#{school.ranking}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Ranking (Thế giới)</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>#{school.rankingWorld}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Loại trường</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.type}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Học phí/kỳ</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.tuitionRange}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Ngành học nổi bật</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.topMajors.join(', ')}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Học bổng</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.scholarship}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Ký túc xá</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.dormitory}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Chi phí KTX</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.dormitoryCost}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Yêu cầu TOPIK</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.language}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Website</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>
+                        <a href={school.website} target="_blank" rel="noopener noreferrer">
+                          {school.website}
+                        </a>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SchoolComparison;
       ranking: 7,
       rankingWorld: 501,
       type: 'Tư thục',
@@ -164,29 +453,320 @@ const SchoolComparison = () => {
       website: 'https://www.sogang.ac.kr',
       image: 'https://i.pinimg.com/736x/b7/93/fb/b793fb948fca6762240abae0f0b45f07.jpg'
     },
-    {
-      id: 8,
-      name: 'Đại học Ewha',
-      nameKr: '이화여자대학교',
-      city: 'Seoul',
-      ranking: 8,
-      rankingWorld: 333,
-      type: 'Tư thục',
-      tuition: 3100000,
-      tuitionRange: '3.1-4.8 triệu won/kỳ',
-      majors: ['Nhân văn', 'Khoa học xã hội', 'Nghệ thuật', 'Kinh tế', 'Khoa học'],
-      topMajors: ['Nhân văn', 'Nghệ thuật', 'Khoa học xã hội'],
-      scholarship: '30-70%',
-      dormitory: 'Có',
-      dormitoryCost: '30-45 triệu/năm',
-      language: 'TOPIK 3-5',
-      description: 'Trường đại học nữ lớn nhất thế giới. Mạnh về Nhân văn, Nghệ thuật và Khoa học xã hội.',
-      website: 'https://www.ewha.ac.kr',
-      image: 'https://avt.edu.vn/wp-content/uploads/2018/08/Vi-sao-ban-nen-lua-chon-dai-hoc-Ewha-Han-Quoc.jpg'
-    },
-    {
-      id: 9,
-      name: 'Đại học Hàn Quốc (HUFS)',
+
+  const selectedSchoolsData = schools.filter(s => selectedSchools.includes(s.id));
+
+  return (
+    <div className="school-comparison-page">
+      <SEO
+        title="So sánh trường đại học Hàn Quốc - Du học An Nhiên"
+        description="So sánh chi tiết các trường đại học hàng đầu tại Hàn Quốc: học phí, ranking, ngành học, vị trí. Tìm trường phù hợp nhất với bạn."
+        keywords="so sánh trường đại học Hàn Quốc, trường đại học Hàn Quốc, học phí đại học Hàn Quốc, ranking trường Hàn Quốc, SKY university, Seoul National University, Yonsei, Korea University"
+        url="https://duhocannhien.vercel.app/school-comparison"
+        structuredData={structuredData}
+      />
+      
+      <div className="page-header">
+        <div className="header-sparkles">
+          <span className="sparkle">✨</span>
+          <span className="sparkle">⭐</span>
+          <span className="sparkle">💫</span>
+          <span className="sparkle">✨</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="header-content"
+        >
+          <h1 className="page-title">
+            <span className="title-icon">🏫</span>
+            So sánh trường đại học Hàn Quốc
+          </h1>
+          <p className="page-subtitle">
+            So sánh chi tiết các trường đại học hàng đầu để tìm trường phù hợp nhất với bạn
+          </p>
+        </motion.div>
+      </div>
+
+      <div className="comparison-content">
+        <div className="filters-section">
+          <div className="filters-basic">
+            <div className="filter-group">
+              <label>Lọc theo ngành:</label>
+              <select value={filterMajor} onChange={(e) => setFilterMajor(e.target.value)}>
+                {majors.map(major => (
+                  <option key={major} value={major}>
+                    {major === 'all' ? 'Tất cả ngành' : major}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Lọc theo thành phố:</label>
+              <select value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
+                {cities.map(city => (
+                  <option key={city} value={city}>
+                    {city === 'all' ? 'Tất cả thành phố' : city}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Sắp xếp theo:</label>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <option value="ranking">Ranking (Cao → Thấp)</option>
+                <option value="tuition-low">Học phí (Thấp → Cao)</option>
+                <option value="tuition-high">Học phí (Cao → Thấp)</option>
+              </select>
+            </div>
+          </div>
+          
+          <button 
+            className="toggle-advanced-filters"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          >
+            {showAdvancedFilters ? 'Ẩn bộ lọc nâng cao' : 'Hiện bộ lọc nâng cao'} {showAdvancedFilters ? '▲' : '▼'}
+          </button>
+          
+          {showAdvancedFilters && (
+            <div className="filters-advanced">
+              <div className="filter-group">
+                <label>Ranking:</label>
+                <select value={filterRanking} onChange={(e) => setFilterRanking(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="top10">Top 10</option>
+                  <option value="top20">Top 20</option>
+                  <option value="top50">Top 50</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>Học phí:</label>
+                <select value={filterTuition} onChange={(e) => setFilterTuition(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="low">Dưới 3 triệu won/kỳ</option>
+                  <option value="medium">3-4 triệu won/kỳ</option>
+                  <option value="high">Trên 4 triệu won/kỳ</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>Loại trường:</label>
+                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="Công lập">Công lập</option>
+                  <option value="Tư thục">Tư thục</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>Ký túc xá:</label>
+                <select value={filterDormitory} onChange={(e) => setFilterDormitory(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="yes">Có</option>
+                  <option value="no">Không</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label>TOPIK:</label>
+                <select value={filterTopik} onChange={(e) => setFilterTopik(e.target.value)}>
+                  <option value="all">Tất cả</option>
+                  <option value="low">TOPIK 3-4</option>
+                  <option value="medium">TOPIK 5</option>
+                  <option value="high">TOPIK 6</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {selectedSchools.length > 0 && (
+          <div className="comparison-sticky-bar">
+            <div className="selected-schools-preview">
+              <span className="selected-count">Đã chọn {selectedSchools.length}/3 trường:</span>
+              <div className="selected-schools-list">
+                {selectedSchools.map(schoolId => {
+                  const school = schools.find(s => s.id === schoolId);
+                  return school ? (
+                    <span key={schoolId} className="selected-school-tag">
+                      {school.name}
+                      <button 
+                        onClick={() => toggleSchoolSelection(schoolId)}
+                        className="remove-school-btn"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            </div>
+            <button
+              onClick={scrollToComparison}
+              className="view-comparison-btn"
+            >
+              Xem so sánh ↓
+            </button>
+          </div>
+        )}
+
+        <div className="schools-grid">
+          {sortedSchools.map((school, index) => (
+            <motion.div
+              key={school.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+              className={`school-card ${selectedSchools.includes(school.id) ? 'selected' : ''}`}
+              id={`school-${school.id}`}
+            >
+              <div className="school-header">
+                <div className="school-badge">#{school.ranking}</div>
+                <button
+                  className="compare-btn"
+                  onClick={() => toggleSchoolSelection(school.id)}
+                  disabled={!selectedSchools.includes(school.id) && selectedSchools.length >= 3}
+                >
+                  {selectedSchools.includes(school.id) ? '✓ Đã chọn' : 'So sánh'}
+                </button>
+              </div>
+              <div className="school-image">
+                <img src={school.image} alt={school.name} loading="lazy" width="300" height="200" />
+              </div>
+              <h3 className="school-name">{school.name}</h3>
+              <p className="school-name-kr">{school.nameKr}</p>
+              <div className="school-info">
+                <div className="info-row">
+                  <span className="info-label">📍 Thành phố:</span>
+                  <span className="info-value">{school.city}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">🏆 Ranking:</span>
+                  <span className="info-value">#{school.ranking} (Thế giới: #{school.rankingWorld})</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">💰 Học phí:</span>
+                  <span className="info-value">{formatNumber(school.tuition)} won/kỳ</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">🎓 Ngành học:</span>
+                  <span className="info-value">{school.topMajors.join(', ')}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">🏠 Ký túc xá:</span>
+                  <span className="info-value">{school.dormitory}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">📝 TOPIK:</span>
+                  <span className="info-value">{school.language}</span>
+                </div>
+              </div>
+              <div className="school-actions">
+                <a href={school.website} target="_blank" rel="noopener noreferrer" className="website-link">
+                  🌐 Website chính thức
+                </a>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {selectedSchools.length > 0 && (
+          <motion.div
+            className="comparison-table-section"
+            id="comparison-section"
+            ref={comparisonSectionRef}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="comparison-title">Bảng so sánh chi tiết</h2>
+            <div className="comparison-table-wrapper">
+              <table className="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Tiêu chí</th>
+                    {selectedSchoolsData.map(school => (
+                      <th key={school.id}>{school.name}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Ranking</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>#{school.ranking} (TG: #{school.rankingWorld})</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Thành phố</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.city}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Loại trường</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.type}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Học phí/kỳ</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.tuitionRange}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Học bổng</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.scholarship}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Ký túc xá</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.dormitory} ({school.dormitoryCost})</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Yêu cầu TOPIK</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>{school.language}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td><strong>Ngành học nổi bật</strong></td>
+                    {selectedSchoolsData.map(school => (
+                      <td key={school.id}>
+                        <div className="table-majors">
+                          {school.topMajors.map((major, idx) => (
+                            <span key={idx} className="table-major-tag">{major}</span>
+                          ))}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="comparison-actions">
+              <button onClick={() => setSelectedSchools([])} className="clear-btn">
+                Xóa so sánh
+              </button>
+              <a href="/contact" className="consult-btn">
+                💬 Tư vấn chọn trường
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SchoolComparison;
       nameKr: '한국외국어대학교',
       city: 'Seoul',
       ranking: 9,
@@ -203,146 +783,6 @@ const SchoolComparison = () => {
       description: 'Nổi tiếng về đào tạo ngôn ngữ và quốc tế học. Có nhiều chương trình trao đổi sinh viên.',
       website: 'https://www.hufs.ac.kr',
       image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrAsH5jiaFv5QYW5eLiYB9Liqglax_ighVAA&s'
-    },
-    {
-      id: 10,
-      name: 'Đại học Chung-Ang',
-      nameKr: '중앙대학교',
-      city: 'Seoul',
-      ranking: 10,
-      rankingWorld: 801,
-      type: 'Tư thục',
-      tuition: 2900000,
-      tuitionRange: '2.9-4.2 triệu won/kỳ',
-      majors: ['Nghệ thuật', 'Truyền thông', 'Kinh tế', 'Kỹ thuật', 'Y tế'],
-      topMajors: ['Nghệ thuật', 'Truyền thông', 'Kinh tế'],
-      scholarship: '30-70%',
-      dormitory: 'Có',
-      dormitoryCost: '28-42 triệu/năm',
-      language: 'TOPIK 3-4',
-      description: 'Nổi tiếng về Nghệ thuật và Truyền thông. Nhiều cựu sinh viên làm việc trong ngành giải trí Hàn Quốc.',
-      website: 'https://www.cau.ac.kr',
-      image: 'https://i.pinimg.com/736x/ce/cf/66/cecf66cdc715680422e83546315debab.jpg'
-    },
-    {
-      id: 11,
-      name: 'Đại học Pusan',
-      nameKr: '부산대학교',
-      city: 'Busan',
-      ranking: 11,
-      rankingWorld: 601,
-      type: 'Công lập',
-      tuition: 2200000,
-      tuitionRange: '2.2-3.5 triệu won/kỳ',
-      majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Khoa học', 'Nhân văn'],
-      topMajors: ['Kinh tế', 'Kỹ thuật', 'Y tế'],
-      scholarship: '30-100%',
-      dormitory: 'Có',
-      dormitoryCost: '25-40 triệu/năm',
-      language: 'TOPIK 3-5',
-      description: 'Trường đại học công lập hàng đầu tại Busan. Chi phí hợp lý, chất lượng tốt.',
-      website: 'https://www.pusan.ac.kr',
-      image: 'https://i.pinimg.com/736x/c6/79/03/c679031beb1c2fce07a2b82de2a6396b.jpg'
-    },
-    {
-      id: 12,
-      name: 'Đại học Inha',
-      nameKr: '인하대학교',
-      city: 'Incheon',
-      ranking: 12,
-      rankingWorld: 1001,
-      type: 'Tư thục',
-      tuition: 2800000,
-      tuitionRange: '2.8-4 triệu won/kỳ',
-      majors: ['Kỹ thuật', 'Kinh tế', 'Khoa học', 'Nhân văn', 'Nghệ thuật'],
-      topMajors: ['Kỹ thuật', 'Kinh tế', 'Khoa học'],
-      scholarship: '30-80%',
-      dormitory: 'Có',
-      dormitoryCost: '25-38 triệu/năm',
-      language: 'TOPIK 3-4',
-      description: 'Trường đại học uy tín tại Incheon. Mạnh về Kỹ thuật, chi phí hợp lý hơn Seoul.',
-      website: 'https://www.inha.ac.kr',
-      image: 'https://www.zila.com.vn/wp-content/uploads/2018/10/29744920_1313637758782458_2117901553225492956_o-1024x768.jpg'
-    },
-    {
-      id: 13,
-      name: 'Đại học Ajou',
-      nameKr: '아주대학교',
-      city: 'Suwon',
-      ranking: 13,
-      rankingWorld: 1001,
-      type: 'Tư thục',
-      tuition: 2700000,
-      tuitionRange: '2.7-4 triệu won/kỳ',
-      majors: ['Kỹ thuật', 'Y tế', 'Kinh tế', 'Khoa học'],
-      topMajors: ['Kỹ thuật', 'Y tế'],
-      scholarship: '30-70%',
-      dormitory: 'Có',
-      dormitoryCost: '24-36 triệu/năm',
-      language: 'TOPIK 3-4',
-      description: 'Trường đại học uy tín tại Suwon. Mạnh về Kỹ thuật và Y tế, chi phí hợp lý.',
-      website: 'https://www.ajou.ac.kr',
-      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRid577NB65T5ARkXDDnqhMOQ7EfY40Cs2tsg&s'
-    },
-    {
-      id: 14,
-      name: 'Đại học Konkuk',
-      nameKr: '건국대학교',
-      city: 'Seoul',
-      ranking: 14,
-      rankingWorld: 1001,
-      type: 'Tư thục',
-      tuition: 2600000,
-      tuitionRange: '2.6-4 triệu won/kỳ',
-      majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Nghệ thuật'],
-      topMajors: ['Kinh tế', 'Kỹ thuật'],
-      scholarship: '30-60%',
-      dormitory: 'Có',
-      dormitoryCost: '25-38 triệu/năm',
-      language: 'TOPIK 3-4',
-      description: 'Trường đại học uy tín tại Seoul. Mạnh về Kinh tế và Kỹ thuật.',
-      website: 'https://www.konkuk.ac.kr',
-      image: 'https://duhocicc.edu.vn/wp-content/uploads/2024/03/dai-hoc-konkuk.jpg'
-    },
-    {
-      id: 15,
-      name: 'Đại học Dongguk',
-      nameKr: '동국대학교',
-      city: 'Seoul',
-      ranking: 15,
-      rankingWorld: 1001,
-      type: 'Tư thục',
-      tuition: 2500000,
-      tuitionRange: '2.5-3.8 triệu won/kỳ',
-      majors: ['Nghệ thuật', 'Nhân văn', 'Kinh tế', 'Y tế'],
-      topMajors: ['Nghệ thuật', 'Nhân văn'],
-      scholarship: '30-60%',
-      dormitory: 'Có',
-      dormitoryCost: '24-36 triệu/năm',
-      language: 'TOPIK 3-4',
-      description: 'Trường đại học uy tín, mạnh về Nghệ thuật và Nhân văn. Nhiều chương trình văn hóa.',
-      website: 'https://www.dongguk.edu',
-      image: 'https://duhochandanang.edu.vn/wp-content/uploads/2024/04/z5307975273979_caa95d399b79704f94b6ff286474ea3c.jpg'
-    },
-    {
-      id: 16,
-      name: 'Đại học Kyungpook',
-      nameKr: '경북대학교',
-      city: 'Daegu',
-      ranking: 16,
-      rankingWorld: 1001,
-      type: 'Công lập',
-      tuition: 2100000,
-      tuitionRange: '2.1-3.2 triệu won/kỳ',
-      majors: ['Y tế', 'Kỹ thuật', 'Kinh tế', 'Khoa học'],
-      topMajors: ['Y tế', 'Kỹ thuật'],
-      scholarship: '30-100%',
-      dormitory: 'Có',
-      dormitoryCost: '22-35 triệu/năm',
-      language: 'TOPIK 3-4',
-      description: 'Trường đại học công lập hàng đầu tại Daegu. Chi phí hợp lý, chất lượng tốt.',
-      website: 'https://www.knu.ac.kr',
-      image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThIgMet0EQImuXsmZwVn-5fGM4B2Ob7RpNtA&s'
     },
     {
       id: 17,
@@ -998,36 +1438,6 @@ const SchoolComparison = () => {
       topMajors: ['Kỹ thuật'],
       scholarship: '30-80%',
       dormitory: 'Có',
-      dormitoryCost: '17-26 triệu/năm',
-      language: 'TOPIK 2-3',
-      description: 'Trường đại học uy tín tại Gunsan. Chi phí rất thấp, nhiều học bổng.',
-      website: 'https://www.howon.ac.kr',
-      image: 'https://vietair.com.vn/Media/Images/vietair/Tin-tuc/2023/8/dai-hoc-howon-2.jpg?p=1&w=412'
-    },
-    {
-      id: 50,
-      name: 'Đại học Silla',
-      nameKr: '신라대학교',
-      city: 'Busan',
-      ranking: 50,
-      rankingWorld: 1001,
-      type: 'Tư thục',
-      tuition: 1900000,
-      tuitionRange: '1.9-2.9 triệu won/kỳ',
-      majors: ['Nhân văn', 'Nghệ thuật', 'Kinh tế'],
-      topMajors: ['Nhân văn', 'Nghệ thuật'],
-      scholarship: '30-70%',
-      dormitory: 'Có',
-      dormitoryCost: '19-29 triệu/năm',
-      language: 'TOPIK 2-3',
-      description: 'Trường đại học uy tín tại Busan. Chi phí thấp, mạnh về Nhân văn và Nghệ thuật.',
-      website: 'https://www.silla.ac.kr',
-      image: 'https://duhocalpha.vn/wp-content/uploads/2024/02/con-duong-tho-mong-vao-mua-thu-tai-truong-dai-hoc-silla-1.jpg'
-    }
-  ];
-
-  const majors = ['all', 'Kinh tế', 'Kỹ thuật', 'Y tế', 'Nghệ thuật', 'Nhân văn', 'Luật', 'Khoa học', 'Ngôn ngữ', 'Truyền thông', 'Khoa học xã hội'];
-  const cities = ['all', 'Seoul', 'Busan', 'Incheon', 'Daegu', 'Daejeon', 'Gwangju', 'Suwon', 'Jeonju', 'Asan', 'Yongin', 'Seongnam', 'Gimhae', 'Iksan', 'Gunsan', 'Chuncheon', 'Jeju', 'Jinju', 'Gyeongsan'];
 
   const toggleSchoolSelection = (schoolId) => {
     setSelectedSchools(prev => {
@@ -1039,6 +1449,18 @@ const SchoolComparison = () => {
         return prev;
       }
     });
+  };
+
+  const scrollToComparison = () => {
+    if (comparisonSectionRef.current) {
+      const offset = 100; // Offset để không bị che bởi navbar và sticky bar
+      const elementPosition = comparisonSectionRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const filteredSchools = schools.filter(school => {
@@ -1224,7 +1646,72 @@ const SchoolComparison = () => {
               </button>
             </motion.div>
           )}
+
+          {/* Nút Xem so sánh ở top (hiển thị khi ở đầu trang) */}
+          {selectedSchools.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="view-comparison-top"
+            >
+              <div className="view-comparison-info">
+                <span className="comparison-count-badge">
+                  📊 Đã chọn {selectedSchools.length}/3 trường
+                </span>
+                <div className="selected-schools-preview">
+                  {selectedSchoolsData.map(school => (
+                    <span key={school.id} className="preview-school-name">
+                      {school.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <button 
+                onClick={scrollToComparison}
+                className="view-comparison-btn-top"
+              >
+                <span>📊</span>
+                Xem so sánh ↓
+              </button>
+            </motion.div>
+          )}
         </div>
+
+        {/* Sticky comparison bar - đặt trước schools-grid để hiển thị ngay */}
+        {selectedSchools.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="comparison-sticky-bar"
+          >
+            <div className="sticky-bar-content">
+              <div className="selected-count">
+                <span className="count-icon">📊</span>
+                <span>Đã chọn {selectedSchools.length}/3 trường để so sánh</span>
+              </div>
+              <div className="selected-schools-list">
+                {selectedSchoolsData.map(school => (
+                  <span key={school.id} className="selected-school-badge">
+                    {school.name}
+                    <button 
+                      onClick={() => toggleSchoolSelection(school.id)}
+                      className="remove-school-btn"
+                      aria-label="Xóa"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <button 
+                onClick={scrollToComparison}
+                className="view-comparison-btn"
+              >
+                Xem so sánh ↓
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         <div className="schools-grid">
           {sortedSchools.map((school, index) => (
@@ -1293,49 +1780,9 @@ const SchoolComparison = () => {
           ))}
         </div>
 
-        {/* Sticky comparison bar */}
         {selectedSchools.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="comparison-sticky-bar"
-          >
-            <div className="sticky-bar-content">
-              <div className="selected-count">
-                <span className="count-icon">📊</span>
-                <span>Đã chọn {selectedSchools.length}/3 trường để so sánh</span>
-              </div>
-              <div className="selected-schools-list">
-                {selectedSchoolsData.map(school => (
-                  <span key={school.id} className="selected-school-badge">
-                    {school.name}
-                    <button 
-                      onClick={() => toggleSchoolSelection(school.id)}
-                      className="remove-school-btn"
-                      aria-label="Xóa"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <button 
-                onClick={() => {
-                  const comparisonSection = document.querySelector('.comparison-table-section');
-                  if (comparisonSection) {
-                    comparisonSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                className="view-comparison-btn"
-              >
-                Xem so sánh ↓
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {selectedSchools.length > 0 && (
-          <motion.div
+            ref={comparisonSectionRef}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             className="comparison-table-section"

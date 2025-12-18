@@ -8,6 +8,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px;
+  position: relative;
 }
 
 /* Page Header */
@@ -400,13 +401,16 @@
 .comparison-sticky-bar {
   position: sticky;
   top: 80px;
-  z-index: 100;
+  z-index: 999;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 15px 20px;
   border-radius: 15px;
-  margin-bottom: 30px;
+  margin: 20px 0 30px;
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sticky-bar-content {
@@ -483,6 +487,85 @@
 .view-comparison-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* View Comparison Top Section */
+.view-comparison-top {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 25px;
+  border-radius: 15px;
+  margin: 30px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+
+.view-comparison-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.comparison-count-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-schools-preview {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preview-school-name {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.view-comparison-btn-top {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.view-comparison-btn-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.view-comparison-btn-top span {
+  font-size: 1.3rem;
 }
 
 .comparison-title {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import CountdownTimer from '../components/CountdownTimer';
 import './Events.css';
 
 const Events = () => {
@@ -212,6 +213,14 @@ const Events = () => {
               <span>🎯</span>
               <span className="section-title-text">Sự kiện sắp tới</span>
             </h2>
+            {upcomingEvents[0] && (
+              <div className="event-countdown-wrapper">
+                <CountdownTimer 
+                  targetDate={new Date(upcomingEvents[0].date.split('/').reverse().join('-')).toISOString()}
+                  title={`⏰ ${upcomingEvents[0].title} bắt đầu sau`}
+                />
+              </div>
+            )}
             <div className="events-grid">
               {upcomingEvents.map((event, index) => (
                 <motion.div

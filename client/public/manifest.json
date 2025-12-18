@@ -1,16 +1,55 @@
 {
   "short_name": "Du học An Nhiên",
-  "name": "Du học An Nhiên - Du học Hàn Quốc",
+  "name": "Du học An Nhiên - Tư vấn du học Hàn Quốc",
+  "description": "Tư vấn du học Hàn Quốc chuyên nghiệp, uy tín với nhiều năm kinh nghiệm",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#667eea",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["education", "travel"],
+  "lang": "vi",
+  "dir": "ltr",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Tư vấn miễn phí",
+      "short_name": "Tư vấn",
+      "description": "Đăng ký tư vấn du học Hàn Quốc",
+      "url": "/contact",
+      "icons": [{ "src": "/logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tính chi phí",
+      "short_name": "Chi phí",
+      "description": "Tính toán chi phí du học Hàn Quốc",
+      "url": "/calculator",
+      "icons": [{ "src": "/logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "So sánh trường",
+      "short_name": "So sánh",
+      "description": "So sánh các trường đại học Hàn Quốc",
+      "url": "/school-comparison",
+      "icons": [{ "src": "/logo192.png", "sizes": "192x192" }]
+    }
+  ]
 }
-

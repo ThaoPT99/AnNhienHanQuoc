@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import Newsletter from '../components/Newsletter';
+import CountdownTimer from '../components/CountdownTimer';
+import Reviews from '../components/Reviews';
+import ConsultationForm from '../components/ConsultationForm';
+import CaseStudies from '../components/CaseStudies';
+import TransparentStats from '../components/TransparentStats';
 import './Home.css';
 
 const Home = () => {
@@ -314,6 +319,25 @@ const Home = () => {
         </div>
         <div className="korea-pattern-bottom"></div>
       </section>
+
+      {/* Countdown Timer Section */}
+      <section className="countdown-section">
+        <div className="countdown-container">
+          <CountdownTimer 
+            targetDate={new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()}
+            title="🔥 Ưu đãi học bổng 50% kết thúc sau"
+          />
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <Reviews />
+
+      {/* Transparent Stats Section */}
+      <TransparentStats />
+
+      {/* Case Studies Section */}
+      <CaseStudies />
 
       {/* CTA Section - Gen Z Style */}
       <section className="cta-section">

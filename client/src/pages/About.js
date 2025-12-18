@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import Certifications from '../components/Certifications';
 import './About.css';
 
 const About = () => {
@@ -194,6 +195,9 @@ const About = () => {
           </div>
         </div>
       </section>
+
+      {/* Certifications Section */}
+      <Certifications />
 
       <section className="contact-info-section section">
         <div className="contact-info-background">

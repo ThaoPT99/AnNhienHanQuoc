@@ -47,6 +47,15 @@ const Navbar = () => {
     { path: '/resources', label: 'Tài liệu miễn phí', icon: '📥' },
     { path: '/events', label: 'Sự kiện', icon: '📅' },
     { path: '/videos', label: 'Video', icon: '🎥' },
+    { path: '/community', label: 'Cộng đồng', icon: '💬' },
+    { path: '/progress-tracker', label: 'Theo dõi hồ sơ', icon: '📊' },
+    { path: '/referral', label: 'Giới thiệu bạn bè', icon: '🎁' },
+    { path: '/gamification', label: 'Điểm thưởng', icon: '🎮' },
+    { path: '/ai-recommendation', label: 'AI Gợi ý trường', icon: '🤖' },
+    { path: '/virtual-tour', label: 'Tour 360°', icon: '🏛️' },
+    { path: '/language-learning', label: 'Học tiếng Hàn', icon: '📚' },
+    { path: '/scholarship-matcher', label: 'Tìm học bổng', icon: '🎓' },
+    { path: '/cost-comparison', label: 'So sánh chi phí', icon: '💰' },
     { path: '/recruitment', label: 'Tuyển dụng', icon: '💼' }
   ];
 

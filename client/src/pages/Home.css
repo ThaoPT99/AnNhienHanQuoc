@@ -736,6 +736,17 @@ html {
   color: #666;
 }
 
+/* Countdown Section */
+.countdown-section {
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+}
+
+.countdown-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 /* Stats Section - Korean Style */
 .stats-section {
   position: relative;

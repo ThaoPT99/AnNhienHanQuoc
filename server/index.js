@@ -577,6 +577,57 @@ app.get('/api/consultation/registrations', (req, res) => {
   });
 });
 
+// Consultation booking
+app.post('/api/consultation/book', (req, res) => {
+  const { name, phone, email, date, time, formattedDate, preferredMethod, notes } = req.body;
+
+  if (!name || !phone || !email || !date || !time) {
+    res.status(400).json({ error: 'Name, phone, email, date, and time are required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  dbHelpers.bookConsultation({
+    name,
+    phone,
+    email,
+    date,
+    time,
+    formattedDate,
+    preferredMethod: preferredMethod || 'zoom',
+    notes: notes || ''
+  }, (err, booking) => {
+    if (err) {
+      console.error('Error booking consultation:', err);
+      res.status(500).json({ error: 'Failed to book consultation' });
+      return;
+    }
+    res.status(201).json({ success: true, booking });
+  });
+});
+
+// Get all bookings (for admin)
+app.get('/api/consultation/bookings', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getAllBookings((err, bookings) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(bookings);
+  });
+});
+
 // Dynamic Sitemap
 app.get('/sitemap.xml', (req, res) => {
   const baseUrl = 'https://duhocannhien.vercel.app';

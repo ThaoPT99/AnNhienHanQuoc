@@ -1,7 +1,53 @@
-.consultation-floating-btn {
+.consultation-buttons-wrapper {
   position: fixed;
   bottom: 30px;
   left: 30px;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.consultation-menu {
+  background: white;
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  color: #333;
+  text-align: left;
+  width: 100%;
+}
+
+.menu-item:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  transform: translateX(5px);
+}
+
+.menu-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.consultation-floating-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -11,7 +57,6 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-  z-index: 9998;
   display: flex;
   align-items: center;
   gap: 10px;
