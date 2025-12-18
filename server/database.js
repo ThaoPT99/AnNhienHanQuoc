@@ -410,13 +410,16 @@ const dbHelpers = {
   // Events registration functions
   registerEvent: (registration, callback) => {
     const { eventId, name, email, phone } = registration;
+    console.log('registerEvent called with:', { eventId, name, email, phone });
     db.run(
       'INSERT INTO events (event_id, name, email, phone) VALUES (?, ?, ?, ?)',
       [eventId, name, email, phone],
       function(err) {
         if (err) {
+          console.error('Database error in registerEvent:', err);
           callback(err, null);
         } else {
+          console.log('Event registration inserted with ID:', this.lastID);
           callback(null, { id: this.lastID, eventId, name, email, phone });
         }
       }

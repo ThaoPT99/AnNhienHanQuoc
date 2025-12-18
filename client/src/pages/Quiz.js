@@ -87,22 +87,149 @@ const Quiz = () => {
     }
   ];
 
+  // Danh sách 50 trường đại học Hàn Quốc
+  const allSchools = [
+    { name: 'Đại học Quốc gia Seoul (SNU)', major: ['economics', 'engineering', 'medicine', 'law'], city: 'seoul', budget: 'high', topik: 'topik6', score: 95 },
+    { name: 'Đại học Yonsei', major: ['economics', 'medicine', 'humanities'], city: 'seoul', budget: 'high', topik: 'topik6', score: 92 },
+    { name: 'Đại học Korea', major: ['economics', 'law', 'humanities'], city: 'seoul', budget: 'high', topik: 'topik6', score: 90 },
+    { name: 'Đại học Sungkyunkwan', major: ['engineering', 'economics', 'medicine'], city: 'seoul', budget: 'high', topik: 'topik6', score: 88 },
+    { name: 'Đại học Hanyang', major: ['engineering', 'economics'], city: 'seoul', budget: 'high', topik: 'topik6', score: 87 },
+    { name: 'Đại học Kyung Hee', major: ['medicine', 'arts'], city: 'seoul', budget: 'high', topik: 'topik6', score: 85 },
+    { name: 'Đại học Sogang', major: ['economics', 'humanities'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 84 },
+    { name: 'Đại học Ewha', major: ['humanities', 'arts'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 83 },
+    { name: 'Đại học Hàn Quốc (HUFS)', major: ['humanities'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 82 },
+    { name: 'Đại học Chung-Ang', major: ['arts'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 81 },
+    { name: 'Đại học Pusan', major: ['economics', 'engineering'], city: 'busan', budget: 'medium', topik: 'topik4', score: 80 },
+    { name: 'Đại học Inha', major: ['engineering'], city: 'other', budget: 'medium', topik: 'topik4', score: 79 },
+    { name: 'Đại học Ajou', major: ['engineering', 'medicine'], city: 'other', budget: 'medium', topik: 'topik4', score: 78 },
+    { name: 'Đại học Konkuk', major: ['economics', 'engineering'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 77 },
+    { name: 'Đại học Dongguk', major: ['arts', 'humanities'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 76 },
+    { name: 'Đại học Kyungpook', major: ['medicine', 'engineering'], city: 'other', budget: 'medium', topik: 'topik4', score: 75 },
+    { name: 'Đại học Chonnam', major: ['medicine', 'engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 74 },
+    { name: 'Đại học Chonbuk', major: ['engineering', 'medicine'], city: 'other', budget: 'low', topik: 'topik2', score: 73 },
+    { name: 'Đại học Gyeongsang', major: ['medicine', 'engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 72 },
+    { name: 'Đại học Jeonbuk', major: ['engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 71 },
+    { name: 'Đại học Yeungnam', major: ['engineering', 'economics'], city: 'other', budget: 'low', topik: 'topik2', score: 70 },
+    { name: 'Đại học Keimyung', major: ['medicine', 'humanities'], city: 'other', budget: 'low', topik: 'topik2', score: 69 },
+    { name: 'Đại học Catholic', major: ['medicine', 'humanities'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 68 },
+    { name: 'Đại học Kookmin', major: ['economics', 'arts'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 67 },
+    { name: 'Đại học Sejong', major: ['arts', 'humanities'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 66 },
+    { name: 'Đại học Soongsil', major: ['engineering', 'economics'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 65 },
+    { name: 'Đại học Hankuk', major: ['humanities', 'economics'], city: 'seoul', budget: 'medium', topik: 'topik4', score: 64 },
+    { name: 'Đại học Myongji', major: ['humanities', 'arts'], city: 'seoul', budget: 'low', topik: 'topik2', score: 63 },
+    { name: 'Đại học Sangmyung', major: ['arts', 'humanities'], city: 'seoul', budget: 'low', topik: 'topik2', score: 62 },
+    { name: 'Đại học Seokyeong', major: ['humanities'], city: 'seoul', budget: 'low', topik: 'topik2', score: 61 },
+    { name: 'Đại học Dong-A', major: ['medicine', 'engineering'], city: 'busan', budget: 'medium', topik: 'topik4', score: 60 },
+    { name: 'Đại học Pukyong', major: ['engineering'], city: 'busan', budget: 'low', topik: 'topik2', score: 59 },
+    { name: 'Đại học Kyungsung', major: ['engineering', 'economics'], city: 'busan', budget: 'low', topik: 'topik2', score: 58 },
+    { name: 'Đại học Kosin', major: ['medicine'], city: 'busan', budget: 'low', topik: 'topik2', score: 57 },
+    { name: 'Đại học Tongmyong', major: ['engineering'], city: 'busan', budget: 'low', topik: 'topik2', score: 56 },
+    { name: 'Đại học Chungnam', major: ['engineering', 'medicine'], city: 'other', budget: 'low', topik: 'topik2', score: 55 },
+    { name: 'Đại học Kangwon', major: ['engineering', 'medicine'], city: 'other', budget: 'low', topik: 'topik2', score: 54 },
+    { name: 'Đại học Jeju', major: ['humanities', 'arts'], city: 'other', budget: 'low', topik: 'topik2', score: 53 },
+    { name: 'Đại học Soonchunhyang', major: ['medicine'], city: 'other', budget: 'low', topik: 'topik2', score: 52 },
+    { name: 'Đại học Wonkwang', major: ['medicine', 'engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 51 },
+    { name: 'Đại học Hannam', major: ['engineering', 'economics'], city: 'other', budget: 'low', topik: 'topik2', score: 50 },
+    { name: 'Đại học Inje', major: ['medicine'], city: 'other', budget: 'low', topik: 'topik2', score: 49 },
+    { name: 'Đại học Gachon', major: ['medicine', 'engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 48 },
+    { name: 'Đại học Dankook', major: ['arts', 'humanities'], city: 'other', budget: 'low', topik: 'topik2', score: 47 },
+    { name: 'Đại học Duksung', major: ['humanities', 'arts'], city: 'seoul', budget: 'low', topik: 'topik2', score: 46 },
+    { name: 'Đại học Sehan', major: ['engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 45 },
+    { name: 'Đại học Sunmoon', major: ['humanities'], city: 'other', budget: 'low', topik: 'topik2', score: 44 },
+    { name: 'Đại học Woosuk', major: ['humanities', 'arts'], city: 'other', budget: 'low', topik: 'topik2', score: 43 },
+    { name: 'Đại học Howon', major: ['engineering'], city: 'other', budget: 'low', topik: 'topik2', score: 42 },
+    { name: 'Đại học Silla', major: ['humanities', 'arts'], city: 'busan', budget: 'low', topik: 'topik2', score: 41 },
+    { name: 'Đại học Pai Chai', major: ['humanities'], city: 'other', budget: 'low', topik: 'topik2', score: 40 }
+  ];
+
+  // Hàm tìm trường phù hợp dựa trên câu trả lời
+  const findMatchingSchools = (major, city, budget, topik) => {
+    let matchingSchools = allSchools.filter(school => {
+      const majorMatch = school.major.includes(major);
+      const cityMatch = school.city === city || city === 'any';
+      const budgetMatch = 
+        (budget === 'high' && (school.budget === 'high' || school.budget === 'medium' || school.budget === 'low')) ||
+        (budget === 'medium' && (school.budget === 'medium' || school.budget === 'low')) ||
+        (budget === 'low' && school.budget === 'low');
+      const topikMatch = 
+        (topik === 'topik6' && (school.topik === 'topik6' || school.topik === 'topik4' || school.topik === 'topik2')) ||
+        (topik === 'topik4' && (school.topik === 'topik4' || school.topik === 'topik2')) ||
+        (topik === 'topik2' && school.topik === 'topik2') ||
+        (topik === 'none' && true);
+      
+      return majorMatch && cityMatch && budgetMatch && topikMatch;
+    });
+
+    // Nếu không tìm thấy trường nào khớp hoàn toàn, tìm trường gần nhất
+    if (matchingSchools.length === 0) {
+      matchingSchools = allSchools.filter(school => {
+        const majorMatch = school.major.includes(major);
+        return majorMatch;
+      });
+    }
+
+    // Sắp xếp theo score giảm dần
+    matchingSchools.sort((a, b) => b.score - a.score);
+
+    // Lấy top 3-5 trường phù hợp nhất
+    const topSchools = matchingSchools.slice(0, 5);
+
+    // Tạo lý do đề xuất
+    const majorNames = {
+      'economics': 'Kinh tế',
+      'engineering': 'Kỹ thuật',
+      'medicine': 'Y tế',
+      'arts': 'Nghệ thuật',
+      'humanities': 'Nhân văn',
+      'law': 'Luật'
+    };
+
+    return topSchools.map(school => {
+      let reason = '';
+      
+      // Lý do về ngành học
+      if (school.major.includes(major)) {
+        reason += `Mạnh về ${majorNames[major]}. `;
+      }
+      
+      // Lý do về thành phố
+      if (city === 'any') {
+        reason += school.city === 'seoul' ? 'Tại Seoul, nhiều cơ hội. ' : school.city === 'busan' ? 'Tại Busan, chi phí hợp lý. ' : 'Tại thành phố khác, chi phí thấp. ';
+      } else if (school.city === city) {
+        reason += city === 'seoul' ? 'Tại Seoul, nhiều cơ hội việc làm. ' : city === 'busan' ? 'Tại Busan, thành phố biển đẹp. ' : 'Tại thành phố khác, chi phí sinh hoạt thấp. ';
+      }
+      
+      // Lý do về tài chính
+      if (budget === 'high') {
+        reason += school.budget === 'high' ? 'Học phí cao, chất lượng xuất sắc. ' : 'Học phí vừa phải, nhiều học bổng. ';
+      } else if (budget === 'medium') {
+        reason += school.budget === 'medium' ? 'Chi phí vừa phải, nhiều học bổng. ' : 'Chi phí thấp, học bổng tốt. ';
+      } else {
+        reason += 'Chi phí thấp, nhiều học bổng hỗ trợ. ';
+      }
+      
+      // Lý do về TOPIK
+      if (topik === 'topik6') {
+        reason += 'Phù hợp với trình độ TOPIK cao. ';
+      } else if (topik === 'topik4') {
+        reason += 'Phù hợp với trình độ TOPIK trung bình. ';
+      } else if (topik === 'topik2') {
+        reason += 'Phù hợp với trình độ TOPIK sơ cấp. ';
+      } else {
+        reason += 'Có thể đăng ký khi chưa có TOPIK. ';
+      }
+      
+      reason += `Điểm đánh giá: ${school.score}/100.`;
+
+      return {
+        name: school.name,
+        score: school.score,
+        reason: reason.trim()
+      };
+    });
+  };
+
   const schoolRecommendations = {
-    'economics-seoul-high-topik6': [
-      { name: 'Đại học Quốc gia Seoul (SNU)', score: 95, reason: 'Trường top 1, mạnh về Kinh tế, ranking cao' },
-      { name: 'Đại học Yonsei', score: 90, reason: 'SKY, nổi tiếng về Kinh tế, môi trường quốc tế' },
-      { name: 'Đại học Korea', score: 88, reason: 'SKY, mạnh về Kinh tế và Luật' }
-    ],
-    'engineering-seoul-high-topik6': [
-      { name: 'Đại học Hanyang', score: 95, reason: 'Nổi tiếng về Kỹ thuật, nhiều chương trình thực tập' },
-      { name: 'Đại học Sungkyunkwan', score: 92, reason: 'Mạnh về Kỹ thuật, có hợp tác với Samsung' },
-      { name: 'Đại học Quốc gia Seoul (SNU)', score: 90, reason: 'Trường top, chất lượng Kỹ thuật xuất sắc' }
-    ],
-    'medicine-seoul-high-topik6': [
-      { name: 'Đại học Yonsei', score: 95, reason: 'Nổi tiếng về Y tế, bệnh viện liên kết tốt' },
-      { name: 'Đại học Kyung Hee', score: 90, reason: 'Mạnh về Y tế, có bệnh viện riêng' },
-      { name: 'Đại học Quốc gia Seoul (SNU)', score: 88, reason: 'Trường top, ngành Y chất lượng cao' }
-    ],
     'default': [
       { name: 'Đại học Sungkyunkwan', score: 85, reason: 'Trường uy tín, nhiều học bổng, chi phí hợp lý' },
       { name: 'Đại học Hanyang', score: 82, reason: 'Chất lượng tốt, nhiều ngành học, học bổng đa dạng' },
@@ -144,10 +271,16 @@ const Quiz = () => {
     const budget = finalAnswers[3] || 'medium';
     const topik = finalAnswers[4] || 'topik4';
     
-    const key = `${major}-${city}-${budget}-${topik}`;
-    const recommendations = schoolRecommendations[key] || schoolRecommendations['default'];
+    // Tìm trường phù hợp dựa trên câu trả lời
+    const recommendations = findMatchingSchools(major, city, budget, topik);
     
-    setResult(recommendations);
+    // Nếu không tìm thấy trường nào, dùng default
+    if (recommendations.length === 0) {
+      setResult(schoolRecommendations['default']);
+    } else {
+      setResult(recommendations);
+    }
+    
     setCurrentStep(questions.length);
   };
 

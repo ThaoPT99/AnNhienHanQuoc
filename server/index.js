@@ -305,7 +305,10 @@ app.post('/api/newsletter/subscribe', (req, res) => {
 app.post('/api/events/register', (req, res) => {
   const { eventId, name, email, phone } = req.body;
   
+  console.log('Event registration request:', { eventId, name, email, phone });
+  
   if (!eventId || !name || !email || !phone) {
+    console.log('Missing required fields:', { eventId, name, email, phone });
     res.status(400).json({ error: 'Event ID, name, email, and phone are required' });
     return;
   }
@@ -313,15 +316,18 @@ app.post('/api/events/register', (req, res) => {
   // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
+    console.log('Invalid email format:', email);
     res.status(400).json({ error: 'Invalid email format' });
     return;
   }
 
   dbHelpers.registerEvent({ eventId, name, email, phone }, (err, registration) => {
     if (err) {
+      console.error('Error registering event:', err);
       res.status(500).json({ error: err.message });
       return;
     }
+    console.log('Event registered successfully:', registration);
     res.status(201).json({ message: 'Registered successfully', registration });
   });
 });
@@ -329,15 +335,19 @@ app.post('/api/events/register', (req, res) => {
 // Get all event registrations (for admin)
 app.get('/api/events/registrations', (req, res) => {
   const token = req.headers['x-admin-token'];
+  console.log('Getting event registrations, token provided:', !!token);
   if (!token || token !== process.env.ADMIN_TOKEN) {
+    console.log('Unauthorized access attempt');
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
   dbHelpers.getAllEventRegistrations((err, registrations) => {
     if (err) {
+      console.error('Error getting event registrations:', err);
       res.status(500).json({ error: err.message });
       return;
     }
+    console.log(`Returning ${registrations.length} event registrations`);
     res.json(registrations);
   });
 });

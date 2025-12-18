@@ -51,7 +51,7 @@ const Contact = () => {
       "name": "Du học An Nhiên",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
+        "streetAddress": "219 P. Trung Kính, Trung Hòa",
         "addressLocality": "Cầu Giấy",
         "addressRegion": "Hà Nội",
         "addressCountry": "VN"
@@ -71,7 +71,7 @@ const Contact = () => {
     <div className="contact-page">
       <SEO
         title="Liên hệ - Du học An Nhiên"
-        description="Liên hệ với Du học An Nhiên để được tư vấn du học Hàn Quốc miễn phí. Địa chỉ: Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội. Hotline: 0961321930"
+        description="Liên hệ với Du học An Nhiên để được tư vấn du học Hàn Quốc miễn phí. Địa chỉ: 219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội. Hotline: 0961321930"
         keywords="liên hệ du học Hàn Quốc, tư vấn du học miễn phí, địa chỉ du học An Nhiên, hotline du học Hàn Quốc"
         url="https://duhocannhien.vercel.app/contact"
         structuredData={structuredData}
@@ -133,7 +133,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3>Địa chỉ</h3>
-                  <p>Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội</p>
+                  <p>219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội</p>
                 </div>
               </motion.div>
               
@@ -195,7 +195,7 @@ const Contact = () => {
             <div className="map-container">
               <img 
                 src="https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&h=400&fit=crop&q=80" 
-                alt="Bản đồ vị trí văn phòng Du học An Nhiên - Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội"
+                alt="Bản đồ vị trí văn phòng Du học An Nhiên - 219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội"
                 className="map-image"
                 loading="lazy"
                 width="800"
