@@ -51,6 +51,13 @@ const Navbar = () => {
 
   const allNavItems = [...mainNavItems, ...moreNavItems];
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="navbar-background">
@@ -70,7 +77,7 @@ const Navbar = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Link to="/" className="navbar-logo">
+          <Link to="/" className="navbar-logo" onClick={scrollToTop}>
             <div className="logo-icon-wrapper">
               <span className="logo-icon">🇰🇷</span>
               <div className="logo-icon-glow"></div>
@@ -95,7 +102,10 @@ const Navbar = () => {
               <Link
                 to={item.path}
                 className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  scrollToTop();
+                }}
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span className="nav-text">{item.label}</span>
@@ -147,6 +157,7 @@ const Navbar = () => {
                       onClick={() => {
                         setIsMoreMenuOpen(false);
                         setIsMobileMenuOpen(false);
+                        scrollToTop();
                       }}
                     >
                       <span className="dropdown-icon">{item.icon}</span>
@@ -166,7 +177,10 @@ const Navbar = () => {
                   key={item.path}
                   to={item.path}
                   className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    scrollToTop();
+                  }}
                 >
                   <span className="nav-icon">{item.icon}</span>
                   <span className="nav-text">{item.label}</span>
