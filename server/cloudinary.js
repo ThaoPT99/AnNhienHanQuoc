@@ -195,6 +195,38 @@ function getIsCloudinaryConfigured() {
   return isCloudinaryConfigured || checkCloudinaryConfig();
 }
 
+/**
+ * Upload file (PDF, DOC, etc.) to Cloudinary as raw resource
+ * @param {string} filePath - Path to the file
+ * @param {string} folder - Folder name in Cloudinary (optional)
+ * @returns {Promise<Object>} Cloudinary upload result
+ */
+async function uploadFileToCloudinary(filePath, folder = 'recruitment') {
+  if (!initCloudinary()) {
+    throw new Error('Cloudinary is not configured');
+  }
+
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: folder,
+      resource_type: 'raw', // Use 'raw' for PDF, DOC, DOCX files
+      overwrite: false,
+      invalidate: true
+    });
+
+    console.log('✅ File uploaded to Cloudinary:', result.secure_url);
+    return {
+      url: result.secure_url,
+      public_id: result.public_id,
+      bytes: result.bytes,
+      format: result.format
+    };
+  } catch (error) {
+    console.error('❌ Cloudinary file upload error:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   get isCloudinaryConfigured() {
     return getIsCloudinaryConfigured();
@@ -202,6 +234,7 @@ module.exports = {
   checkCloudinaryConfig,
   initCloudinary,
   uploadToCloudinary,
+  uploadFileToCloudinary,
   uploadBufferToCloudinary,
   deleteFromCloudinary,
   extractPublicId
