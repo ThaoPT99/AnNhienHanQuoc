@@ -169,8 +169,9 @@ app.post('/api/admin/login', (req, res) => {
 
   // Simple authentication (in production, use proper password hashing)
   if (username === adminUsername && password === adminPassword) {
-    // Generate a simple token (in production, use JWT)
-    const token = Buffer.from(`${username}:${Date.now()}`).toString('base64');
+    // Return the ADMIN_TOKEN from environment variable
+    // This token will be used for all subsequent API calls
+    const token = process.env.ADMIN_TOKEN || 'default-admin-token-change-in-production';
     res.json({ 
       token,
       message: 'Login successful',
