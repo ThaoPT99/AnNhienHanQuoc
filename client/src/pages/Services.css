@@ -326,6 +326,12 @@
   overflow: hidden;
 }
 
+.process-section .section-title {
+  text-align: center;
+  margin: 0 auto 50px;
+  display: block;
+}
+
 .process-section::before {
   content: '';
   position: absolute;

@@ -320,6 +320,11 @@
   }
 }
 
+.contact-item span:not(.contact-icon) {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 500;
+}
+
 .contact-item a {
   color: rgba(255, 255, 255, 0.9);
   text-decoration: none;

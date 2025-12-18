@@ -276,6 +276,12 @@
   overflow: hidden;
 }
 
+.values-section .section-title {
+  text-align: center;
+  margin: 0 auto 50px;
+  display: block;
+}
+
 .values-section::before {
   content: '';
   position: absolute;
