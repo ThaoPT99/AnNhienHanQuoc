@@ -1,13 +1,16 @@
 .ai-recommendation {
-  padding: 80px 20px;
+  padding: 120px 20px 80px 20px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 100vh;
 }
 
 .ai-header {
   text-align: center;
   margin-bottom: 50px;
+  padding-top: 20px;
+  scroll-margin-top: 100px;
 }
 
 .ai-header h2 {
@@ -281,7 +284,7 @@
 
 @media (max-width: 768px) {
   .ai-recommendation {
-    padding: 40px 15px;
+    padding: 100px 15px 40px 15px;
   }
 
   .ai-header h2 {

@@ -411,6 +411,11 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .sticky-bar-content {
@@ -437,6 +442,19 @@
   gap: 10px;
   flex-wrap: wrap;
   flex: 1;
+}
+
+.selected-school-tag {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 8px 15px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
 }
 
 .selected-school-badge {
@@ -527,8 +545,14 @@
 
 .selected-schools-preview {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
+  flex: 1;
+}
+
+.comparison-sticky-bar .selected-schools-preview {
+  flex-direction: row;
+  align-items: center;
 }
 
 .preview-school-name {
