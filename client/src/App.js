@@ -9,6 +9,7 @@ import ExitIntentPopup from './components/ExitIntentPopup';
 import SocialProof from './components/SocialProof';
 import LiveChat from './components/LiveChat';
 import PWAInstall from './components/PWAInstall';
+import PageViewTracker from './components/PageViewTracker';
 import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
@@ -43,6 +44,7 @@ function App() {
   return (
     <HelmetProvider>
       <Router>
+        <PageViewTracker />
         <div className="App">
           <Navbar />
           <Routes>

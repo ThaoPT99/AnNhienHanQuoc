@@ -719,6 +719,39 @@ app.get('/api/consultation/bookings', (req, res) => {
 });
 
 // Visits tracking endpoints
+// POST endpoint for client to log visits (no auth required)
+app.post('/api/visits/log', (req, res) => {
+  const { pagePath, referrer, userAgent, deviceType, browser, os } = req.body;
+  
+  // Get client IP address
+  const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || 
+                    req.headers['x-real-ip'] || 
+                    req.connection.remoteAddress || 
+                    req.socket.remoteAddress ||
+                    'Unknown';
+
+  const visitData = {
+    ipAddress: ipAddress.replace(/^::ffff:/, ''),
+    userAgent: userAgent || 'Unknown',
+    pagePath: pagePath || '/',
+    referrer: referrer || null,
+    country: null,
+    city: null,
+    deviceType: deviceType || 'Unknown',
+    browser: browser || 'Unknown',
+    os: os || 'Unknown'
+  };
+
+  dbHelpers.logVisit(visitData, (err) => {
+    if (err) {
+      console.error('Error logging visit:', err);
+      res.status(500).json({ error: 'Failed to log visit' });
+      return;
+    }
+    res.json({ success: true });
+  });
+});
+
 app.get('/api/visits', (req, res) => {
   const token = req.headers['x-admin-token'];
   if (!token || token !== process.env.ADMIN_TOKEN) {
