@@ -97,6 +97,59 @@ const SEO = ({
           {JSON.stringify(structuredData)}
         </script>
       )}
+      
+      {/* Default WebSite structured data if not provided */}
+      {!structuredData && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Du học An Nhiên",
+            "url": url,
+            "description": description,
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": `${url}/search?q={search_term_string}`
+              },
+              "query-input": "required name=search_term_string"
+            }
+          })}
+        </script>
+      )}
+      
+      {/* Organization structured data */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Du học An Nhiên",
+          "url": "https://duhocannhien.vercel.app",
+          "logo": "https://duhocannhien.vercel.app/logo.png",
+          "description": "Tư vấn du học Hàn Quốc uy tín, chuyên nghiệp",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
+            "addressLocality": "Cầu Giấy",
+            "addressRegion": "Hà Nội",
+            "postalCode": "100000",
+            "addressCountry": "VN"
+          },
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+84-961-321-930",
+            "contactType": "customer service",
+            "email": "annhienduhochan@gmail.com",
+            "areaServed": "VN",
+            "availableLanguage": ["Vietnamese"]
+          },
+          "sameAs": [
+            "https://www.facebook.com/duhocannhien/",
+            "https://www.tiktok.com/@hoanghannhat"
+          ]
+        })}
+      </script>
     </Helmet>
   );
 };

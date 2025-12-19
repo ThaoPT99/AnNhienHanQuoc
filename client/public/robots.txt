@@ -1,15 +1,19 @@
+# robots.txt for Du học An Nhiên
+# https://duhocannhien.vercel.app
+
 User-agent: *
 Allow: /
 
 # Sitemap
 Sitemap: https://duhocannhien.vercel.app/sitemap.xml
 
-# Disallow admin pages
+# Disallow admin and private pages
 Disallow: /admin
 Disallow: /admin-login
 Disallow: /admin-gallery
+Disallow: /api/
 
-# Allow all other pages
+# Allow all public pages
 Allow: /
 Allow: /about
 Allow: /services
@@ -25,6 +29,28 @@ Allow: /videos
 Allow: /faq
 Allow: /testimonials
 Allow: /recruitment
+Allow: /ai-recommendation
+Allow: /virtual-tour
+Allow: /language-learning
+Allow: /scholarship-matcher
+Allow: /cost-comparison
 
-# Crawl-delay
+# Specific bot rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
 Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10

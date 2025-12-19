@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Navbar from './components/Navbar';
@@ -10,81 +10,89 @@ import SocialProof from './components/SocialProof';
 import LiveChat from './components/LiveChat';
 import PWAInstall from './components/PWAInstall';
 import PageViewTracker from './components/PageViewTracker';
-import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
-import Gallery from './pages/Gallery';
-import Contact from './pages/Contact';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
-import Recruitment from './pages/Recruitment';
-import FAQ from './pages/FAQ';
-import Testimonials from './pages/Testimonials';
-import Calculator from './pages/Calculator';
-import SchoolComparison from './pages/SchoolComparison';
-import Quiz from './pages/Quiz';
-import Resources from './pages/Resources';
-import Events from './pages/Events';
-import Videos from './pages/Videos';
-import Community from './pages/Community';
-import ProgressTracker from './pages/ProgressTracker';
-import ReferralProgram from './pages/ReferralProgram';
-import Gamification from './pages/Gamification';
-import AIRecommendation from './pages/AIRecommendation';
-import VirtualTour from './pages/VirtualTour';
-import LanguageLearning from './pages/LanguageLearning';
-import ScholarshipMatcher from './pages/ScholarshipMatcher';
-import CostComparison from './pages/CostComparison';
-import Admin from './pages/Admin';
-import AdminLogin from './pages/AdminLogin';
-import AdminGallery from './pages/AdminGallery';
+import ErrorBoundary from './components/ErrorBoundary';
+import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
+
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const Services = lazy(() => import('./pages/Services'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
+const Recruitment = lazy(() => import('./pages/Recruitment'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Testimonials = lazy(() => import('./pages/Testimonials'));
+const Calculator = lazy(() => import('./pages/Calculator'));
+const SchoolComparison = lazy(() => import('./pages/SchoolComparison'));
+const Quiz = lazy(() => import('./pages/Quiz'));
+const Resources = lazy(() => import('./pages/Resources'));
+const Events = lazy(() => import('./pages/Events'));
+const Videos = lazy(() => import('./pages/Videos'));
+const Community = lazy(() => import('./pages/Community'));
+const ProgressTracker = lazy(() => import('./pages/ProgressTracker'));
+const ReferralProgram = lazy(() => import('./pages/ReferralProgram'));
+const Gamification = lazy(() => import('./pages/Gamification'));
+const AIRecommendation = lazy(() => import('./pages/AIRecommendation'));
+const VirtualTour = lazy(() => import('./pages/VirtualTour'));
+const LanguageLearning = lazy(() => import('./pages/LanguageLearning'));
+const ScholarshipMatcher = lazy(() => import('./pages/ScholarshipMatcher'));
+const CostComparison = lazy(() => import('./pages/CostComparison'));
+const Admin = lazy(() => import('./pages/Admin'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 
 function App() {
   return (
     <HelmetProvider>
       <Router>
-        <PageViewTracker />
-        <div className="App">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/recruitment" element={<Recruitment />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/testimonials" element={<Testimonials />} />
-            <Route path="/calculator" element={<Calculator />} />
-            <Route path="/school-comparison" element={<SchoolComparison />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/progress-tracker" element={<ProgressTracker />} />
-            <Route path="/referral" element={<ReferralProgram />} />
-            <Route path="/gamification" element={<Gamification />} />
-            <Route path="/ai-recommendation" element={<AIRecommendation />} />
-            <Route path="/virtual-tour" element={<VirtualTour />} />
-            <Route path="/language-learning" element={<LanguageLearning />} />
-            <Route path="/scholarship-matcher" element={<ScholarshipMatcher />} />
-            <Route path="/cost-comparison" element={<CostComparison />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin-gallery" element={<AdminGallery />} />
-          </Routes>
-          <Footer />
-          <SimpleChatbot />
-          <ConsultationButton />
-          <ExitIntentPopup />
-          <SocialProof />
-          <LiveChat />
-          <PWAInstall />
-        </div>
+        <ErrorBoundary>
+          <PageViewTracker />
+          <div className="App">
+            <Navbar />
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/recruitment" element={<Recruitment />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/testimonials" element={<Testimonials />} />
+                <Route path="/calculator" element={<Calculator />} />
+                <Route path="/school-comparison" element={<SchoolComparison />} />
+                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/videos" element={<Videos />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/progress-tracker" element={<ProgressTracker />} />
+                <Route path="/referral" element={<ReferralProgram />} />
+                <Route path="/gamification" element={<Gamification />} />
+                <Route path="/ai-recommendation" element={<AIRecommendation />} />
+                <Route path="/virtual-tour" element={<VirtualTour />} />
+                <Route path="/language-learning" element={<LanguageLearning />} />
+                <Route path="/scholarship-matcher" element={<ScholarshipMatcher />} />
+                <Route path="/cost-comparison" element={<CostComparison />} />
+                <Route path="/admin-login" element={<AdminLogin />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin-gallery" element={<AdminGallery />} />
+              </Routes>
+            </Suspense>
+            <Footer />
+            <SimpleChatbot />
+            <ConsultationButton />
+            <ExitIntentPopup />
+            <SocialProof />
+            <LiveChat />
+            <PWAInstall />
+          </div>
+        </ErrorBoundary>
       </Router>
     </HelmetProvider>
   );
