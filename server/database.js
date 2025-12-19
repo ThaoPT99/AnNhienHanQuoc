@@ -221,6 +221,36 @@ function initializeDatabase() {
       }
     });
 
+    // Create visits table for tracking website visitors
+    db.run(`CREATE TABLE IF NOT EXISTS visits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_address TEXT,
+      user_agent TEXT,
+      page_path TEXT,
+      referrer TEXT,
+      country TEXT,
+      city TEXT,
+      device_type TEXT,
+      browser TEXT,
+      os TEXT,
+      visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating visits table:', err.message);
+      } else {
+        console.log('✅ Visits table ready');
+      }
+    });
+
+    // Create indexes for visits
+    db.run(`CREATE INDEX IF NOT EXISTS idx_visits_visited_at ON visits(visited_at)`, (err) => {
+      if (err) console.error('Error creating visits index:', err.message);
+    });
+    
+    db.run(`CREATE INDEX IF NOT EXISTS idx_visits_ip_address ON visits(ip_address)`, (err) => {
+      if (err) console.error('Error creating visits ip index:', err.message);
+    });
+
     // Create indexes
     db.run(`CREATE INDEX IF NOT EXISTS idx_recruitment_status ON recruitment(status)`, (err) => {
       if (err) console.error('Error creating recruitment index:', err.message);
@@ -574,6 +604,50 @@ const dbHelpers = {
 
   getAllBookings: (callback) => {
     db.all('SELECT * FROM consultation_booking ORDER BY date DESC, time DESC', callback);
+  },
+
+  // Visits tracking functions
+  logVisit: (visit, callback) => {
+    const { ipAddress, userAgent, pagePath, referrer, country, city, deviceType, browser, os } = visit;
+    db.run(
+      'INSERT INTO visits (ip_address, user_agent, page_path, referrer, country, city, device_type, browser, os) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [ipAddress || null, userAgent || null, pagePath || null, referrer || null, country || null, city || null, deviceType || null, browser || null, os || null],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...visit });
+        }
+      }
+    );
+  },
+
+  getAllVisits: (callback) => {
+    db.all('SELECT * FROM visits ORDER BY visited_at DESC LIMIT 1000', callback);
+  },
+
+  getVisitsByDate: (startDate, endDate, callback) => {
+    db.all(
+      'SELECT * FROM visits WHERE visited_at >= ? AND visited_at <= ? ORDER BY visited_at DESC',
+      [startDate, endDate],
+      callback
+    );
+  },
+
+  getVisitStats: (callback) => {
+    db.all(`
+      SELECT 
+        COUNT(*) as total_visits,
+        COUNT(DISTINCT ip_address) as unique_visitors,
+        COUNT(DISTINCT DATE(visited_at)) as unique_days,
+        page_path,
+        COUNT(*) as page_views
+      FROM visits
+      WHERE visited_at >= datetime('now', '-30 days')
+      GROUP BY page_path
+      ORDER BY page_views DESC
+      LIMIT 20
+    `, callback);
   }
 };
 

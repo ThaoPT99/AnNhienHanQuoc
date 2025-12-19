@@ -71,6 +71,96 @@ app.options('*', (req, res) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Helper function to parse user agent and detect device type
+const parseUserAgent = (userAgent) => {
+  if (!userAgent) return { deviceType: 'Unknown', browser: 'Unknown', os: 'Unknown' };
+  
+  const ua = userAgent.toLowerCase();
+  let deviceType = 'Desktop';
+  let browser = 'Unknown';
+  let os = 'Unknown';
+  
+  // Detect device type
+  if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone') || ua.includes('ipad')) {
+    deviceType = 'Mobile';
+  } else if (ua.includes('tablet') || ua.includes('ipad')) {
+    deviceType = 'Tablet';
+  }
+  
+  // Detect browser
+  if (ua.includes('chrome') && !ua.includes('edg')) {
+    browser = 'Chrome';
+  } else if (ua.includes('firefox')) {
+    browser = 'Firefox';
+  } else if (ua.includes('safari') && !ua.includes('chrome')) {
+    browser = 'Safari';
+  } else if (ua.includes('edg')) {
+    browser = 'Edge';
+  } else if (ua.includes('opera') || ua.includes('opr')) {
+    browser = 'Opera';
+  }
+  
+  // Detect OS
+  if (ua.includes('windows')) {
+    os = 'Windows';
+  } else if (ua.includes('mac')) {
+    os = 'macOS';
+  } else if (ua.includes('linux')) {
+    os = 'Linux';
+  } else if (ua.includes('android')) {
+    os = 'Android';
+  } else if (ua.includes('ios') || ua.includes('iphone') || ua.includes('ipad')) {
+    os = 'iOS';
+  }
+  
+  return { deviceType, browser, os };
+};
+
+// Middleware to log visits (skip for admin routes and API routes)
+app.use((req, res, next) => {
+  // Skip logging for admin routes, API routes, and static files
+  if (req.path.startsWith('/api/') || 
+      req.path.startsWith('/admin') || 
+      req.path.startsWith('/static') ||
+      req.path.includes('.')) {
+    return next();
+  }
+  
+  // Get client IP address
+  const ipAddress = req.headers['x-forwarded-for']?.split(',')[0] || 
+                    req.headers['x-real-ip'] || 
+                    req.connection.remoteAddress || 
+                    req.socket.remoteAddress ||
+                    'Unknown';
+  
+  const userAgent = req.headers['user-agent'] || 'Unknown';
+  const referrer = req.headers['referer'] || req.headers['referrer'] || null;
+  const pagePath = req.path;
+  
+  const { deviceType, browser, os } = parseUserAgent(userAgent);
+  
+  // Log visit asynchronously (don't block the request)
+  const visitData = {
+    ipAddress: ipAddress.replace(/^::ffff:/, ''), // Remove IPv6 prefix
+    userAgent,
+    pagePath,
+    referrer,
+    country: null, // Can be enhanced with IP geolocation service
+    city: null,
+    deviceType,
+    browser,
+    os
+  };
+  
+  dbHelpers.logVisit(visitData, (err) => {
+    if (err) {
+      console.error('Error logging visit:', err);
+    }
+  });
+  
+  next();
+});
+
 // Create uploads directory if it doesn't exist
 // Support Railway Volume: set UPLOADS_DIR=/data/uploads/gallery in Railway environment variables
 const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads', 'gallery');
@@ -625,6 +715,37 @@ app.get('/api/consultation/bookings', (req, res) => {
       return;
     }
     res.json(bookings);
+  });
+});
+
+// Visits tracking endpoints
+app.get('/api/visits', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getAllVisits((err, visits) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(visits);
+  });
+});
+
+app.get('/api/visits/stats', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  dbHelpers.getVisitStats((err, stats) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(stats);
   });
 });
 

@@ -11,6 +11,8 @@ const Admin = () => {
   const [recruitment, setRecruitment] = useState([]);
   const [resources, setResources] = useState([]);
   const [consultations, setConsultations] = useState([]);
+  const [visits, setVisits] = useState([]);
+  const [visitStats, setVisitStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -34,13 +36,15 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, visitsRes, statsRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/recruitment/applications`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/resources/downloads`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/consultation/registrations`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/consultation/registrations`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/visits`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -49,6 +53,8 @@ const Admin = () => {
       setRecruitment(recruitmentRes.data || []);
       setResources(resourcesRes.data || []);
       setConsultations(consultationsRes.data || []);
+      setVisits(visitsRes.data || []);
+      setVisitStats(statsRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -122,6 +128,7 @@ const Admin = () => {
   const tabs = [
     { id: 'contacts', label: '📞 Liên hệ', count: contacts.length, icon: '💬' },
     { id: 'consultations', label: '🎓 Tư vấn', count: consultations.length, icon: '💬' },
+    { id: 'visits', label: '👁️ Truy cập', count: visits.length, icon: '🌐' },
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
@@ -132,6 +139,7 @@ const Admin = () => {
     switch (activeTab) {
       case 'contacts': return contacts;
       case 'consultations': return consultations;
+      case 'visits': return visits;
       case 'newsletter': return newsletter;
       case 'events': return events;
       case 'recruitment': return recruitment;
@@ -267,6 +275,87 @@ const Admin = () => {
                               🗑️
                             </button>
                           </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'visits' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">Lịch sử truy cập ({visits.length})</h2>
+                
+                {visitStats.length > 0 && (
+                  <div className="stats-section" style={{ marginBottom: '30px', padding: '20px', background: '#f8f9fa', borderRadius: '10px' }}>
+                    <h3 style={{ marginBottom: '15px', color: '#333' }}>📊 Thống kê 30 ngày gần nhất</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                      {visitStats.map((stat, idx) => (
+                        <div key={idx} style={{ padding: '15px', background: 'white', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
+                          <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '5px' }}>{stat.page_path || 'Trang chủ'}</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#667eea' }}>{stat.page_views}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#999' }}>lượt xem</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {visits.length === 0 ? (
+                  <div className="no-data">Chưa có dữ liệu truy cập</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>IP Address</th>
+                        <th>Trang</th>
+                        <th>Thiết bị</th>
+                        <th>Trình duyệt</th>
+                        <th>Hệ điều hành</th>
+                        <th>Referrer</th>
+                        <th>Thời gian</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visits.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{item.ip_address || 'Unknown'}</td>
+                          <td>
+                            <span style={{ 
+                              padding: '4px 8px', 
+                              background: '#e3f2fd', 
+                              borderRadius: '4px', 
+                              fontSize: '0.85rem',
+                              fontFamily: 'monospace'
+                            }}>
+                              {item.page_path || '/'}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{ 
+                              padding: '4px 8px', 
+                              background: '#f3e5f5', 
+                              borderRadius: '4px', 
+                              fontSize: '0.85rem'
+                            }}>
+                              {item.device_type || 'Unknown'}
+                            </span>
+                          </td>
+                          <td>{item.browser || 'Unknown'}</td>
+                          <td>{item.os || 'Unknown'}</td>
+                          <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.referrer ? (
+                              <a href={item.referrer} target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none' }}>
+                                {item.referrer.length > 30 ? item.referrer.substring(0, 30) + '...' : item.referrer}
+                              </a>
+                            ) : (
+                              <em style={{ color: '#999' }}>Direct</em>
+                            )}
+                          </td>
+                          <td>{formatDate(item.visited_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -451,6 +540,11 @@ const Admin = () => {
         )}
 
         <div className="admin-stats">
+          <div className="stat-card">
+            <h3>👁️ Truy cập</h3>
+            <p className="stat-number">{visits.length}</p>
+            <p className="stat-subtitle">Tổng lượt truy cập</p>
+          </div>
           <div className="stat-card">
             <h3>📞 Liên hệ</h3>
             <p className="stat-number">{contacts.length}</p>
