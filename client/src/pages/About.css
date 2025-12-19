@@ -420,10 +420,13 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
   background-size: 400% 400%;
   animation: gradientShift 8s ease infinite;
-  margin: 80px 0;
+  margin: 80px auto;
   border-radius: 30px;
   padding: 60px 20px;
   overflow: hidden;
+  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .contact-info-background {
@@ -484,6 +487,9 @@
   position: relative;
   z-index: 1;
   border: 2px solid rgba(255, 255, 255, 0.5);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .contact-header {
