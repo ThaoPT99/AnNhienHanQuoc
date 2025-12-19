@@ -5,6 +5,13 @@ import Newsletter from './Newsletter';
 import './Footer.css';
 
 const Footer = () => {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   const quickLinks = [
     { path: '/', label: 'Trang chủ', icon: '🏠' },
     { path: '/about', label: 'Về chúng tôi', icon: '👥' },
@@ -108,7 +115,11 @@ const Footer = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
                 >
-                  <Link to={link.path} className="quick-link">
+                  <Link 
+                    to={link.path} 
+                    className="quick-link"
+                    onClick={scrollToTop}
+                  >
                     <span className="link-icon">{link.icon}</span>
                     <span className="link-text">{link.label}</span>
                     <div className="link-accent"></div>

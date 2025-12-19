@@ -13,6 +13,7 @@ const AIRecommendation = () => {
     gpa: '',
     english: false
   });
+  const [gpaScale, setGpaScale] = useState('4'); // '4' hoặc '10'
   const [recommendations, setRecommendations] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [viewHistory, setViewHistory] = useState([]);
@@ -36,57 +37,127 @@ const AIRecommendation = () => {
     return match ? parseInt(match[1]) : 0;
   };
 
+  // Chuyển đổi GPA từ thang 10 sang thang 4
+  const convertGpaToScale4 = (gpa, scale) => {
+    if (scale === '10') {
+      // Chuyển đổi thang 10 sang thang 4: GPA_4 = (GPA_10 / 10) * 4
+      return (parseFloat(gpa) / 10) * 4;
+    }
+    return parseFloat(gpa);
+  };
+
   const calculateMatch = (school, profile) => {
     let score = 0;
+    let maxScore = 0;
     let reasons = [];
 
-    // Budget match
+    // Budget match (30 điểm)
     if (profile.budget) {
+      maxScore += 30;
       const schoolBudget = getBudgetCategory(school.tuition);
       if (schoolBudget === profile.budget) {
         score += 30;
         reasons.push('Phù hợp với ngân sách');
+      } else {
+        // Partial match: gần với ngân sách
+        const budgetOrder = ['low', 'medium', 'high'];
+        const profileIndex = budgetOrder.indexOf(profile.budget);
+        const schoolIndex = budgetOrder.indexOf(schoolBudget);
+        if (Math.abs(profileIndex - schoolIndex) === 1) {
+          score += 15;
+          reasons.push('Ngân sách gần phù hợp');
+        }
       }
     }
 
-    // Major match
-    if (profile.major && school.majors && school.majors.some(m => m.includes(profile.major))) {
-      score += 25;
-      reasons.push('Có ngành học bạn quan tâm');
+    // Major match (25 điểm)
+    if (profile.major) {
+      maxScore += 25;
+      if (school.majors && school.majors.some(m => m.includes(profile.major))) {
+        score += 25;
+        reasons.push('Có ngành học bạn quan tâm');
+      } else if (school.topMajors && school.topMajors.some(m => m.includes(profile.major))) {
+        score += 20;
+        reasons.push('Có ngành học liên quan');
+      }
     }
 
-    // City match
-    if (profile.city && school.city === profile.city) {
-      score += 20;
-      reasons.push('Ở thành phố bạn muốn');
+    // City match (20 điểm)
+    if (profile.city) {
+      maxScore += 20;
+      if (school.city === profile.city) {
+        score += 20;
+        reasons.push('Ở thành phố bạn muốn');
+      }
     }
 
-    // TOPIK match
+    // TOPIK match (15 điểm)
     if (profile.topik) {
+      maxScore += 15;
       const schoolTopik = getTopikLevel(school.language);
-      if (parseInt(profile.topik) >= schoolTopik) {
+      const userTopik = parseInt(profile.topik);
+      if (userTopik >= schoolTopik) {
         score += 15;
         reasons.push('Đáp ứng yêu cầu TOPIK');
+      } else if (userTopik >= schoolTopik - 1) {
+        score += 8;
+        reasons.push('TOPIK gần đạt yêu cầu');
       }
     }
 
-    // GPA match (estimate based on ranking - top schools require higher GPA)
+    // GPA match (10 điểm)
+    // Note: Logic này sử dụng thang 4 làm chuẩn, nếu user nhập thang 10 sẽ được chuyển đổi
     if (profile.gpa) {
+      maxScore += 10;
       const requiredGpa = school.ranking <= 10 ? 3.5 : school.ranking <= 20 ? 3.0 : 2.5;
-      if (parseFloat(profile.gpa) >= requiredGpa) {
+      // Chuyển đổi GPA của user sang thang 4 để so sánh
+      const userGpaScale4 = convertGpaToScale4(profile.gpa, profile.gpaScale || '4');
+      if (userGpaScale4 >= requiredGpa) {
         score += 10;
         reasons.push('GPA đạt yêu cầu');
+      } else if (userGpaScale4 >= requiredGpa - 0.3) {
+        score += 5;
+        reasons.push('GPA gần đạt yêu cầu');
       }
     }
 
-    // History boost (if user viewed this school before)
-    const hasViewed = viewHistory.includes(school.id);
-    if (hasViewed) {
-      score += 10;
-      reasons.push('Bạn đã từng xem trường này');
+    // Perfect match check (nếu tất cả tiêu chí đã điền đều khớp hoàn hảo)
+    const filledCriteria = [profile.budget, profile.major, profile.city, profile.topik, profile.gpa].filter(Boolean).length;
+    let perfectMatchCount = 0;
+    
+    if (profile.budget && getBudgetCategory(school.tuition) === profile.budget) perfectMatchCount++;
+    if (profile.major && school.majors && school.majors.some(m => m.includes(profile.major))) perfectMatchCount++;
+    if (profile.city && school.city === profile.city) perfectMatchCount++;
+    if (profile.topik && parseInt(profile.topik) >= getTopikLevel(school.language)) perfectMatchCount++;
+    if (profile.gpa) {
+      const requiredGpa = school.ranking <= 10 ? 3.5 : school.ranking <= 20 ? 3.0 : 2.5;
+      const userGpaScale4 = convertGpaToScale4(profile.gpa, profile.gpaScale || '4');
+      if (userGpaScale4 >= requiredGpa) perfectMatchCount++;
+    }
+    
+    // Nếu tất cả tiêu chí đã điền đều khớp hoàn hảo → đạt 100%
+    if (filledCriteria > 0 && perfectMatchCount === filledCriteria) {
+      score = maxScore; // Đặt score = maxScore để đạt 100%
+      if (!reasons.some(r => r.includes('Khớp hoàn hảo'))) {
+        reasons.push('⭐ Khớp hoàn hảo với tất cả tiêu chí');
+      }
     }
 
-    return { score, reasons };
+    // History boost (bonus điểm, nhưng không vượt quá maxScore)
+    const hasViewed = viewHistory.includes(school.id);
+    if (hasViewed && score < maxScore) {
+      const remainingScore = maxScore - score;
+      score += Math.min(5, remainingScore);
+      if (!reasons.some(r => r.includes('từng xem'))) {
+        reasons.push('Bạn đã từng xem trường này');
+      }
+    }
+
+    // Tính phần trăm (đảm bảo maxScore > 0)
+    // Nếu maxScore = 0 (không điền tiêu chí nào), trả về 0
+    const percentage = maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 0;
+
+    return { score: percentage, reasons, rawScore: score, maxScore };
   };
 
   const handleAnalyze = () => {
@@ -95,7 +166,7 @@ const AIRecommendation = () => {
     // Simulate AI analysis
     setTimeout(() => {
       const scoredSchools = schools.map(school => {
-        const match = calculateMatch(school, userProfile);
+        const match = calculateMatch(school, { ...userProfile, gpaScale });
         return {
           ...school,
           matchScore: match.score,
@@ -120,6 +191,30 @@ const AIRecommendation = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleGpaScaleChange = (newScale) => {
+    // Tự động chuyển đổi giá trị GPA khi đổi thang điểm
+    if (userProfile.gpa && !isNaN(parseFloat(userProfile.gpa))) {
+      const currentGpa = parseFloat(userProfile.gpa);
+      let convertedGpa = '';
+      
+      if (gpaScale === '4' && newScale === '10') {
+        // Chuyển từ thang 4 sang thang 10: GPA_10 = (GPA_4 / 4) * 10
+        convertedGpa = ((currentGpa / 4) * 10).toFixed(2);
+      } else if (gpaScale === '10' && newScale === '4') {
+        // Chuyển từ thang 10 sang thang 4: GPA_4 = (GPA_10 / 10) * 4
+        convertedGpa = ((currentGpa / 10) * 4).toFixed(2);
+      } else {
+        convertedGpa = userProfile.gpa;
+      }
+      
+      setUserProfile(prev => ({
+        ...prev,
+        gpa: convertedGpa
+      }));
+    }
+    setGpaScale(newScale);
   };
 
   return (
@@ -182,15 +277,37 @@ const AIRecommendation = () => {
 
             <div className="form-group">
               <label>GPA (Điểm trung bình)</label>
+              <div className="gpa-scale-selector">
+                <label className="scale-option">
+                  <input
+                    type="radio"
+                    name="gpaScale"
+                    value="4"
+                    checked={gpaScale === '4'}
+                    onChange={(e) => handleGpaScaleChange(e.target.value)}
+                  />
+                  <span>Thang 4</span>
+                </label>
+                <label className="scale-option">
+                  <input
+                    type="radio"
+                    name="gpaScale"
+                    value="10"
+                    checked={gpaScale === '10'}
+                    onChange={(e) => handleGpaScaleChange(e.target.value)}
+                  />
+                  <span>Thang 10</span>
+                </label>
+              </div>
               <input
                 type="number"
                 name="gpa"
                 value={userProfile.gpa}
                 onChange={handleChange}
                 min="0"
-                max="4.5"
-                step="0.1"
-                placeholder="Ví dụ: 3.5"
+                max={gpaScale === '10' ? '10' : '4.5'}
+                step={gpaScale === '10' ? '0.01' : '0.1'}
+                placeholder={gpaScale === '10' ? 'Ví dụ: 8.5' : 'Ví dụ: 3.5'}
               />
             </div>
 
