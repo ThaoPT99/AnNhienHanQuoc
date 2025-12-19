@@ -11,6 +11,7 @@ const Admin = () => {
   const [recruitment, setRecruitment] = useState([]);
   const [resources, setResources] = useState([]);
   const [consultations, setConsultations] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [visits, setVisits] = useState([]);
   const [visitStats, setVisitStats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,13 +37,14 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, visitsRes, statsRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/recruitment/applications`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/resources/downloads`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/consultation/registrations`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/consultation/bookings`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/visits`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] }))
       ]);
@@ -53,6 +55,7 @@ const Admin = () => {
       setRecruitment(recruitmentRes.data || []);
       setResources(resourcesRes.data || []);
       setConsultations(consultationsRes.data || []);
+      setBookings(bookingsRes.data || []);
       setVisits(visitsRes.data || []);
       setVisitStats(statsRes.data || []);
       setError(null);
@@ -128,6 +131,7 @@ const Admin = () => {
   const tabs = [
     { id: 'contacts', label: '📞 Liên hệ', count: contacts.length, icon: '💬' },
     { id: 'consultations', label: '🎓 Tư vấn', count: consultations.length, icon: '💬' },
+    { id: 'bookings', label: '📅 Đặt lịch', count: bookings.length, icon: '📆' },
     { id: 'visits', label: '👁️ Truy cập', count: visits.length, icon: '🌐' },
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
@@ -139,6 +143,7 @@ const Admin = () => {
     switch (activeTab) {
       case 'contacts': return contacts;
       case 'consultations': return consultations;
+      case 'bookings': return bookings;
       case 'visits': return visits;
       case 'newsletter': return newsletter;
       case 'events': return events;
@@ -275,6 +280,94 @@ const Admin = () => {
                               🗑️
                             </button>
                           </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'bookings' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">Đặt lịch tư vấn ({bookings.length})</h2>
+                {bookings.length === 0 ? (
+                  <div className="no-data">Chưa có đặt lịch nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Họ và tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày</th>
+                        <th>Giờ</th>
+                        <th>Phương thức</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày đặt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookings.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td>{item.name}</td>
+                          <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
+                          <td><a href={`tel:${item.phone}`}>{item.phone}</a></td>
+                          <td>
+                            <strong style={{ color: '#667eea' }}>
+                              {item.formatted_date || item.date || 'N/A'}
+                            </strong>
+                          </td>
+                          <td>
+                            <span style={{ 
+                              padding: '4px 8px', 
+                              background: '#e8f5e9', 
+                              borderRadius: '4px', 
+                              fontSize: '0.9rem',
+                              fontWeight: '600',
+                              color: '#2e7d32'
+                            }}>
+                              {item.time || 'N/A'}
+                            </span>
+                          </td>
+                          <td>
+                            <span style={{ 
+                              padding: '4px 8px', 
+                              background: '#fff3e0', 
+                              borderRadius: '4px', 
+                              fontSize: '0.85rem'
+                            }}>
+                              {item.preferred_method === 'zoom' ? '📹 Zoom' : 
+                               item.preferred_method === 'phone' ? '📞 Điện thoại' : 
+                               item.preferred_method === 'office' ? '🏢 Văn phòng' : 
+                               item.preferred_method || 'Zoom'}
+                            </span>
+                          </td>
+                          <td className="message-cell">
+                            {item.notes ? (
+                              <button 
+                                onClick={() => alert(item.notes || 'Không có ghi chú')}
+                                className="view-message-btn"
+                                title="Xem ghi chú"
+                              >
+                                💬 {item.notes.length > 30 ? item.notes.substring(0, 30) + '...' : item.notes}
+                              </button>
+                            ) : (
+                              <em>Không có</em>
+                            )}
+                          </td>
+                          <td>
+                            <span className={`status-badge ${item.status || 'pending'}`}>
+                              {item.status === 'confirmed' ? '✅ Đã xác nhận' : 
+                               item.status === 'completed' ? '✅ Hoàn thành' : 
+                               item.status === 'cancelled' ? '❌ Đã hủy' : 
+                               '⏳ Chờ xử lý'}
+                            </span>
+                          </td>
+                          <td>{formatDate(item.created_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -569,9 +662,13 @@ const Admin = () => {
             <h3>🎓 Tư vấn</h3>
             <p className="stat-number">{consultations.length}</p>
           </div>
+          <div className="stat-card">
+            <h3>📅 Đặt lịch</h3>
+            <p className="stat-number">{bookings.length}</p>
+          </div>
           <div className="stat-card total">
             <h3>Tổng cộng</h3>
-            <p className="stat-number">{contacts.length + consultations.length + newsletter.length + events.length + recruitment.length + resources.length}</p>
+            <p className="stat-number">{contacts.length + consultations.length + bookings.length + newsletter.length + events.length + recruitment.length + resources.length}</p>
           </div>
         </div>
       </div>
