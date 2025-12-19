@@ -2,15 +2,35 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './SimpleChatbot.css';
 
+const STORAGE_KEY = 'chatbot_messages';
+const MAX_STORAGE_MESSAGES = 50;
+
 const SimpleChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      text: 'Xin chào! 👋 Tôi có thể giúp gì cho bạn về du học Hàn Quốc?',
-      sender: 'bot',
-      timestamp: new Date()
+  const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState(() => {
+    // Load từ localStorage hoặc message mặc định
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Convert timestamp strings back to Date objects
+        return parsed.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
     }
-  ]);
+    return [
+      {
+        text: 'Xin chào! 👋 Tôi có thể giúp gì cho bạn về du học Hàn Quốc?',
+        sender: 'bot',
+        timestamp: new Date()
+      }
+    ];
+  });
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -18,18 +38,201 @@ const SimpleChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Save messages to localStorage
   useEffect(() => {
-    scrollToBottom();
+    try {
+      // Only save last MAX_STORAGE_MESSAGES messages
+      const messagesToSave = messages.slice(-MAX_STORAGE_MESSAGES);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messagesToSave));
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
   }, [messages]);
 
-  // Câu trả lời tự động - 100+ trường hợp
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  // Extract context from conversation history
+  const getConversationContext = () => {
+    const recentMessages = messages.slice(-5).filter(msg => msg.sender === 'user');
+    const context = {
+      topics: [],
+      questions: []
+    };
+    
+    recentMessages.forEach(msg => {
+      const text = msg.text.toLowerCase();
+      // Extract topics
+      if (text.match(/(chi phí|giá|tiền)/i)) context.topics.push('cost');
+      if (text.match(/(visa|hồ sơ)/i)) context.topics.push('visa');
+      if (text.match(/(topik|tiếng hàn)/i)) context.topics.push('topik');
+      if (text.match(/(học bổng|scholarship)/i)) context.topics.push('scholarship');
+      if (text.match(/(trường|đại học)/i)) context.topics.push('school');
+      if (text.match(/(ngành|major)/i)) context.topics.push('major');
+      if (text.match(/(seoul|busan|thành phố)/i)) context.topics.push('city');
+    });
+    
+    return context;
+  };
+
+  // Smart keyword matching with synonyms
+  const hasKeyword = (text, keywords) => {
+    const synonyms = {
+      'cost': ['chi phí', 'giá', 'tiền', 'phí', 'tốn', 'cost', 'price', 'fee', 'bao nhiêu tiền', 'tốn bao nhiêu'],
+      'visa': ['visa', 'thị thực', 'giấy tờ', 'hồ sơ', 'document', 'xin visa', 'làm visa'],
+      'topik': ['topik', 'tiếng hàn', 'korean', 'học tiếng', 'thi topik', 'luyện topik'],
+      'scholarship': ['học bổng', 'scholarship', 'bổng', 'hỗ trợ tài chính', 'miễn phí'],
+      'school': ['trường', 'đại học', 'university', 'college', 'school', 'trường nào'],
+      'major': ['ngành', 'major', 'chuyên ngành', 'học gì', 'nên học', 'ngành nào'],
+      'city': ['seoul', 'busan', 'thành phố', 'city', 'ở đâu', 'nơi nào'],
+      'living': ['cuộc sống', 'sinh hoạt', 'ăn uống', 'nhà ở', 'ký túc', 'living'],
+      'work': ['làm thêm', 'part time', 'việc làm', 'kiếm tiền', 'earn money', 'công việc']
+    };
+    
+    if (Array.isArray(keywords)) {
+      return keywords.some(keyword => {
+        const syns = synonyms[keyword] || [keyword];
+        return syns.some(syn => text.includes(syn));
+      });
+    }
+    
+    const syns = synonyms[keywords] || [keywords];
+    return syns.some(syn => text.includes(syn));
+  };
+
+  // Question type detection
+  const getQuestionType = (text) => {
+    if (text.match(/(bao nhiêu|how much|how many|giá bao nhiêu|tốn bao nhiêu)/i)) return 'amount';
+    if (text.match(/(khi nào|when|tháng nào|năm nào|bao giờ)/i)) return 'time';
+    if (text.match(/(ở đâu|where|nơi nào|chỗ nào)/i)) return 'location';
+    if (text.match(/(như thế nào|how|làm sao|cách nào)/i)) return 'how';
+    if (text.match(/(tại sao|why|vì sao|lý do)/i)) return 'why';
+    if (text.match(/(có|can|được không|có thể)/i)) return 'yesno';
+    if (text.match(/(là gì|what|gì|cái gì)/i)) return 'what';
+    if (text.match(/(ai|who)/i)) return 'who';
+    return 'general';
+  };
+
+  // Câu trả lời tự động - Cải tiến với context awareness
   const getBotResponse = (userMessage) => {
     const message = userMessage.toLowerCase().trim();
+    const context = getConversationContext();
+    const questionType = getQuestionType(message);
+
+    // === XỬ LÝ CÂU CHỬI & TIÊU CỰC === (Ưu tiên cao)
+    if (message.match(/(ngu|dốt|đần|não cá vàng|đồ ngu|thằng ngu|con ngu|ngu si|đần độn|stupid|idiot|fool)/i)) {
+      const responses = [
+        'Tôi hiểu bạn có thể đang bực mình. 😊 Nhưng tôi luôn sẵn sàng giúp đỡ bạn về du học Hàn Quốc. Bạn có câu hỏi gì về du học không?',
+        'Xin lỗi nếu tôi chưa trả lời đúng ý bạn. 😅 Hãy cho tôi biết bạn muốn tìm hiểu gì về du học Hàn Quốc, tôi sẽ cố gắng giúp tốt nhất!',
+        'Tôi luôn muốn cải thiện để phục vụ bạn tốt hơn. 💜 Bạn có thể hỏi tôi về chi phí, visa, học bổng, trường học... Tôi sẽ trả lời chi tiết!'
+      ];
+      return {
+        text: responses[Math.floor(Math.random() * responses.length)],
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(chửi|vô dụng|tệ|dở|kém|bad|useless|suck|worst)/i)) {
+      return {
+        text: 'Tôi xin lỗi nếu đã làm bạn không hài lòng. 😔\n\nTôi luôn cố gắng cải thiện để phục vụ bạn tốt hơn. Nếu bạn có câu hỏi về du học Hàn Quốc, tôi sẽ trả lời chi tiết và chính xác nhất có thể.\n\nBạn muốn biết gì về du học Hàn Quốc? 💜',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(điên|điên rồ|crazy|mad|insane)/i)) {
+      return {
+        text: 'Tôi hiểu bạn có thể đang cảm thấy khó chịu. 😊\n\nNhưng tôi ở đây để giúp bạn về du học Hàn Quốc. Bạn có muốn tìm hiểu về chi phí, visa, học bổng, hay trường học không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    // === XỬ LÝ CÂU HỎI KHÔNG LIÊN QUAN ===
+    if (message.match(/(thời tiết hôm nay|weather today|nhiệt độ|mưa|nắng)/i)) {
+      return {
+        text: 'Xin lỗi, tôi chỉ chuyên về du học Hàn Quốc thôi. 😅\n\nNhưng tôi có thể kể bạn biết về thời tiết ở Hàn Quốc:\n• Xuân (3-5): 10-20°C, đẹp\n• Hè (6-8): 25-35°C, nóng ẩm\n• Thu (9-11): 10-20°C, mát mẻ\n• Đông (12-2): -5 đến 5°C, lạnh, có tuyết\n\nBạn muốn biết thêm gì về du học Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(bóng đá|football|world cup|euro|premier league)/i)) {
+      return {
+        text: 'Xin lỗi, tôi chỉ chuyên về du học Hàn Quốc thôi. ⚽\n\nNhưng tôi biết Hàn Quốc có đội bóng rất mạnh! Nếu bạn du học Hàn Quốc, bạn có thể xem các trận đấu K-League và ủng hộ đội tuyển Hàn Quốc.\n\nBạn có muốn tìm hiểu về du học Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(phim|movie|cinema|netflix|disney)/i)) {
+      return {
+        text: 'Xin lỗi, tôi chỉ chuyên về du học Hàn Quốc. 🎬\n\nNhưng tôi biết Hàn Quốc có ngành giải trí rất phát triển! Nếu bạn du học Hàn Quốc, bạn sẽ có cơ hội:\n• Xem K-drama tại rạp\n• Tham gia các sự kiện K-pop\n• Trải nghiệm văn hóa giải trí Hàn Quốc\n\nBạn có muốn tìm hiểu về du học Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(ăn gì|món gì ngon|restaurant|nhà hàng|đồ ăn)/i) && !message.match(/(hàn quốc|korea|korean)/i)) {
+      return {
+        text: 'Xin lỗi, tôi chỉ chuyên về du học Hàn Quốc. 🍜\n\nNhưng tôi có thể kể bạn về ẩm thực Hàn Quốc:\n• Kimchi: Món ăn quốc gia\n• Kimbap: Cơm cuộn rong biển\n• Bibimbap: Cơm trộn\n• Bulgogi: Thịt nướng\n• Ramyeon: Mì tôm\n\nNếu bạn du học Hàn Quốc, bạn sẽ được thưởng thức những món này!\n\nBạn muốn biết thêm gì về du học Hàn Quốc?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(tên bạn|bạn là ai|who are you|what are you|bạn tên gì)/i)) {
+      return {
+        text: 'Xin chào! 👋 Tôi là chatbot tư vấn du học Hàn Quốc của Du học An Nhiên.\n\nTôi có thể giúp bạn:\n• Tìm hiểu về chi phí du học\n• Tư vấn về visa và hồ sơ\n• Thông tin về TOPIK và học bổng\n• Chọn trường và ngành học phù hợp\n• Và nhiều thông tin khác về du học Hàn Quốc\n\nBạn muốn biết gì về du học Hàn Quốc? 😊',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(bạn khỏe không|how are you|bạn thế nào|sao rồi)/i)) {
+      return {
+        text: 'Cảm ơn bạn đã hỏi! 😊 Tôi khỏe và sẵn sàng giúp bạn về du học Hàn Quốc.\n\nBạn có câu hỏi gì về du học Hàn Quốc không? Tôi có thể tư vấn về chi phí, visa, học bổng, trường học...',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(yêu|love|thích|like|crush)/i) && !message.match(/(du học|hàn quốc|korea|trường|ngành)/i)) {
+      return {
+        text: 'Cảm ơn bạn! 💜 Tôi cũng rất vui được trò chuyện với bạn.\n\nNhưng tôi ở đây để giúp bạn về du học Hàn Quốc. Bạn có muốn tìm hiểu về:\n• Chi phí du học\n• Visa và hồ sơ\n• Học bổng\n• Trường và ngành học\n\nHãy hỏi tôi nhé! 😊',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(hôm nay|today|hôm qua|yesterday|ngày mai|tomorrow)/i) && !hasKeyword(message, ['cost', 'visa', 'topik', 'scholarship', 'school'])) {
+      return {
+        text: 'Xin lỗi, tôi chỉ chuyên về du học Hàn Quốc thôi. 😅\n\nNhưng tôi có thể giúp bạn:\n• Lập kế hoạch du học\n• Tìm hiểu thời gian nhập học\n• Tư vấn lộ trình chuẩn bị\n\nBạn muốn biết gì về du học Hàn Quốc?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    // === XỬ LÝ CÂU HỎI CHUNG CHUNG ===
+    if (message.match(/(là gì|what is|what\'s|định nghĩa|giải thích)/i) && message.length < 15 && !hasKeyword(message, ['cost', 'visa', 'topik', 'scholarship', 'school', 'major', 'city'])) {
+      return {
+        text: 'Bạn có thể hỏi cụ thể hơn không? 😊\n\nTôi có thể giúp bạn về:\n• Du học Hàn Quốc là gì?\n• TOPIK là gì?\n• Visa D-2 là gì?\n• Học bổng KGSP là gì?\n• Trường SKY là gì?\n\nBạn muốn biết về điều gì?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
 
     // === CHÀO HỎI & LỊCH SỰ ===
-    if (message.match(/^(xin chào|hello|hi|chào|chào bạn|hey)/i)) {
+    if (message.match(/^(xin chào|hello|hi|chào|chào bạn|hey|chào bot)/i)) {
+      const greetings = [
+        'Xin chào! 😊 Tôi rất vui được hỗ trợ bạn về du học Hàn Quốc. Bạn muốn biết gì?',
+        'Chào bạn! 👋 Tôi có thể giúp bạn tìm hiểu về du học Hàn Quốc. Bạn quan tâm điều gì?',
+        'Xin chào! 🌟 Tôi sẵn sàng trả lời mọi thắc mắc về du học Hàn Quốc. Hãy hỏi tôi nhé!'
+      ];
       return {
-        text: 'Xin chào! 😊 Tôi rất vui được hỗ trợ bạn về du học Hàn Quốc. Bạn muốn biết gì?',
+        text: greetings[Math.floor(Math.random() * greetings.length)],
         sender: 'bot',
         timestamp: new Date()
       };
@@ -45,67 +248,158 @@ const SimpleChatbot = () => {
 
     if (message.match(/(tạm biệt|bye|goodbye|see you)/i)) {
       return {
-        text: 'Tạm biệt! 👋 Chúc bạn một ngày tốt lành. Nếu cần hỗ trợ, cứ quay lại nhé!',
+        text: 'Tạm biệt! 👋 Chúc bạn một ngày tốt lành. Nếu cần hỗ trợ về du học Hàn Quốc, cứ quay lại nhé!',
         sender: 'bot',
         timestamp: new Date()
       };
     }
 
-    // === CHI PHÍ & TÀI CHÍNH ===
-    if (message.match(/(chi phí|giá|tiền|phí|tốn|cost|price|fee)/i)) {
-      if (message.match(/(học phí|tuition)/i)) {
-        return {
-          text: '💵 Học phí du học Hàn Quốc:\n• Trường công: 80-120 triệu VNĐ/năm\n• Trường tư: 120-200 triệu VNĐ/năm\n• Trường top (SKY): 150-250 triệu VNĐ/năm\n\nBạn muốn biết học phí trường cụ thể nào?',
-          sender: 'bot',
-          timestamp: new Date()
-        };
-      }
-      if (message.match(/(sinh hoạt|living|ăn ở|ăn uống)/i)) {
-        return {
-          text: '🍽️ Sinh hoạt phí tại Hàn Quốc:\n• Seoul: 8-12 triệu VNĐ/tháng\n• Busan: 6-9 triệu VNĐ/tháng\n• Các thành phố khác: 5-8 triệu VNĐ/tháng\n\nBao gồm: ăn uống, đi lại, mua sắm, giải trí.',
-          sender: 'bot',
-          timestamp: new Date()
-        };
-      }
-      if (message.match(/(nhà ở|ký túc|dormitory|accommodation)/i)) {
-        return {
-          text: '🏠 Chi phí nhà ở:\n• Ký túc xá: 1.5-3 triệu VNĐ/tháng\n• Phòng trọ: 3-6 triệu VNĐ/tháng\n• Share house: 2-4 triệu VNĐ/tháng\n\nKý túc xá thường rẻ và tiện lợi nhất!',
-          sender: 'bot',
-          timestamp: new Date()
-        };
-      }
+    // === XỬ LÝ CÂU HỎI KHÔNG LIÊN QUAN - TIẾP TỤC ===
+    if (message.match(/(giờ|time|mấy giờ|what time)/i) && !message.match(/(visa|hồ sơ|thời gian xử lý|bao lâu)/i)) {
       return {
-        text: '💰 Tổng chi phí du học Hàn Quốc/năm:\n• Học phí: 80-200 triệu\n• Sinh hoạt: 60-120 triệu\n• Nhà ở: 18-36 triệu\n• Bảo hiểm: 2-3 triệu\n• Khác: 10-20 triệu\n\n→ Tổng: 170-380 triệu VNĐ/năm\n\nDùng công cụ "Tính chi phí" trên website để tính chính xác hơn!',
+        text: 'Xin lỗi, tôi không biết giờ hiện tại. 😅\n\nNhưng tôi có thể giúp bạn về thời gian:\n• Thời gian nhập học tại Hàn Quốc\n• Thời gian xử lý visa\n• Thời gian chuẩn bị hồ sơ\n\nBạn muốn biết về điều gì?',
         sender: 'bot',
         timestamp: new Date()
       };
     }
 
-    // === VISA & HỒ SƠ ===
-    if (message.match(/(visa|thị thực|giấy tờ|hồ sơ|document)/i)) {
-      if (message.match(/(d-2|visa d2|visa du học)/i)) {
-        return {
-          text: '📋 Visa D-2 (Du học):\n• Giấy nhập học từ trường\n• Chứng minh tài chính (tối thiểu 10,000 USD)\n• Hộ chiếu còn hạn 6 tháng\n• Ảnh 3.5x4.5cm\n• Bằng tốt nghiệp + bảng điểm\n• Thư giới thiệu\n\nThời gian: 2-4 tuần. Chúng tôi hỗ trợ làm hồ sơ!',
-          sender: 'bot',
-          timestamp: new Date()
-        };
-      }
-      if (message.match(/(chứng minh tài chính|proof of fund|tài chính)/i)) {
-        return {
-          text: '💳 Chứng minh tài chính:\n• Số dư tài khoản: Tối thiểu 10,000 USD (khoảng 240 triệu VNĐ)\n• Phải có trong 3-6 tháng trước khi nộp hồ sơ\n• Có thể là tài khoản của học sinh hoặc người bảo lãnh\n• Cần bản sao công chứng\n\nChúng tôi có thể hỗ trợ làm giấy tờ này!',
-          sender: 'bot',
-          timestamp: new Date()
-        };
-      }
-      if (message.match(/(thời gian|mất bao lâu|bao lâu|how long)/i)) {
-        return {
-          text: '⏰ Thời gian xử lý visa:\n• Chuẩn bị hồ sơ: 1-2 tháng\n• Nộp hồ sơ: 1 ngày\n• Xử lý tại ĐSQ: 2-4 tuần\n• Nhận visa: 1-2 ngày\n\n→ Tổng: 2-3 tháng từ khi bắt đầu',
-          sender: 'bot',
-          timestamp: new Date()
-        };
-      }
+    if (message.match(/(tính toán|calculator|máy tính|math|toán)/i) && !message.match(/(chi phí|cost|tính chi phí)/i)) {
       return {
-        text: '📋 Hồ sơ du học Hàn Quốc cần:\n• Bằng tốt nghiệp THPT/ĐH (bản sao công chứng)\n• Bảng điểm (bản sao công chứng)\n• Chứng chỉ TOPIK\n• Chứng minh tài chính\n• Hộ chiếu\n• Ảnh thẻ\n• Thư giới thiệu\n• Kế hoạch học tập\n\nChúng tôi hỗ trợ làm đầy đủ hồ sơ!',
+        text: 'Xin lỗi, tôi không phải máy tính. 😊\n\nNhưng tôi có công cụ "Tính chi phí du học" trên website! Bạn có thể:\n• Tính tổng chi phí du học\n• So sánh chi phí giữa các trường\n• Tính chi phí theo thành phố\n\nBạn muốn biết thêm về chi phí du học Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(chơi game|game|play|trò chơi)/i)) {
+      return {
+        text: 'Xin lỗi, tôi không thể chơi game. 🎮\n\nNhưng tôi có thể giúp bạn tìm hiểu về du học Hàn Quốc! Hàn Quốc có ngành game rất phát triển, nếu bạn học ngành IT hoặc Game Design, bạn sẽ có nhiều cơ hội làm việc tại các công ty game lớn như Nexon, NCSoft.\n\nBạn có muốn tìm hiểu về ngành học tại Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(hát|sing|bài hát|song|music)/i) && !message.match(/(k-pop|kpop|hàn quốc)/i)) {
+      return {
+        text: 'Xin lỗi, tôi không thể hát. 🎵\n\nNhưng tôi biết Hàn Quốc có nền âm nhạc rất phát triển! Nếu bạn du học Hàn Quốc, bạn sẽ có cơ hội:\n• Tham gia các concert K-pop\n• Học ngành Âm nhạc tại các trường top\n• Trải nghiệm văn hóa âm nhạc Hàn Quốc\n\nBạn có muốn tìm hiểu về du học Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(kể chuyện|story|truyện|tale)/i)) {
+      return {
+        text: 'Xin lỗi, tôi không thể kể chuyện. 📖\n\nNhưng tôi có thể kể bạn nghe về:\n• Câu chuyện thành công của các du học sinh\n• Hành trình du học Hàn Quốc\n• Kinh nghiệm du học sinh\n\nBạn muốn biết về điều gì?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    if (message.match(/(làm bạn|friend|bạn bè|kết bạn)/i)) {
+      return {
+        text: 'Cảm ơn bạn! 💜 Tôi rất vui được trò chuyện với bạn.\n\nTôi ở đây để giúp bạn về du học Hàn Quốc. Nếu bạn có câu hỏi gì, cứ hỏi tôi nhé!\n\nBạn muốn biết gì về du học Hàn Quốc?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    // === XỬ LÝ CÂU HỎI VỀ BẢN THÂN BOT ===
+    if (message.match(/(bạn có|can you|bạn có thể|bạn biết|do you know)/i) && message.match(/(làm|do|biết|know|có thể)/i) && !hasKeyword(message, ['cost', 'visa', 'topik', 'scholarship', 'school'])) {
+      const capabilities = [
+        'Tôi có thể giúp bạn về du học Hàn Quốc:\n• Tư vấn chi phí\n• Hướng dẫn visa và hồ sơ\n• Thông tin về TOPIK và học bổng\n• Tư vấn chọn trường và ngành\n• Và nhiều thông tin khác',
+        'Tôi chuyên về du học Hàn Quốc. Tôi có thể trả lời các câu hỏi về:\n• Chi phí du học\n• Visa và hồ sơ\n• Học bổng\n• Trường và ngành học\n• Cuộc sống du học sinh'
+      ];
+      return {
+        text: capabilities[Math.floor(Math.random() * capabilities.length)] + '\n\nBạn muốn biết gì cụ thể?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    // === CHI PHÍ & TÀI CHÍNH === (Cải tiến với context)
+    if (hasKeyword(message, 'cost')) {
+      // Check if user asked about specific cost type
+      if (hasKeyword(message, ['tuition', 'học phí']) || message.match(/(học phí|tuition|tiền học)/i)) {
+        const schoolContext = context.topics.includes('school') ? 
+          'Bạn đang quan tâm trường nào? Tôi có thể tư vấn học phí cụ thể!' : 
+          'Bạn muốn biết học phí trường cụ thể nào?';
+        
+        return {
+          text: `💵 Học phí du học Hàn Quốc:\n\n• Trường công: 80-120 triệu VNĐ/năm\n• Trường tư: 120-200 triệu VNĐ/năm\n• Trường top (SKY): 150-250 triệu VNĐ/năm\n• Trường trung bình: 100-150 triệu VNĐ/năm\n\n${schoolContext}\n\n💡 Tip: Nhiều trường có học bổng 30-100% học phí!`,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+      
+      if (hasKeyword(message, ['living', 'sinh hoạt']) || message.match(/(sinh hoạt|living|ăn ở|ăn uống|tiền sinh hoạt)/i)) {
+        const cityContext = context.topics.includes('city') ? 
+          'Tùy thành phố bạn chọn, chi phí sẽ khác nhau.' : 
+          'Chi phí này thay đổi tùy thành phố bạn chọn.';
+        
+        return {
+          text: `🍽️ Sinh hoạt phí tại Hàn Quốc:\n\n• Seoul: 8-12 triệu VNĐ/tháng\n• Busan: 6-9 triệu VNĐ/tháng\n• Daegu/Incheon: 5-8 triệu VNĐ/tháng\n• Các thành phố khác: 4-7 triệu VNĐ/tháng\n\n${cityContext}\n\nBao gồm: ăn uống, đi lại, mua sắm, giải trí.\n\n💡 Tip: Tự nấu ăn có thể tiết kiệm 30-40% so với ăn ngoài!`,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+      
+      if (hasKeyword(message, ['accommodation', 'nhà ở']) || message.match(/(nhà ở|ký túc|dormitory|accommodation|phòng trọ)/i)) {
+        return {
+          text: '🏠 Chi phí nhà ở:\n\n• Ký túc xá: 1.5-3 triệu VNĐ/tháng (khuyên dùng năm đầu)\n• Phòng trọ (One Room): 3-6 triệu VNĐ/tháng\n• Share house: 2-4 triệu VNĐ/tháng\n• Homestay: 4-8 triệu VNĐ/tháng\n\n💡 Ký túc xá thường rẻ và tiện lợi nhất, bao gồm điện nước internet!\n\nBạn muốn biết thêm về ký túc xá hay phòng trọ?',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+      
+      // General cost question with smart follow-up
+      const followUp = questionType === 'amount' ? 
+        'Bạn muốn biết chi phí cho trường nào hoặc thành phố nào cụ thể không?' :
+        'Bạn muốn biết chi tiết về học phí, sinh hoạt phí hay nhà ở?';
+      
+      return {
+        text: `💰 Tổng chi phí du học Hàn Quốc/năm:\n\n📊 Chi tiết:\n• Học phí: 80-200 triệu VNĐ\n• Sinh hoạt: 60-120 triệu VNĐ\n• Nhà ở: 18-36 triệu VNĐ\n• Bảo hiểm: 2-3 triệu VNĐ\n• Vé máy bay: 8-15 triệu VNĐ\n• Khác: 10-20 triệu VNĐ\n\n→ Tổng: 170-380 triệu VNĐ/năm\n\n💡 Lưu ý:\n• Có thể làm thêm để trang trải 30-50% chi phí\n• Nhiều học bổng hỗ trợ 30-100% học phí\n• Chi phí thay đổi tùy trường và thành phố\n\n${followUp}\n\nHoặc dùng công cụ "Tính chi phí" trên website để tính chính xác hơn!`,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+
+    // === VISA & HỒ SƠ === (Cải tiến)
+    if (hasKeyword(message, 'visa')) {
+      if (message.match(/(d-2|visa d2|visa du học|loại visa)/i)) {
+        return {
+          text: '📋 Visa D-2 (Du học):\n\n📄 Giấy tờ cần thiết:\n• Giấy nhập học từ trường\n• Chứng minh tài chính (tối thiểu 10,000 USD)\n• Hộ chiếu còn hạn ít nhất 6 tháng\n• Ảnh 3.5x4.5cm (nền trắng)\n• Bằng tốt nghiệp + bảng điểm (bản sao công chứng)\n• Thư giới thiệu\n• Kế hoạch học tập\n• Chứng chỉ TOPIK (nếu có)\n\n⏰ Thời gian xử lý: 2-4 tuần\n\n💡 Chúng tôi hỗ trợ làm đầy đủ hồ sơ từ A-Z!',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+      
+      if (hasKeyword(message, ['chứng minh tài chính', 'proof of fund', 'tài chính']) || message.match(/(chứng minh tài chính|proof of fund|tài chính|số dư)/i)) {
+        const amountQuestion = questionType === 'amount' ? 
+          '\n💡 Lưu ý: Số tiền này phải có trong tài khoản ít nhất 3-6 tháng trước khi nộp hồ sơ.' :
+          '\n💡 Tip: Có thể là tài khoản của học sinh hoặc người bảo lãnh (bố mẹ).';
+        
+        return {
+          text: `💳 Chứng minh tài chính:\n\n💰 Số tiền cần có:\n• Tối thiểu: 10,000 USD (khoảng 240 triệu VNĐ)\n• Khuyến nghị: 15,000-20,000 USD để an toàn\n\n📋 Yêu cầu:\n• Phải có trong tài khoản 3-6 tháng trước khi nộp\n• Có thể là tài khoản của học sinh hoặc người bảo lãnh\n• Cần bản sao công chứng từ ngân hàng\n• Bản dịch tiếng Anh hoặc Hàn${amountQuestion}\n\nChúng tôi có thể hỗ trợ làm giấy tờ này!`,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+      
+      if (questionType === 'time' || message.match(/(thời gian|mất bao lâu|bao lâu|how long|khi nào có)/i)) {
+        return {
+          text: '⏰ Thời gian xử lý visa D-2:\n\n📅 Quy trình:\n• Chuẩn bị hồ sơ: 1-2 tháng\n• Nộp hồ sơ tại ĐSQ: 1 ngày\n• Xử lý tại ĐSQ: 2-4 tuần\n• Nhận visa: 1-2 ngày\n\n→ Tổng thời gian: 2-3 tháng từ khi bắt đầu\n\n💡 Lưu ý:\n• Nộp hồ sơ sớm để tránh trễ\n• Mùa cao điểm (tháng 3, 9) có thể lâu hơn\n• Hồ sơ đầy đủ sẽ xử lý nhanh hơn\n\nBạn đã chuẩn bị hồ sơ chưa?',
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+      
+      // General visa question
+      const followUp = context.topics.includes('cost') ? 
+        'Bạn đã chuẩn bị chứng minh tài chính chưa? Tôi có thể tư vấn chi tiết!' :
+        'Bạn muốn biết về giấy tờ cần thiết hay thời gian xử lý?';
+      
+      return {
+        text: `📋 Hồ sơ du học Hàn Quốc cần:\n\n📄 Danh sách giấy tờ:\n• Bằng tốt nghiệp THPT/ĐH (bản sao công chứng)\n• Bảng điểm (bản sao công chứng)\n• Chứng chỉ TOPIK (nếu có)\n• Chứng minh tài chính (10,000 USD+)\n• Hộ chiếu (còn hạn 6 tháng+)\n• Ảnh thẻ 3.5x4.5cm\n• Thư giới thiệu\n• Kế hoạch học tập\n• Giấy nhập học từ trường\n\n💡 Chúng tôi hỗ trợ:\n• Tư vấn đầy đủ giấy tờ\n• Dịch thuật công chứng\n• Làm hồ sơ từ A-Z\n• Tỷ lệ thành công cao\n\n${followUp}`,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -617,21 +911,110 @@ const SimpleChatbot = () => {
       };
     }
 
-    // === MẶC ĐỊNH - HƯỚNG DẪN ===
+    // === XỬ LÝ CÂU HỎI KHÔNG RÕ RÀNG ===
+    // Kiểm tra xem có phải câu hỏi không liên quan không
+    const unrelatedKeywords = ['thời tiết', 'bóng đá', 'phim', 'game', 'hát', 'kể chuyện', 'giờ', 'tính toán', 'weather', 'football', 'movie', 'play', 'sing', 'story', 'time', 'calculator'];
+    const isUnrelated = unrelatedKeywords.some(keyword => message.includes(keyword)) && 
+                       !hasKeyword(message, ['cost', 'visa', 'topik', 'scholarship', 'school', 'major', 'city', 'hàn quốc', 'korea', 'du học']);
+    
+    if (isUnrelated) {
+      return {
+        text: 'Xin lỗi, tôi chỉ chuyên về du học Hàn Quốc thôi. 😅\n\nNhưng tôi có thể giúp bạn tìm hiểu về:\n• Chi phí du học Hàn Quốc\n• Visa và hồ sơ\n• Học bổng\n• Trường và ngành học\n• Cuộc sống du học sinh\n\nBạn có muốn tìm hiểu về du học Hàn Quốc không?',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+    }
+    
+    // Nếu có context từ cuộc trò chuyện trước, đưa ra gợi ý dựa trên context
+    if (context.topics.length > 0) {
+      const lastTopic = context.topics[context.topics.length - 1];
+      const contextResponses = {
+        'cost': 'Bạn đang hỏi về chi phí phải không? Tôi có thể giúp bạn về:\n• Học phí\n• Sinh hoạt phí\n• Chi phí nhà ở\n• Tổng chi phí\n\nBạn muốn biết chi tiết về phần nào?',
+        'visa': 'Bạn đang quan tâm về visa và hồ sơ? Tôi có thể tư vấn:\n• Giấy tờ cần thiết\n• Thời gian xử lý\n• Chứng minh tài chính\n• Quy trình xin visa\n\nBạn muốn biết thêm gì?',
+        'topik': 'Bạn hỏi về TOPIK? Tôi có thể giúp:\n• TOPIK là gì?\n• Luyện thi TOPIK\n• Kỳ thi TOPIK\n• TOPIK cần thiết cho trường nào?\n\nBạn muốn biết gì cụ thể?',
+        'scholarship': 'Bạn quan tâm học bổng? Tôi có thể tư vấn:\n• Các loại học bổng\n• Điều kiện học bổng\n• Học bổng KGSP\n• Học bổng trường\n\nBạn muốn biết thêm gì?',
+        'school': 'Bạn đang tìm trường? Tôi có thể giúp:\n• Top trường Hàn Quốc\n• Trường theo ngành\n• Trường công vs tư\n• So sánh trường\n\nBạn muốn học ngành gì?',
+        'major': 'Bạn hỏi về ngành học? Tôi có thể tư vấn:\n• Các ngành phổ biến\n• Ngành nào dễ xin việc\n• Trường tốt cho từng ngành\n• Lương sau tốt nghiệp\n\nBạn muốn học ngành nào?',
+        'city': 'Bạn hỏi về thành phố? Tôi có thể giúp:\n• Seoul vs Busan\n• Chi phí từng thành phố\n• Trường ở từng thành phố\n• Cuộc sống ở từng nơi\n\nBạn muốn biết về thành phố nào?'
+      };
+      
+      if (contextResponses[lastTopic]) {
+        return {
+          text: `Xin lỗi, tôi chưa hiểu rõ câu hỏi của bạn. 😅\n\n${contextResponses[lastTopic]}`,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+      }
+    }
+    
+    // === MẶC ĐỊNH - HƯỚNG DẪN THÔNG MINH ===
+    // Phân tích câu hỏi để đưa ra gợi ý phù hợp
+    const suggestions = [];
+    
+    if (message.length < 5) {
+      suggestions.push('Bạn có thể hỏi cụ thể hơn, ví dụ:');
+      suggestions.push('• "Chi phí du học Hàn Quốc bao nhiêu?"');
+      suggestions.push('• "Xin visa cần giấy tờ gì?"');
+      suggestions.push('• "TOPIK là gì?"');
+    } else if (message.match(/(tôi|mình|em|mình muốn|tôi muốn)/i)) {
+      suggestions.push('Dựa trên câu hỏi của bạn, tôi có thể giúp:');
+      suggestions.push('• Tư vấn lộ trình du học phù hợp');
+      suggestions.push('• Đánh giá hồ sơ của bạn');
+      suggestions.push('• Tìm trường và ngành phù hợp');
+      suggestions.push('\nBạn có thể hỏi cụ thể hơn hoặc liên hệ hotline: 0961321930');
+    } else {
+      suggestions.push('Tôi có thể giúp bạn về:');
+      suggestions.push('💰 Chi phí & Tài chính');
+      suggestions.push('📋 Visa & Hồ sơ');
+      suggestions.push('📚 TOPIK & Tiếng Hàn');
+      suggestions.push('🎓 Học bổng');
+      suggestions.push('🏫 Trường & Ngành học');
+      suggestions.push('🏙️ Thành phố');
+      suggestions.push('🏠 Nhà ở');
+      suggestions.push('💼 Việc làm thêm');
+      suggestions.push('🍜 Cuộc sống du học sinh');
+    }
+    
     return {
-      text: 'Cảm ơn bạn đã liên hệ! 💜\n\nTôi có thể giúp bạn về:\n\n💰 Chi phí & Tài chính\n📋 Visa & Hồ sơ\n📚 TOPIK & Tiếng Hàn\n🎓 Học bổng\n🏫 Trường & Ngành học\n🏙️ Thành phố\n🏠 Nhà ở\n💼 Việc làm thêm\n🍜 Cuộc sống du học sinh\n📞 Liên hệ & Tư vấn\n\nBạn muốn biết thêm về điều gì? Hãy hỏi cụ thể nhé! 😊',
+      text: `Xin lỗi, tôi chưa hiểu rõ câu hỏi của bạn. 😅\n\n${suggestions.join('\n')}\n\n💡 Tip: Hãy hỏi cụ thể hơn, ví dụ:\n• "Chi phí du học Hàn Quốc bao nhiêu?"\n• "Xin visa cần giấy tờ gì?"\n• "TOPIK là gì?"\n\nHoặc liên hệ trực tiếp: 0961321930 để được tư vấn chi tiết! 😊`,
       sender: 'bot',
       timestamp: new Date()
     };
   };
 
+  // Format message text với links và formatting
+  const formatMessage = (text) => {
+    // Convert URLs to links
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#667eea', textDecoration: 'underline' }}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
 
+    const userMessageText = inputValue.trim();
+    
     // Thêm tin nhắn người dùng
     const userMessage = {
-      text: inputValue,
+      text: userMessageText,
       sender: 'user',
       timestamp: new Date()
     };
@@ -639,14 +1022,21 @@ const SimpleChatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
 
-    // Trả lời tự động sau 1 giây
+    // Show typing indicator
+    setIsTyping(true);
+
+    // Simulate typing delay (random between 800-1500ms)
+    const typingDelay = 800 + Math.random() * 700;
+    
     setTimeout(() => {
-      const botResponse = getBotResponse(inputValue);
+      const botResponse = getBotResponse(userMessageText);
+      setIsTyping(false);
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    }, typingDelay);
   };
 
   const handleQuickReply = (text) => {
+    if (isTyping) return;
     setInputValue(text);
     setTimeout(() => {
       const form = document.querySelector('.chatbot-input-form');
@@ -656,12 +1046,83 @@ const SimpleChatbot = () => {
     }, 100);
   };
 
-  const quickReplies = [
-    'Chi phí du học?',
-    'Xin visa như thế nào?',
-    'TOPIK là gì?',
-    'Học bổng có gì?'
-  ];
+  // Smart quick replies based on last bot message
+  const getSmartQuickReplies = () => {
+    if (messages.length === 0) {
+      return [
+        'Chi phí du học?',
+        'Xin visa như thế nào?',
+        'TOPIK là gì?',
+        'Học bổng có gì?'
+      ];
+    }
+
+    const lastBotMessage = [...messages].reverse().find(msg => msg.sender === 'bot');
+    if (!lastBotMessage) {
+      return [
+        'Chi phí du học?',
+        'Xin visa như thế nào?',
+        'TOPIK là gì?',
+        'Học bổng có gì?'
+      ];
+    }
+
+    const lastText = lastBotMessage.text.toLowerCase();
+    
+    // Context-based suggestions
+    if (lastText.includes('chi phí') || lastText.includes('giá') || lastText.includes('tiền')) {
+      return [
+        'Học phí bao nhiêu?',
+        'Sinh hoạt phí?',
+        'Nhà ở giá bao nhiêu?',
+        'Tổng chi phí 1 năm?'
+      ];
+    }
+    
+    if (lastText.includes('visa') || lastText.includes('hồ sơ')) {
+      return [
+        'Cần giấy tờ gì?',
+        'Thời gian xử lý?',
+        'Chứng minh tài chính?',
+        'Làm hồ sơ như thế nào?'
+      ];
+    }
+    
+    if (lastText.includes('topik') || lastText.includes('tiếng hàn')) {
+      return [
+        'Luyện thi TOPIK?',
+        'Kỳ thi TOPIK khi nào?',
+        'TOPIK mấy để vào đại học?',
+        'Học tiếng Hàn ở đâu?'
+      ];
+    }
+    
+    if (lastText.includes('học bổng') || lastText.includes('scholarship')) {
+      return [
+        'Học bổng KGSP?',
+        'Điều kiện học bổng?',
+        'Học bổng trường?',
+        'Học bổng 100%?'
+      ];
+    }
+    
+    if (lastText.includes('trường') || lastText.includes('đại học')) {
+      return [
+        'Trường SKY?',
+        'Trường công hay tư?',
+        'Chọn trường như thế nào?',
+        'Trường nào tốt nhất?'
+      ];
+    }
+
+    // Default suggestions
+    return [
+      'Chi phí du học?',
+      'Xin visa như thế nào?',
+      'TOPIK là gì?',
+      'Học bổng có gì?'
+    ];
+  };
 
   return (
     <>
@@ -700,12 +1161,33 @@ const SimpleChatbot = () => {
                   <div className="chatbot-status">Đang trực tuyến</div>
                 </div>
               </div>
-              <button
-                className="chatbot-close"
-                onClick={() => setIsOpen(false)}
-              >
-                ✕
-              </button>
+              <div className="chatbot-header-actions">
+                {messages.length > 1 && (
+                  <button
+                    className="chatbot-clear-btn"
+                    onClick={() => {
+                      if (window.confirm('Bạn có chắc muốn xóa lịch sử chat?')) {
+                        const defaultMessage = [{
+                          text: 'Xin chào! 👋 Tôi có thể giúp gì cho bạn về du học Hàn Quốc?',
+                          sender: 'bot',
+                          timestamp: new Date()
+                        }];
+                        setMessages(defaultMessage);
+                        localStorage.removeItem(STORAGE_KEY);
+                      }
+                    }}
+                    title="Xóa lịch sử chat"
+                  >
+                    🗑️
+                  </button>
+                )}
+                <button
+                  className="chatbot-close"
+                  onClick={() => setIsOpen(false)}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
@@ -716,12 +1198,12 @@ const SimpleChatbot = () => {
                   className={`chatbot-message ${message.sender}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.05 }}
                 >
                   <div className="message-content">
                     {message.text.split('\n').map((line, i) => (
                       <React.Fragment key={i}>
-                        {line}
+                        {formatMessage(line)}
                         {i < message.text.split('\n').length - 1 && <br />}
                       </React.Fragment>
                     ))}
@@ -734,20 +1216,41 @@ const SimpleChatbot = () => {
                   </div>
                 </motion.div>
               ))}
+              
+              {/* Typing Indicator */}
+              {isTyping && (
+                <motion.div
+                  className="chatbot-message bot typing-indicator"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="message-content typing-content">
+                    <span className="typing-dot"></span>
+                    <span className="typing-dot"></span>
+                    <span className="typing-dot"></span>
+                  </div>
+                </motion.div>
+              )}
+              
               <div ref={messagesEndRef} />
             </div>
 
             {/* Quick Replies */}
-            {messages.length === 1 && (
+            {!isTyping && (messages.length === 1 || messages[messages.length - 1]?.sender === 'bot') && (
               <div className="chatbot-quick-replies">
-                {quickReplies.map((reply, index) => (
-                  <button
+                {getSmartQuickReplies().slice(0, 4).map((reply, index) => (
+                  <motion.button
                     key={index}
                     className="quick-reply-btn"
                     onClick={() => handleQuickReply(reply)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
                     {reply}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             )}
@@ -757,12 +1260,22 @@ const SimpleChatbot = () => {
               <input
                 type="text"
                 className="chatbot-input"
-                placeholder="Nhập tin nhắn..."
+                placeholder={isTyping ? "Bot đang trả lời..." : "Nhập tin nhắn..."}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                disabled={isTyping}
                 autoFocus
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    handleSendMessage(e);
+                  }
+                }}
               />
-              <button type="submit" className="chatbot-send-btn">
+              <button 
+                type="submit" 
+                className="chatbot-send-btn"
+                disabled={isTyping || !inputValue.trim()}
+              >
                 ➤
               </button>
             </form>
