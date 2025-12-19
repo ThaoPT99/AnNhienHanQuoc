@@ -520,16 +520,7 @@ html {
   box-sizing: border-box;
 }
 
-.section-header .section-title {
-  margin-left: 9cm;
-}
-
-/* Reset margin on tablet and mobile */
-@media (max-width: 1200px) {
-  .section-header .section-title {
-    margin-left: 0;
-  }
-}
+/* Section title is already centered via .section-header text-align: center */
 
 .section-subtitle {
   font-size: 1.3rem;
