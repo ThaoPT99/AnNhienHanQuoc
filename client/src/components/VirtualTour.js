@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import OptimizedImage from './OptimizedImage';
 import './VirtualTour.css';
 
 const VirtualTour = () => {
@@ -81,7 +82,7 @@ const VirtualTour = () => {
             onClick={() => openTour(school)}
           >
             <div className="school-image">
-              <img src={school.views[0].image} alt={school.name} />
+              <OptimizedImage src={school.views[0].image} alt={school.name} />
               <div className="tour-badge">360° Tour</div>
             </div>
             <div className="school-info">
@@ -127,7 +128,7 @@ const VirtualTour = () => {
                     exit={{ opacity: 0, x: -50 }}
                     className="tour-image-container"
                   >
-                    <img 
+                    <OptimizedImage 
                       src={selectedSchool.views[currentView].image} 
                       alt={selectedSchool.views[currentView].name}
                       className="tour-image"
@@ -162,7 +163,7 @@ const VirtualTour = () => {
                     className={`thumbnail ${index === currentView ? 'active' : ''}`}
                     onClick={() => setCurrentView(index)}
                   >
-                    <img src={view.image} alt={view.name} />
+                    <OptimizedImage src={view.image} alt={view.name} />
                     <span>{view.name}</span>
                   </button>
                 ))}

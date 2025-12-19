@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import Certifications from '../components/Certifications';
 import './About.css';
 
@@ -109,7 +110,7 @@ const About = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <img 
+            <OptimizedImage 
               src="https://res.cloudinary.com/dy84xpayv/image/upload/v1765942857/z7335282956837_dccc007a84cec34742579005d959eaec_j7sjs7.jpg" 
               alt="Hội thảo du học Hàn Quốc - Du học An Nhiên - Đội ngũ tư vấn viên chuyên nghiệp"
               className="about-img"

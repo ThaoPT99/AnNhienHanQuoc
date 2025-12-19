@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import './Videos.css';
 
 const Videos = () => {
@@ -178,7 +179,7 @@ const Videos = () => {
               onClick={() => setSelectedVideo(video)}
             >
               <div className="video-thumbnail">
-                <img src={video.thumbnail} alt={video.title} loading="lazy" width="400" height="225" />
+                <OptimizedImage src={video.thumbnail} alt={video.title} loading="lazy" width="400" height="225" />
                 <div className="play-overlay">
                   <div className="play-button">▶</div>
                 </div>

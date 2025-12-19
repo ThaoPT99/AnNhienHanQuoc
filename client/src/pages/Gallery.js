@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import './Gallery.css';
 
 const Gallery = () => {
@@ -129,7 +130,7 @@ const Gallery = () => {
                   onClick={() => openModal(image)}
                 >
                   <div className="image-wrapper">
-                    <img 
+                    <OptimizedImage 
                       src={image.url} 
                       alt={image.title ? `${image.title} - Du học An Nhiên` : `Ảnh thư viện du học Hàn Quốc - Du học An Nhiên`}
                       className="gallery-image"
@@ -181,7 +182,7 @@ const Gallery = () => {
                 ×
               </motion.button>
               <div className="modal-image-wrapper">
-                <img 
+                <OptimizedImage 
                   src={selectedImage.url} 
                   alt={selectedImage.alt || selectedImage.title || 'Ảnh thư viện du học Hàn Quốc - Du học An Nhiên'}
                   className="modal-image"

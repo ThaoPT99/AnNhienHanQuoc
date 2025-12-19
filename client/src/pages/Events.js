@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import CountdownTimer from '../components/CountdownTimer';
 import './Events.css';
 
@@ -232,7 +233,7 @@ const Events = () => {
                   className="event-card"
                 >
                   <div className="event-image">
-                    <img src={event.image} alt={event.title} loading="lazy" width="400" height="250" />
+                    <OptimizedImage src={event.image} alt={event.title} loading="lazy" width="400" height="250" />
                     <div className="event-badge">{event.type}</div>
                   </div>
                   <div className="event-content">
@@ -298,7 +299,7 @@ const Events = () => {
                   className="event-card past"
                 >
                   <div className="event-image">
-                    <img src={event.image} alt={event.title} loading="lazy" width="400" height="250" />
+                    <OptimizedImage src={event.image} alt={event.title} loading="lazy" width="400" height="250" />
                     <div className="event-badge past-badge">Đã kết thúc</div>
                   </div>
                   <div className="event-content">

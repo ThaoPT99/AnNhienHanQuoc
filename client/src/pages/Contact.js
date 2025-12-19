@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import './Contact.css';
 
 const Contact = () => {
@@ -193,7 +194,7 @@ const Contact = () => {
             </div>
 
             <div className="map-container">
-              <img 
+              <OptimizedImage 
                 src="https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&h=400&fit=crop&q=80" 
                 alt="Bản đồ vị trí văn phòng Du học An Nhiên - 219 P. Trung Kính, Trung Hòa, Cầu Giấy, Hà Nội"
                 className="map-image"

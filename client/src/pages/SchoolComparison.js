@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import { schools } from '../data/schoolsData';
 import './SchoolComparison.css';
 
@@ -297,7 +298,7 @@ const SchoolComparison = () => {
                 </button>
               </div>
               <div className="school-image">
-                <img src={school.image} alt={school.name} loading="lazy" width="300" height="200" />
+                <OptimizedImage src={school.image} alt={school.name} loading="lazy" width="300" height="200" />
               </div>
               <h3 className="school-name">{school.name}</h3>
               <p className="school-name-kr">{school.nameKr}</p>

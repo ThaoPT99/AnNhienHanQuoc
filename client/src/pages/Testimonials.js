@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import './Testimonials.css';
 
 const Testimonials = () => {
@@ -227,7 +228,7 @@ const Testimonials = () => {
             >
               <div className="testimonial-header">
                 <div className="testimonial-avatar">
-                  <img 
+                  <OptimizedImage 
                     src={testimonial.image} 
                     alt={testimonial.name}
                     loading="lazy"

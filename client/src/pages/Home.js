@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import Newsletter from '../components/Newsletter';
 import CountdownTimer from '../components/CountdownTimer';
 import Reviews from '../components/Reviews';
@@ -142,7 +143,7 @@ const Home = () => {
           whileHover={{ scale: 1.05, rotate: 2 }}
         >
           <div className="hero-image-wrapper">
-            <img 
+            <OptimizedImage 
               src="https://i.pinimg.com/1200x/83/55/2f/83552f3bd961a737f6dc01fb1b4e83aa.jpg"
               alt="Khuôn viên đại học tại Seoul, Hàn Quốc - Du học An Nhiên"
               className="hero-img"

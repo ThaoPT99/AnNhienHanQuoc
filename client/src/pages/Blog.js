@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
 import './Blog.css';
 
 const Blog = () => {
@@ -173,7 +174,7 @@ const Blog = () => {
             >
               <Link to={`/blog/${post.slug}`} className="blog-card-link">
                 <div className="blog-image-wrapper">
-                  <img 
+                  <OptimizedImage 
                     src={post.image} 
                     alt={`${post.title} - Du học An Nhiên`} 
                     className="blog-image"

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import OptimizedImage from '../components/OptimizedImage';
 import './Admin.css';
 
 const AdminGallery = () => {
@@ -195,7 +196,7 @@ const AdminGallery = () => {
               />
               {preview && (
                 <div style={{ marginTop: '10px' }}>
-                  <img 
+                  <OptimizedImage 
                     src={preview} 
                     alt="Preview" 
                     style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '8px' }}
@@ -298,16 +299,11 @@ const AdminGallery = () => {
                     <td>{item.category || 'Khác'}</td>
                     <td>
                       <a href={item.url} target="_blank" rel="noreferrer">
-                        <img 
+                        <OptimizedImage 
                           src={item.url} 
                           alt={item.title || 'Gallery image'} 
                           style={{ maxWidth: '100px', maxHeight: '60px', objectFit: 'cover', borderRadius: '4px' }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'inline';
-                          }}
                         />
-                        <span style={{ display: 'none' }}>Xem ảnh</span>
                       </a>
                     </td>
                     <td>
