@@ -33,6 +33,9 @@ const SEO = ({
       <meta name="distribution" content="global" />
       <meta name="copyright" content="Du học An Nhiên" />
       
+      {/* Google Site Verification */}
+      <meta name="google-site-verification" content="F0A1Q6LrWaMj9HPKuvPeBE22BEg74qbaOVHIfBKIPU4" />
+      
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
