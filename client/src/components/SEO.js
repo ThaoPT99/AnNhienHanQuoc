@@ -49,6 +49,8 @@ const SEO = ({
       <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content="vi_VN" />
       <meta property="og:locale:alternate" content="en_US" />
+      {/* Organization logo for Open Graph */}
+      <meta property="og:logo" content="https://duhocannhien.vercel.app/favicon.svg" />
       
       {/* Article specific tags */}
       {article && (
@@ -122,15 +124,24 @@ const SEO = ({
         </script>
       )}
       
-      {/* Organization structured data */}
+      {/* Organization structured data - Enhanced for Google Knowledge Graph */}
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
           "name": "Du học An Nhiên",
+          "legalName": "Du học An Nhiên",
+          "alternateName": "An Nhien Study Abroad",
           "url": "https://duhocannhien.vercel.app",
-          "logo": "https://duhocannhien.vercel.app/logo.png",
-          "description": "Tư vấn du học Hàn Quốc uy tín, chuyên nghiệp",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://duhocannhien.vercel.app/favicon.svg",
+            "width": 512,
+            "height": 512
+          },
+          "image": "https://duhocannhien.vercel.app/favicon.svg",
+          "description": "Du học An Nhiên - Tư vấn du học Hàn Quốc uy tín, chuyên nghiệp. Đồng hành cùng bạn trên hành trình chinh phục ước mơ du học tại xứ sở Kim Chi.",
+          "foundingDate": "2020",
           "address": {
             "@type": "PostalAddress",
             "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
@@ -139,17 +150,37 @@ const SEO = ({
             "postalCode": "100000",
             "addressCountry": "VN"
           },
-          "contactPoint": {
-            "@type": "ContactPoint",
-            "telephone": "+84-961-321-930",
-            "contactType": "customer service",
-            "email": "annhienduhochan@gmail.com",
-            "areaServed": "VN",
-            "availableLanguage": ["Vietnamese"]
-          },
+          "contactPoint": [
+            {
+              "@type": "ContactPoint",
+              "telephone": "+84-961-321-930",
+              "contactType": "customer service",
+              "email": "annhienduhochan@gmail.com",
+              "areaServed": "VN",
+              "availableLanguage": ["Vietnamese", "Korean"]
+            },
+            {
+              "@type": "ContactPoint",
+              "telephone": "+84-961-321-930",
+              "contactType": "sales",
+              "email": "annhienduhochan@gmail.com",
+              "areaServed": "VN"
+            }
+          ],
           "sameAs": [
             "https://www.facebook.com/duhocannhien/",
             "https://www.tiktok.com/@hoanghannhat"
+          ],
+          "areaServed": {
+            "@type": "Country",
+            "name": "Vietnam"
+          },
+          "knowsAbout": [
+            "Du học Hàn Quốc",
+            "Tư vấn du học",
+            "Học bổng Hàn Quốc",
+            "Visa Hàn Quốc",
+            "Du học Seoul"
           ]
         })}
       </script>
