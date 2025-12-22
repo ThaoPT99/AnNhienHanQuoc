@@ -867,7 +867,11 @@ app.get('/sitemap.xml', (req, res) => {
 
   sitemap += `</urlset>`;
 
-  res.set('Content-Type', 'text/xml');
+  // Set proper headers for sitemap
+  res.set({
+    'Content-Type': 'application/xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600'
+  });
   res.send(sitemap);
 });
 
