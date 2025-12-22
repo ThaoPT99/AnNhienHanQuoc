@@ -48,9 +48,9 @@ const Home = () => {
   return (
     <div className="home">
       <SEO
-        title="Du học An Nhiên - Du học Hàn Quốc chuyên nghiệp"
-        description="Du học An Nhiên - Tư vấn du học Hàn Quốc uy tín, chuyên nghiệp. Đồng hành cùng bạn trên hành trình chinh phục ước mơ du học tại xứ sở Kim Chi. Dịch vụ tư vấn chọn trường, làm hồ sơ, xin visa Hàn Quốc."
-        keywords="du học Hàn Quốc, tư vấn du học Hàn Quốc, du học Seoul, học bổng Hàn Quốc, visa Hàn Quốc, du học An Nhiên, tư vấn du học, làm hồ sơ du học Hàn Quốc"
+        title="Du học Hàn Quốc - Tư vấn du học Hàn Quốc uy tín | Du học An Nhiên"
+        description="Du học Hàn Quốc chuyên nghiệp tại Du học An Nhiên. Tư vấn du học Hàn Quốc uy tín, hỗ trợ làm hồ sơ, xin visa, tìm trường và học bổng. Dịch vụ tư vấn chọn trường, làm hồ sơ, xin visa Hàn Quốc. Đồng hành cùng bạn trên hành trình du học tại xứ sở Kim Chi."
+        keywords="du học Hàn Quốc, tư vấn du học Hàn Quốc, du học Seoul, học bổng Hàn Quốc, visa Hàn Quốc, du học An Nhiên, làm hồ sơ du học Hàn Quốc, chi phí du học Hàn Quốc, điều kiện du học Hàn Quốc, trường đại học Hàn Quốc, du học Hàn Quốc 2025, tư vấn du học, chọn trường du học Hàn Quốc"
         url="https://duhocannhien.vercel.app"
         structuredData={structuredData}
       />
