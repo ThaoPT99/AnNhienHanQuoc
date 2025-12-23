@@ -244,9 +244,6 @@ const Community = () => {
       });
 
       if (response.ok) {
-        // Clear comment input
-        setCommentContent('');
-        
         // Reload post with comments
         setTimeout(() => {
           handleViewPost(selectedPost);
