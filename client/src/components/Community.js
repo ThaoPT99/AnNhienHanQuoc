@@ -998,11 +998,30 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
   const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState(post.comments || []);
 
+  const loadComments = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      console.log('📤 Loading comments for post:', post.id);
+      const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📥 Loaded comments:', data.comments?.length || 0);
+        setComments(data.comments || []);
+      } else {
+        console.error('❌ Failed to load comments:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error loading comments:', error);
+    }
+  };
+
   useEffect(() => {
     if (userEmail) {
       checkLiked();
     }
-  }, [userEmail, post.id]);
+    // Load comments when modal opens
+    loadComments();
+  }, [userEmail, post.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkLiked = async () => {
     try {
