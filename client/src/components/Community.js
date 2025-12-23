@@ -19,6 +19,9 @@ const Community = () => {
   const [userEmail, setUserEmail] = useState(() => {
     return localStorage.getItem('resource_download_email') || '';
   });
+  const [emailSubmitted, setEmailSubmitted] = useState(() => {
+    return !!localStorage.getItem('resource_download_email');
+  });
 
   const categories = ['Tất cả', 'Học bổng', 'Cuộc sống', 'Học tiếng', 'Visa', 'Tuyển dụng'];
 
@@ -392,7 +395,7 @@ const Community = () => {
       <div className="community-header">
         <h1>💬 Cộng đồng du học sinh</h1>
         <p>Chia sẻ kinh nghiệm, hỏi đáp và kết nối với các du học sinh khác</p>
-        {!userEmail && (
+        {!emailSubmitted && (
           <div className="email-prompt">
             <input
               type="email"
@@ -400,12 +403,44 @@ const Community = () => {
               value={userEmail}
               onChange={(e) => {
                 setUserEmail(e.target.value);
-                if (e.target.value.includes('@')) {
-                  localStorage.setItem('resource_download_email', e.target.value);
+              }}
+              onBlur={(e) => {
+                // Save email when user leaves the input field (blur)
+                const email = e.target.value.trim();
+                if (email && email.includes('@')) {
+                  localStorage.setItem('resource_download_email', email);
+                  setEmailSubmitted(true);
+                }
+              }}
+              onKeyPress={(e) => {
+                // Save email when user presses Enter
+                if (e.key === 'Enter') {
+                  const email = e.target.value.trim();
+                  if (email && email.includes('@')) {
+                    localStorage.setItem('resource_download_email', email);
+                    setEmailSubmitted(true);
+                    e.target.blur(); // Remove focus
+                  } else {
+                    alert('Vui lòng nhập email hợp lệ');
+                  }
                 }
               }}
               className="email-input-community"
             />
+            <button
+              onClick={() => {
+                const email = userEmail.trim();
+                if (email && email.includes('@')) {
+                  localStorage.setItem('resource_download_email', email);
+                  setEmailSubmitted(true);
+                } else {
+                  alert('Vui lòng nhập email hợp lệ');
+                }
+              }}
+              className="email-submit-btn"
+            >
+              Xác nhận
+            </button>
           </div>
         )}
       </div>

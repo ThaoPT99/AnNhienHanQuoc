@@ -370,6 +370,11 @@
 
 .email-prompt {
   margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .email-input-community {
@@ -385,6 +390,27 @@
 .email-input-community:focus {
   outline: none;
   border-color: #667eea;
+}
+
+.email-submit-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.email-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.email-submit-btn:active {
+  transform: translateY(0);
 }
 
 .category-item.active {
