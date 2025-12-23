@@ -172,11 +172,16 @@ async function migrateImages() {
 }
 
 // Only run migration if this file is executed directly (not when required)
-if (require.main === module) {
+// AND if we're not in a build environment
+if (require.main === module && !process.env.RAILWAY_ENVIRONMENT && !process.env.NIXPACKS_BUILD) {
   migrateImages().catch(err => {
     console.error('❌ Fatal error:', err);
     process.exit(1);
   });
+} else if (require.main === module) {
+  // In build environment, just exit successfully
+  console.log('ℹ️  Skipping migration during build process');
+  process.exit(0);
 }
 
 // Export function for use in other files

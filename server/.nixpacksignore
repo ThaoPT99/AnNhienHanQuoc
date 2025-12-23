@@ -1,0 +1,11 @@
+# Ignore migration scripts during build
+migrate-urls-to-cloudinary.js
+migrate-to-cloudinary.js
+add-gallery-images.js
+add-gallery-images-to-production.js
+backup-db.js
+generate-admin-token.js
+test-*.js
+check-*.js
+copy-*.js
+
