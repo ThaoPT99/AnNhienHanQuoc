@@ -827,6 +827,16 @@
   color: #666;
 }
 
+.comment-form-placeholder {
+  padding: 20px;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
 .comment-item {
   padding: 15px;
   background: #f8f9fa;

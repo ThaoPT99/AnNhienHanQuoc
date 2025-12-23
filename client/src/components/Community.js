@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addPoints, showPointsNotification } from '../utils/pointsSystem';
 import './Community.css';
@@ -998,6 +998,7 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
   const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(true);
+  const commentFormRef = useRef(null);
 
   const loadComments = async () => {
     setLoadingComments(true);
@@ -1030,12 +1031,28 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
   };
 
   useEffect(() => {
+    // Load comments immediately when modal opens
+    console.log('🔄 Modal opened, loading comments for post:', post.id);
+    loadComments();
+    
     if (userEmail) {
       checkLiked();
     }
-    // Load comments when modal opens
-    loadComments();
-  }, [userEmail, post.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [post.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scroll to comment form
+  const scrollToCommentForm = () => {
+    if (commentFormRef.current) {
+      commentFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Focus on textarea if user has email
+      if (userEmail) {
+        const textarea = commentFormRef.current.querySelector('textarea');
+        if (textarea) {
+          setTimeout(() => textarea.focus(), 300);
+        }
+      }
+    }
+  };
 
   const checkLiked = async () => {
     try {
@@ -1141,7 +1158,11 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
             >
               👍 {post.likes_count || 0}
             </button>
-            <button className="post-action-btn">
+            <button 
+              className="post-action-btn"
+              onClick={scrollToCommentForm}
+              title="Xem bình luận"
+            >
               💬 {comments.length}
             </button>
             <button className="post-action-btn">
@@ -1153,7 +1174,11 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
             <h3>💬 Bình luận ({comments.length})</h3>
             
             {userEmail && (
-              <form onSubmit={handleSubmitComment} className="comment-form">
+              <form 
+                ref={commentFormRef}
+                onSubmit={handleSubmitComment} 
+                className="comment-form"
+              >
                 <textarea
                   placeholder="Viết bình luận..."
                   value={commentContent}
@@ -1163,6 +1188,11 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
                 />
                 <button type="submit" className="comment-submit-btn">Gửi</button>
               </form>
+            )}
+            {!userEmail && (
+              <div ref={commentFormRef} className="comment-form-placeholder">
+                <p>Vui lòng nhập email để tham gia bình luận</p>
+              </div>
             )}
 
             <div className="comments-list">
