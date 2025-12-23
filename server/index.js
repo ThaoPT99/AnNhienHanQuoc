@@ -1503,7 +1503,7 @@ app.patch('/api/gallery/:id', (req, res) => {
 
 // Migration endpoint - Check and migrate images to Cloudinary
 app.post('/api/gallery/migrate', verifyAdminToken, async (req, res) => {
-  const { migrateUrls } = require('./migrate-urls-to-cloudinary');
+  const { migrateImages } = require('./migrate-urls-to-cloudinary');
   
   if (!checkCloudinaryConfig()) {
     res.status(400).json({ 

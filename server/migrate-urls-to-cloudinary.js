@@ -44,18 +44,18 @@ async function downloadImage(url) {
 
 async function migrateImages() {
   if (!checkCloudinaryConfig()) {
-    console.error('❌ Cloudinary is not configured!');
-    console.error('Please set the following environment variables:');
-    console.error('  - CLOUDINARY_CLOUD_NAME');
-    console.error('  - CLOUDINARY_API_KEY');
-    console.error('  - CLOUDINARY_API_SECRET');
-    process.exit(1);
+    console.log('⚠️  Cloudinary is not configured. Skipping migration.');
+    console.log('Please set the following environment variables to enable migration:');
+    console.log('  - CLOUDINARY_CLOUD_NAME');
+    console.log('  - CLOUDINARY_API_KEY');
+    console.log('  - CLOUDINARY_API_SECRET');
+    process.exit(0); // Exit with success code, don't fail build
   }
 
   // Initialize Cloudinary
   if (!initCloudinary()) {
-    console.error('❌ Failed to initialize Cloudinary');
-    process.exit(1);
+    console.log('⚠️  Failed to initialize Cloudinary. Skipping migration.');
+    process.exit(0); // Exit with success code, don't fail build
   }
 
   console.log('🚀 Starting migration of URLs to Cloudinary...\n');
@@ -63,8 +63,9 @@ async function migrateImages() {
   // Get all gallery images
   dbHelpers.getAllGalleryImages((err, images) => {
     if (err) {
-      console.error('❌ Error fetching images:', err);
-      process.exit(1);
+      console.log('⚠️  Error fetching images (database may not be initialized yet):', err.message);
+      console.log('ℹ️  Skipping migration. This is normal during build process.');
+      process.exit(0); // Don't fail build if database is not ready
     }
 
     if (!images || images.length === 0) {
@@ -170,9 +171,16 @@ async function migrateImages() {
   });
 }
 
-// Run migration
-migrateImages().catch(err => {
-  console.error('❌ Fatal error:', err);
-  process.exit(1);
-});
+// Only run migration if this file is executed directly (not when required)
+if (require.main === module) {
+  migrateImages().catch(err => {
+    console.error('❌ Fatal error:', err);
+    process.exit(1);
+  });
+}
+
+// Export function for use in other files
+module.exports = {
+  migrateImages
+};
 
