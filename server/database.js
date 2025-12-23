@@ -277,6 +277,79 @@ function initializeDatabase() {
         console.error('Error creating admins table:', err.message);
       }
     });
+
+    // Create community_posts table
+    db.run(`CREATE TABLE IF NOT EXISTS community_posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      author_name TEXT NOT NULL,
+      author_email TEXT,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      category TEXT DEFAULT 'Tất cả',
+      tags TEXT,
+      type TEXT DEFAULT 'discussion',
+      likes_count INTEGER DEFAULT 0,
+      comments_count INTEGER DEFAULT 0,
+      views_count INTEGER DEFAULT 0,
+      is_featured INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating community_posts table:', err.message);
+      } else {
+        console.log('✅ Community posts table ready');
+      }
+    });
+
+    // Create community_comments table
+    db.run(`CREATE TABLE IF NOT EXISTS community_comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER NOT NULL,
+      author_name TEXT NOT NULL,
+      author_email TEXT,
+      content TEXT NOT NULL,
+      likes_count INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating community_comments table:', err.message);
+      } else {
+        console.log('✅ Community comments table ready');
+      }
+    });
+
+    // Create community_likes table
+    db.run(`CREATE TABLE IF NOT EXISTS community_likes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER,
+      comment_id INTEGER,
+      user_email TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (comment_id) REFERENCES community_comments(id) ON DELETE CASCADE,
+      UNIQUE(post_id, comment_id, user_email)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating community_likes table:', err.message);
+      } else {
+        console.log('✅ Community likes table ready');
+      }
+    });
+
+    // Create indexes for community
+    db.run(`CREATE INDEX IF NOT EXISTS idx_community_posts_category ON community_posts(category)`, (err) => {
+      if (err) console.error('Error creating community posts index:', err.message);
+    });
+    
+    db.run(`CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON community_posts(created_at)`, (err) => {
+      if (err) console.error('Error creating community posts date index:', err.message);
+    });
+    
+    db.run(`CREATE INDEX IF NOT EXISTS idx_community_comments_post_id ON community_comments(post_id)`, (err) => {
+      if (err) console.error('Error creating community comments index:', err.message);
+    });
   });
 }
 
@@ -672,6 +745,192 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
+
+  // Community functions
+  createPost: (post, callback) => {
+    const { author_name, author_email, title, content, category, tags, type } = post;
+    const tagsStr = Array.isArray(tags) ? tags.join(',') : tags || '';
+    db.run(
+      'INSERT INTO community_posts (author_name, author_email, title, content, category, tags, type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [author_name, author_email || null, title, content, category || 'Tất cả', tagsStr, type || 'discussion'],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...post, tags: tagsStr });
+        }
+      }
+    );
+  },
+
+  getAllPosts: (filters, callback) => {
+    let query = 'SELECT * FROM community_posts WHERE 1=1';
+    const params = [];
+    
+    if (filters?.category && filters.category !== 'Tất cả') {
+      query += ' AND category = ?';
+      params.push(filters.category);
+    }
+    
+    if (filters?.type) {
+      query += ' AND type = ?';
+      params.push(filters.type);
+    }
+    
+    // Sorting
+    if (filters?.sort === 'likes') {
+      query += ' ORDER BY likes_count DESC, created_at DESC';
+    } else if (filters?.sort === 'comments') {
+      query += ' ORDER BY comments_count DESC, created_at DESC';
+    } else if (filters?.sort === 'views') {
+      query += ' ORDER BY views_count DESC, created_at DESC';
+    } else {
+      query += ' ORDER BY created_at DESC';
+    }
+    
+    if (filters?.limit) {
+      query += ' LIMIT ?';
+      params.push(filters.limit);
+      
+      if (filters?.offset) {
+        query += ' OFFSET ?';
+        params.push(filters.offset);
+      }
+    }
+    
+    db.all(query, params, callback);
+  },
+
+  getPostById: (id, callback) => {
+    db.get('SELECT * FROM community_posts WHERE id = ?', [id], callback);
+  },
+
+  updatePostViews: (id, callback) => {
+    db.run('UPDATE community_posts SET views_count = views_count + 1 WHERE id = ?', [id], function(err) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, { id, changes: this.changes });
+      }
+    });
+  },
+
+  addComment: (comment, callback) => {
+    const { post_id, author_name, author_email, content } = comment;
+    db.run(
+      'INSERT INTO community_comments (post_id, author_name, author_email, content) VALUES (?, ?, ?, ?)',
+      [post_id, author_name, author_email || null, content],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          // Update comments count
+          db.run('UPDATE community_posts SET comments_count = comments_count + 1 WHERE id = ?', [post_id]);
+          callback(null, { id: this.lastID, ...comment });
+        }
+      }
+    );
+  },
+
+  getCommentsByPostId: (post_id, callback) => {
+    db.all('SELECT * FROM community_comments WHERE post_id = ? ORDER BY created_at ASC', [post_id], callback);
+  },
+
+  toggleLike: (like, callback) => {
+    const { post_id, comment_id, user_email } = like;
+    
+    // Check if like exists
+    db.get(
+      'SELECT * FROM community_likes WHERE post_id = ? AND comment_id = ? AND user_email = ?',
+      [post_id || null, comment_id || null, user_email],
+      (err, existing) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        
+        if (existing) {
+          // Unlike
+          db.run(
+            'DELETE FROM community_likes WHERE id = ?',
+            [existing.id],
+            function(deleteErr) {
+              if (deleteErr) {
+                callback(deleteErr, null);
+              } else {
+                // Update likes count
+                if (post_id) {
+                  db.run('UPDATE community_posts SET likes_count = likes_count - 1 WHERE id = ?', [post_id]);
+                } else if (comment_id) {
+                  db.run('UPDATE community_comments SET likes_count = likes_count - 1 WHERE id = ?', [comment_id]);
+                }
+                callback(null, { liked: false, id: existing.id });
+              }
+            }
+          );
+        } else {
+          // Like
+          db.run(
+            'INSERT INTO community_likes (post_id, comment_id, user_email) VALUES (?, ?, ?)',
+            [post_id || null, comment_id || null, user_email],
+            function(insertErr) {
+              if (insertErr) {
+                callback(insertErr, null);
+              } else {
+                // Update likes count
+                if (post_id) {
+                  db.run('UPDATE community_posts SET likes_count = likes_count + 1 WHERE id = ?', [post_id]);
+                } else if (comment_id) {
+                  db.run('UPDATE community_comments SET likes_count = likes_count + 1 WHERE id = ?', [comment_id]);
+                }
+                callback(null, { liked: true, id: this.lastID });
+              }
+            }
+          );
+        }
+      }
+    );
+  },
+
+  checkUserLiked: (post_id, comment_id, user_email, callback) => {
+    db.get(
+      'SELECT * FROM community_likes WHERE post_id = ? AND comment_id = ? AND user_email = ?',
+      [post_id || null, comment_id || null, user_email],
+      callback
+    );
+  },
+
+  // Admin functions
+  deletePost: (id, callback) => {
+    db.run('DELETE FROM community_posts WHERE id = ?', [id], function(err) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, { id, deleted: this.changes > 0 });
+      }
+    });
+  },
+
+  toggleFeaturedPost: (id, callback) => {
+    db.run(
+      'UPDATE community_posts SET is_featured = CASE WHEN is_featured = 1 THEN 0 ELSE 1 END WHERE id = ?',
+      [id],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM community_posts WHERE id = ?', [id], (err, post) => {
+            if (err) {
+              callback(err, null);
+            } else {
+              callback(null, post);
+            }
+          });
+        }
+      }
+    );
+  }
+};
 
 module.exports = { db, dbHelpers, closeDatabase };
 

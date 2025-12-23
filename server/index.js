@@ -883,6 +883,320 @@ app.get('/api/visits/stats', (req, res) => {
   });
 });
 
+// Community API endpoints
+// Get all posts
+app.get('/api/community/posts', (req, res) => {
+  const { category, type, limit, offset, sort } = req.query;
+  dbHelpers.getAllPosts({ 
+    category, 
+    type, 
+    limit: limit ? parseInt(limit) : null,
+    offset: offset ? parseInt(offset) : null,
+    sort: sort || 'newest'
+  }, (err, posts) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(posts);
+  });
+});
+
+// Get single post with comments
+app.get('/api/community/posts/:id', (req, res) => {
+  const postId = parseInt(req.params.id);
+  
+  dbHelpers.getPostById(postId, (err, post) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+    
+    // Update views
+    dbHelpers.updatePostViews(postId, () => {});
+    
+    // Get comments
+    dbHelpers.getCommentsByPostId(postId, (err, comments) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ ...post, comments: comments || [] });
+    });
+  });
+});
+
+// Create new post
+app.post('/api/community/posts', (req, res) => {
+  const { author_name, author_email, title, content, category, tags, type } = req.body;
+  
+  if (!author_name || !title || !content) {
+    res.status(400).json({ error: 'Author name, title and content are required' });
+    return;
+  }
+  
+  // Validate lengths
+  if (title.length > 200) {
+    res.status(400).json({ error: 'Title cannot exceed 200 characters' });
+    return;
+  }
+  
+  if (content.length > 5000) {
+    res.status(400).json({ error: 'Content cannot exceed 5000 characters' });
+    return;
+  }
+  
+  if (title.trim().length === 0 || content.trim().length === 0) {
+    res.status(400).json({ error: 'Title and content cannot be empty' });
+    return;
+  }
+  
+  dbHelpers.createPost({
+    author_name,
+    author_email,
+    title: title.trim(),
+    content: content.trim(),
+    category: category || 'Tất cả',
+    tags: tags || [],
+    type: type || 'discussion'
+  }, (err, post) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json(post);
+  });
+});
+
+// Add comment to post
+app.post('/api/community/posts/:id/comments', (req, res) => {
+  const postId = parseInt(req.params.id);
+  const { author_name, author_email, content } = req.body;
+  
+  if (!author_name || !content) {
+    res.status(400).json({ error: 'Author name and content are required' });
+    return;
+  }
+  
+  // Validate comment length
+  if (content.length > 1000) {
+    res.status(400).json({ error: 'Comment cannot exceed 1000 characters' });
+    return;
+  }
+  
+  if (content.trim().length === 0) {
+    res.status(400).json({ error: 'Comment cannot be empty' });
+    return;
+  }
+  
+  dbHelpers.addComment({
+    post_id: postId,
+    author_name,
+    author_email,
+    content: content.trim()
+  }, (err, comment) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json(comment);
+  });
+});
+
+// Toggle like (post or comment)
+app.post('/api/community/likes', (req, res) => {
+  const { post_id, comment_id, user_email } = req.body;
+  
+  if (!user_email || (!post_id && !comment_id)) {
+    res.status(400).json({ error: 'User email and post_id or comment_id are required' });
+    return;
+  }
+  
+  dbHelpers.toggleLike({
+    post_id: post_id ? parseInt(post_id) : null,
+    comment_id: comment_id ? parseInt(comment_id) : null,
+    user_email
+  }, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+// Check if user liked
+app.get('/api/community/likes/check', (req, res) => {
+  const { post_id, comment_id, user_email } = req.query;
+  
+  if (!user_email) {
+    res.status(400).json({ error: 'User email is required' });
+    return;
+  }
+  
+  dbHelpers.checkUserLiked(
+    post_id ? parseInt(post_id) : null,
+    comment_id ? parseInt(comment_id) : null,
+    user_email,
+    (err, like) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ liked: !!like });
+    }
+  );
+});
+
+// Delete post (user can delete their own, admin can delete any)
+app.delete('/api/community/posts/:id', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  const { user_email } = req.body;
+  const postId = parseInt(req.params.id);
+  
+  // Check if admin
+  const isAdmin = token && token === process.env.ADMIN_TOKEN;
+  
+  if (!isAdmin) {
+    // User can only delete their own posts
+    if (!user_email) {
+      res.status(400).json({ error: 'User email is required' });
+      return;
+    }
+    
+    // Check if post belongs to user
+    dbHelpers.getPostById(postId, (err, post) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      if (!post) {
+        res.status(404).json({ error: 'Post not found' });
+        return;
+      }
+      if (post.author_email !== user_email) {
+        res.status(403).json({ error: 'You can only delete your own posts' });
+        return;
+      }
+      
+      dbHelpers.deletePost(postId, (deleteErr, result) => {
+        if (deleteErr) {
+          res.status(500).json({ error: deleteErr.message });
+          return;
+        }
+        if (!result.deleted) {
+          res.status(404).json({ error: 'Post not found' });
+          return;
+        }
+        res.json({ success: true, message: 'Post deleted successfully' });
+      });
+    });
+  } else {
+    // Admin can delete any post
+    dbHelpers.deletePost(postId, (err, result) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      if (!result.deleted) {
+        res.status(404).json({ error: 'Post not found' });
+        return;
+      }
+      res.json({ success: true, message: 'Post deleted successfully' });
+    });
+  }
+});
+
+// Update post (user can update their own posts)
+app.put('/api/community/posts/:id', (req, res) => {
+  const { title, content, category, tags, user_email } = req.body;
+  const postId = parseInt(req.params.id);
+  
+  if (!user_email) {
+    res.status(400).json({ error: 'User email is required' });
+    return;
+  }
+  
+  if (!title || !content) {
+    res.status(400).json({ error: 'Title and content are required' });
+    return;
+  }
+  
+  // Check if post belongs to user
+  dbHelpers.getPostById(postId, (err, post) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+    if (post.author_email !== user_email) {
+      res.status(403).json({ error: 'You can only edit your own posts' });
+      return;
+    }
+    
+    const tagsStr = Array.isArray(tags) ? tags.join(',') : (tags || '');
+    db.run(
+      'UPDATE community_posts SET title = ?, content = ?, category = ?, tags = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [title, content, category || 'Tất cả', tagsStr, postId],
+      function(updateErr) {
+        if (updateErr) {
+          res.status(500).json({ error: updateErr.message });
+          return;
+        }
+        dbHelpers.getPostById(postId, (getErr, updatedPost) => {
+          if (getErr) {
+            res.status(500).json({ error: getErr.message });
+            return;
+          }
+          res.json(updatedPost);
+        });
+      }
+    );
+  });
+});
+
+// Admin: Toggle featured post
+app.patch('/api/community/posts/:id/featured', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
+  const postId = parseInt(req.params.id);
+  dbHelpers.toggleFeaturedPost(postId, (err, post) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(post);
+  });
+});
+
+// Admin: Get all posts (for admin panel)
+app.get('/api/community/posts/admin/all', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
+  dbHelpers.getAllPosts({}, (err, posts) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(posts);
+  });
+});
+
 // Dynamic Sitemap
 app.get('/sitemap.xml', (req, res) => {
   const baseUrl = 'https://duhocannhien.vercel.app';

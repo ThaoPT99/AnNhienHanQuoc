@@ -1,55 +1,390 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { addPoints, showPointsNotification } from '../utils/pointsSystem';
 import './Community.css';
 
 const Community = () => {
   const [activeTab, setActiveTab] = useState('discussions');
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      author: 'Nguyễn Văn A',
-      avatar: '👨‍🎓',
-      title: 'Kinh nghiệm xin học bổng KGSP',
-      content: 'Mình đã thành công xin học bổng KGSP năm 2024. Chia sẻ một số tips...',
-      category: 'Học bổng',
-      likes: 24,
-      comments: 8,
-      time: '2 giờ trước',
-      tags: ['học bổng', 'KGSP', 'kinh nghiệm']
-    },
-    {
-      id: 2,
-      author: 'Trần Thị B',
-      avatar: '👩‍🎓',
-      title: 'Cuộc sống du học sinh tại Seoul',
-      content: 'Đã sang Hàn được 3 tháng, muốn chia sẻ về cuộc sống hàng ngày...',
-      category: 'Cuộc sống',
-      likes: 45,
-      comments: 12,
-      time: '5 giờ trước',
-      tags: ['Seoul', 'cuộc sống', 'du học sinh']
-    },
-    {
-      id: 3,
-      author: 'Lê Văn C',
-      avatar: '👨‍🎓',
-      title: 'Hỏi về TOPIK 6 trong 1 năm',
-      content: 'Có bạn nào đã đạt TOPIK 6 trong 1 năm không? Mình cần lời khuyên...',
-      category: 'Học tiếng',
-      likes: 18,
-      comments: 15,
-      time: '1 ngày trước',
-      tags: ['TOPIK', 'tiếng Hàn', 'học tập']
-    }
-  ]);
+  const [selectedCategory, setSelectedCategory] = useState('Tất cả');
+  const [sortBy, setSortBy] = useState('newest');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [showNewPostForm, setShowNewPostForm] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [userEmail, setUserEmail] = useState(() => {
+    return localStorage.getItem('resource_download_email') || '';
+  });
 
   const categories = ['Tất cả', 'Học bổng', 'Cuộc sống', 'Học tiếng', 'Visa', 'Tuyển dụng'];
+
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+
+  // Load posts from API when filters change
+  useEffect(() => {
+    setPage(1);
+    setPosts([]);
+    loadPosts(true);
+  }, [activeTab, selectedCategory, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reload posts when search query changes (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        // Filter existing posts client-side
+        loadPosts(true);
+      } else {
+        // Reload from server if search is cleared
+        loadPosts(true);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load more posts when scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000) {
+        if (!loadingMore && hasMore && !loading) {
+          loadMorePosts();
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadingMore, hasMore, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadPosts = async (reset = false) => {
+    if (reset) {
+      setLoading(true);
+      setPage(1);
+      setHasMore(true);
+    }
+    
+    try {
+      const params = new URLSearchParams({
+        type: activeTab === 'discussions' ? 'discussion' : activeTab === 'questions' ? 'question' : 'experience',
+        ...(selectedCategory !== 'Tất cả' && { category: selectedCategory }),
+        sort: sortBy,
+        limit: '20',
+        offset: '0'
+      });
+      
+      const response = await fetch(`${API_URL}/api/community/posts?${params}`);
+      if (response.ok) {
+        let data = await response.json();
+        
+        // Client-side search filtering
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          data = data.filter(post => 
+            post.title.toLowerCase().includes(query) || 
+            post.content.toLowerCase().includes(query) ||
+            (post.tags && post.tags.toLowerCase().includes(query))
+          );
+        }
+        
+        setPosts(data);
+        setHasMore(data.length >= 20);
+      } else {
+        throw new Error('Failed to load posts');
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      alert('Không thể tải bài viết. Vui lòng thử lại sau.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMorePosts = async () => {
+    setLoadingMore(true);
+    try {
+      const params = new URLSearchParams({
+        type: activeTab === 'discussions' ? 'discussion' : activeTab === 'questions' ? 'question' : 'experience',
+        ...(selectedCategory !== 'Tất cả' && { category: selectedCategory }),
+        sort: sortBy,
+        limit: '20',
+        offset: (page * 20).toString()
+      });
+      
+      const response = await fetch(`${API_URL}/api/community/posts?${params}`);
+      if (response.ok) {
+        let data = await response.json();
+        
+        // Client-side search filtering
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          data = data.filter(post => 
+            post.title.toLowerCase().includes(query) || 
+            post.content.toLowerCase().includes(query) ||
+            (post.tags && post.tags.toLowerCase().includes(query))
+          );
+        }
+        
+        if (data.length > 0) {
+          setPosts(prev => [...prev, ...data]);
+          setPage(prev => prev + 1);
+          setHasMore(data.length >= 20);
+        } else {
+          setHasMore(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading more posts:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  const handleLike = async (postId) => {
+    if (!userEmail) {
+      alert('Vui lòng nhập email để tham gia cộng đồng');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/community/likes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId, user_email: userEmail })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        loadPosts(); // Reload posts
+        
+        // Add points for liking (only when liking, not unliking)
+        if (result.liked) {
+          const pointsResult = addPoints(5, 'community_like');
+          if (pointsResult.badgeAwarded) {
+            showPointsNotification(5, pointsResult.badgeAwarded);
+          } else {
+            showPointsNotification(5);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
+  const handleViewPost = async (post) => {
+    setSelectedPost(post);
+    // Load comments
+    try {
+      const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedPost(data);
+      }
+    } catch (error) {
+      console.error('Error loading post details:', error);
+    }
+  };
+
+  const handleComment = async (postId, commentContent) => {
+    if (!userEmail) {
+      alert('Vui lòng nhập email để tham gia cộng đồng');
+      return;
+    }
+
+    if (!commentContent.trim()) {
+      alert('Vui lòng nhập nội dung comment');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/community/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author_name: userEmail.split('@')[0] || 'Người dùng',
+          author_email: userEmail,
+          content: commentContent
+        })
+      });
+
+      if (response.ok) {
+        // Clear comment input
+        setCommentContent('');
+        
+        // Reload post with comments
+        setTimeout(() => {
+          handleViewPost(selectedPost);
+        }, 300);
+        
+        // Add points for commenting
+        const pointsResult = addPoints(10, 'community_comment');
+        if (pointsResult.badgeAwarded) {
+          showPointsNotification(10, pointsResult.badgeAwarded);
+        } else {
+          showPointsNotification(10);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Không thể gửi bình luận. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+    }
+  };
+
+  const handleCreatePost = async (postData) => {
+    if (!userEmail) {
+      alert('Vui lòng nhập email để tham gia cộng đồng');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/community/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author_name: postData.author_name || userEmail.split('@')[0] || 'Người dùng',
+          author_email: userEmail,
+          title: postData.title,
+          content: postData.content,
+          category: postData.category || 'Tất cả',
+          tags: postData.tags || [],
+          type: activeTab === 'discussions' ? 'discussion' : activeTab === 'questions' ? 'question' : 'experience'
+        })
+      });
+
+      if (response.ok) {
+        setShowNewPostForm(false);
+        loadPosts();
+        
+        // Show success message
+        alert('✅ Đăng bài thành công!');
+        
+        // Add points for creating post
+        const pointsResult = addPoints(50, 'community_post');
+        if (pointsResult.badgeAwarded) {
+          showPointsNotification(50, pointsResult.badgeAwarded);
+        } else {
+          showPointsNotification(50);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet và thử lại.');
+    }
+  };
+
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+    setShowNewPostForm(false);
+  };
+
+  const handleUpdatePost = async (postData) => {
+    if (!editingPost) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/community/posts/${editingPost.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: postData.title,
+          content: postData.content,
+          category: postData.category || 'Tất cả',
+          tags: postData.tags || [],
+          user_email: userEmail
+        })
+      });
+
+      if (response.ok) {
+        setEditingPost(null);
+        loadPosts();
+        if (selectedPost && selectedPost.id === editingPost.id) {
+          handleViewPost({ ...editingPost, ...postData });
+        }
+        alert('✅ Cập nhật bài viết thành công!');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+      alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet và thử lại.');
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!userEmail) {
+      alert('Vui lòng nhập email để tham gia cộng đồng');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/community/posts/${postId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_email: userEmail })
+      });
+
+      if (response.ok) {
+        loadPosts();
+        if (selectedPost && selectedPost.id === postId) {
+          setSelectedPost(null);
+        }
+        alert('✅ Xóa bài viết thành công!');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Không thể xóa bài viết. Bạn chỉ có thể xóa bài viết của chính mình.');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet và thử lại.');
+    }
+  };
 
   return (
     <div className="community-page">
       <div className="community-header">
         <h1>💬 Cộng đồng du học sinh</h1>
         <p>Chia sẻ kinh nghiệm, hỏi đáp và kết nối với các du học sinh khác</p>
+        {!userEmail && (
+          <div className="email-prompt">
+            <input
+              type="email"
+              placeholder="Nhập email để tham gia"
+              value={userEmail}
+              onChange={(e) => {
+                setUserEmail(e.target.value);
+                if (e.target.value.includes('@')) {
+                  localStorage.setItem('resource_download_email', e.target.value);
+                }
+              }}
+              className="email-input-community"
+            />
+          </div>
+        )}
       </div>
 
       <div className="community-tabs">
@@ -72,7 +407,11 @@ const Community = () => {
             <h3>📂 Danh mục</h3>
             <div className="category-list">
               {categories.map((category) => (
-                <button key={category} className="category-item">
+                <button
+                  key={category}
+                  className={`category-item ${selectedCategory === category ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(category)}
+                >
                   {category}
                 </button>
               ))}
@@ -82,73 +421,674 @@ const Community = () => {
           <div className="sidebar-section">
             <h3>🔥 Bài viết nổi bật</h3>
             <div className="featured-posts">
-              <div className="featured-item">
-                <span className="featured-icon">⭐</span>
-                <span>Top 10 trường đại học Hàn Quốc 2025</span>
-              </div>
-              <div className="featured-item">
-                <span className="featured-icon">⭐</span>
-                <span>Hướng dẫn xin visa du học chi tiết</span>
-              </div>
+              {posts.filter(p => p.is_featured).slice(0, 3).map((post) => (
+                <div key={post.id} className="featured-item" onClick={() => handleViewPost(post)}>
+                  <span className="featured-icon">⭐</span>
+                  <span>{post.title}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         <div className="community-main">
           <div className="post-actions">
-            <button className="new-post-btn">
+            <div className="search-sort-container">
+              <input
+                type="text"
+                placeholder="🔍 Tìm kiếm bài viết..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="sort-select"
+              >
+                <option value="newest">Mới nhất</option>
+                <option value="likes">Nhiều like nhất</option>
+                <option value="comments">Nhiều comment nhất</option>
+                <option value="views">Nhiều view nhất</option>
+              </select>
+            </div>
+            <button className="new-post-btn" onClick={() => setShowNewPostForm(true)}>
               ✍️ Viết bài mới
             </button>
           </div>
 
-          <div className="posts-list">
-            {posts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="post-card"
-              >
-                <div className="post-header">
-                  <div className="post-author">
-                    <span className="author-avatar">{post.avatar}</span>
-                    <div className="author-info">
-                      <span className="author-name">{post.author}</span>
-                      <span className="post-time">{post.time}</span>
-                    </div>
-                  </div>
-                  <span className="post-category">{post.category}</span>
-                </div>
+          {showNewPostForm && (
+            <NewPostForm
+              onClose={() => setShowNewPostForm(false)}
+              onSubmit={handleCreatePost}
+              categories={categories}
+            />
+          )}
 
-                <h3 className="post-title">{post.title}</h3>
-                <p className="post-content">{post.content}</p>
+          {editingPost && (
+            <EditPostForm
+              post={editingPost}
+              onClose={() => setEditingPost(null)}
+              onSubmit={handleUpdatePost}
+              categories={categories}
+            />
+          )}
 
-                <div className="post-tags">
-                  {post.tags.map((tag) => (
-                    <span key={tag} className="tag">#{tag}</span>
-                  ))}
+          {loading ? (
+            <LoadingSkeleton />
+          ) : posts.length === 0 ? (
+            <div className="no-posts">
+              {searchQuery.trim() ? (
+                <>
+                  <p>🔍 Không tìm thấy bài viết nào với từ khóa "{searchQuery}"</p>
+                  <button 
+                    onClick={() => {
+                      setSearchQuery('');
+                      loadPosts(true);
+                    }}
+                    className="clear-search-btn"
+                  >
+                    Xóa bộ lọc tìm kiếm
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>📝 Chưa có bài viết nào trong danh mục này</p>
+                  <p>Hãy là người đầu tiên đăng bài! 🎉</p>
+                  <button 
+                    onClick={() => setShowNewPostForm(true)}
+                    className="new-post-btn"
+                    style={{ marginTop: '20px' }}
+                  >
+                    ✍️ Viết bài mới
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="posts-list">
+              {posts.map((post, index) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  index={index}
+                  userEmail={userEmail}
+                  onLike={handleLike}
+                  onView={handleViewPost}
+                  onDelete={handleDeletePost}
+                  onEdit={handleEditPost}
+                  formatTime={formatTime}
+                />
+              ))}
+              {loadingMore && (
+                <div className="loading-more">
+                  <div className="loading-spinner"></div>
+                  <span>Đang tải thêm...</span>
                 </div>
-
-                <div className="post-footer">
-                  <button className="post-action-btn">
-                    👍 {post.likes}
-                  </button>
-                  <button className="post-action-btn">
-                    💬 {post.comments}
-                  </button>
-                  <button className="post-action-btn">
-                    🔗 Chia sẻ
-                  </button>
+              )}
+              {!hasMore && posts.length > 0 && (
+                <div className="no-more-posts">
+                  <p>Đã hiển thị tất cả bài viết</p>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
+      {selectedPost && (
+        <PostDetailModal
+          post={selectedPost}
+          userEmail={userEmail}
+          onClose={() => setSelectedPost(null)}
+          onLike={handleLike}
+          onComment={handleComment}
+          formatTime={formatTime}
+        />
+      )}
+    </div>
+  );
+};
+
+// New Post Form Component
+const NewPostForm = ({ onClose, onSubmit, categories }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    category: 'Tất cả',
+    tags: ''
+  });
+  const [errors, setErrors] = useState({});
+
+  const MAX_TITLE_LENGTH = 200;
+  const MAX_CONTENT_LENGTH = 5000;
+  const MAX_TAGS_LENGTH = 100;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+    
+    if (!formData.title.trim()) {
+      newErrors.title = 'Tiêu đề không được để trống';
+    } else if (formData.title.length > MAX_TITLE_LENGTH) {
+      newErrors.title = `Tiêu đề không được quá ${MAX_TITLE_LENGTH} ký tự`;
+    }
+    
+    if (!formData.content.trim()) {
+      newErrors.content = 'Nội dung không được để trống';
+    } else if (formData.content.length > MAX_CONTENT_LENGTH) {
+      newErrors.content = `Nội dung không được quá ${MAX_CONTENT_LENGTH} ký tự`;
+    }
+    
+    if (formData.tags.length > MAX_TAGS_LENGTH) {
+      newErrors.tags = `Tags không được quá ${MAX_TAGS_LENGTH} ký tự`;
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({});
+    const tags = formData.tags.split(',').map(t => t.trim()).filter(t => t);
+    onSubmit({
+      ...formData,
+      tags
+    });
+    
+    setFormData({ title: '', content: '', category: 'Tất cả', tags: '' });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="new-post-form"
+    >
+      <h3>✍️ Viết bài mới</h3>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="Tiêu đề bài viết *"
+            value={formData.title}
+            onChange={(e) => {
+              setFormData({ ...formData, title: e.target.value });
+              if (errors.title) setErrors({ ...errors, title: '' });
+            }}
+            className={`form-input ${errors.title ? 'error' : ''}`}
+            maxLength={MAX_TITLE_LENGTH}
+          />
+          <div className="char-counter">
+            {formData.title.length}/{MAX_TITLE_LENGTH}
+          </div>
+          {errors.title && <div className="error-message">{errors.title}</div>}
+        </div>
+        
+        <div className="form-group">
+          <textarea
+            placeholder="Nội dung bài viết *"
+            value={formData.content}
+            onChange={(e) => {
+              setFormData({ ...formData, content: e.target.value });
+              if (errors.content) setErrors({ ...errors, content: '' });
+            }}
+            rows="8"
+            className={`form-textarea ${errors.content ? 'error' : ''}`}
+            maxLength={MAX_CONTENT_LENGTH}
+          />
+          <div className="char-counter">
+            {formData.content.length}/{MAX_CONTENT_LENGTH}
+          </div>
+          {errors.content && <div className="error-message">{errors.content}</div>}
+        </div>
+        
+        <div className="form-group">
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="form-select"
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="Tags (phân cách bằng dấu phẩy, ví dụ: du học, visa, topik)"
+            value={formData.tags}
+            onChange={(e) => {
+              setFormData({ ...formData, tags: e.target.value });
+              if (errors.tags) setErrors({ ...errors, tags: '' });
+            }}
+            className={`form-input ${errors.tags ? 'error' : ''}`}
+            maxLength={MAX_TAGS_LENGTH}
+          />
+          <div className="char-counter">
+            {formData.tags.length}/{MAX_TAGS_LENGTH}
+          </div>
+          {errors.tags && <div className="error-message">{errors.tags}</div>}
+        </div>
+        
+        <div className="form-actions">
+          <button type="button" onClick={onClose} className="cancel-btn">Hủy</button>
+          <button type="submit" className="submit-btn">Đăng bài</button>
+        </div>
+      </form>
+    </motion.div>
+  );
+};
+
+// Edit Post Form Component
+const EditPostForm = ({ post, onClose, onSubmit, categories }) => {
+  const [formData, setFormData] = useState({
+    title: post.title || '',
+    content: post.content || '',
+    category: post.category || 'Tất cả',
+    tags: typeof post.tags === 'string' ? post.tags : (Array.isArray(post.tags) ? post.tags.join(', ') : '')
+  });
+  const [errors, setErrors] = useState({});
+
+  const MAX_TITLE_LENGTH = 200;
+  const MAX_CONTENT_LENGTH = 5000;
+  const MAX_TAGS_LENGTH = 100;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+    
+    if (!formData.title.trim()) {
+      newErrors.title = 'Tiêu đề không được để trống';
+    } else if (formData.title.length > MAX_TITLE_LENGTH) {
+      newErrors.title = `Tiêu đề không được quá ${MAX_TITLE_LENGTH} ký tự`;
+    }
+    
+    if (!formData.content.trim()) {
+      newErrors.content = 'Nội dung không được để trống';
+    } else if (formData.content.length > MAX_CONTENT_LENGTH) {
+      newErrors.content = `Nội dung không được quá ${MAX_CONTENT_LENGTH} ký tự`;
+    }
+    
+    if (formData.tags.length > MAX_TAGS_LENGTH) {
+      newErrors.tags = `Tags không được quá ${MAX_TAGS_LENGTH} ký tự`;
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({});
+    const tags = formData.tags.split(',').map(t => t.trim()).filter(t => t);
+    onSubmit({
+      ...formData,
+      tags
+    });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="new-post-form"
+    >
+      <h3>✏️ Sửa bài viết</h3>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="Tiêu đề bài viết *"
+            value={formData.title}
+            onChange={(e) => {
+              setFormData({ ...formData, title: e.target.value });
+              if (errors.title) setErrors({ ...errors, title: '' });
+            }}
+            className={`form-input ${errors.title ? 'error' : ''}`}
+            maxLength={MAX_TITLE_LENGTH}
+          />
+          <div className="char-counter">
+            {formData.title.length}/{MAX_TITLE_LENGTH}
+          </div>
+          {errors.title && <div className="error-message">{errors.title}</div>}
+        </div>
+        
+        <div className="form-group">
+          <textarea
+            placeholder="Nội dung bài viết *"
+            value={formData.content}
+            onChange={(e) => {
+              setFormData({ ...formData, content: e.target.value });
+              if (errors.content) setErrors({ ...errors, content: '' });
+            }}
+            rows="8"
+            className={`form-textarea ${errors.content ? 'error' : ''}`}
+            maxLength={MAX_CONTENT_LENGTH}
+          />
+          <div className="char-counter">
+            {formData.content.length}/{MAX_CONTENT_LENGTH}
+          </div>
+          {errors.content && <div className="error-message">{errors.content}</div>}
+        </div>
+        
+        <div className="form-group">
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="form-select"
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="Tags (phân cách bằng dấu phẩy)"
+            value={formData.tags}
+            onChange={(e) => {
+              setFormData({ ...formData, tags: e.target.value });
+              if (errors.tags) setErrors({ ...errors, tags: '' });
+            }}
+            className={`form-input ${errors.tags ? 'error' : ''}`}
+            maxLength={MAX_TAGS_LENGTH}
+          />
+          <div className="char-counter">
+            {formData.tags.length}/{MAX_TAGS_LENGTH}
+          </div>
+          {errors.tags && <div className="error-message">{errors.tags}</div>}
+        </div>
+        
+        <div className="form-actions">
+          <button type="button" onClick={onClose} className="cancel-btn">Hủy</button>
+          <button type="submit" className="submit-btn">Cập nhật</button>
+        </div>
+      </form>
+    </motion.div>
+  );
+};
+
+// Post Card Component
+const PostCard = ({ post, index, userEmail, onLike, onView, formatTime, onDelete, onEdit, onReload }) => {
+  const [liked, setLiked] = useState(false);
+  const isMyPost = userEmail && post.author_email === userEmail;
+
+  useEffect(() => {
+    if (userEmail) {
+      checkLiked();
+    }
+  }, [userEmail, post.id]);
+
+  const checkLiked = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/community/likes/check?post_id=${post.id}&user_email=${userEmail}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLiked(data.liked);
+      }
+    } catch (error) {
+      console.error('Error checking like:', error);
+    }
+  };
+
+  const tags = post.tags ? (typeof post.tags === 'string' ? post.tags.split(',') : post.tags) : [];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="post-card"
+      onClick={() => onView(post)}
+    >
+      <div className="post-header">
+        <div className="post-author">
+          <span className="author-avatar">{post.author_name?.[0]?.toUpperCase() || '👤'}</span>
+          <div className="author-info">
+            <span className="author-name">{post.author_name || 'Người dùng'}</span>
+            <span className="post-time">{formatTime(post.created_at)}</span>
+          </div>
+        </div>
+        <span className="post-category">{post.category}</span>
+      </div>
+
+      <h3 className="post-title">{post.title}</h3>
+      <p className="post-content">{post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content}</p>
+
+      {tags.length > 0 && (
+        <div className="post-tags">
+          {tags.map((tag, i) => (
+            <span key={i} className="tag">#{tag}</span>
+          ))}
+        </div>
+      )}
+
+      <div className="post-footer">
+        <div className="post-actions-left">
+          <button
+            className={`post-action-btn ${liked ? 'liked' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLike(post.id);
+              setLiked(!liked);
+            }}
+          >
+            👍 {post.likes_count || 0}
+          </button>
+          <button className="post-action-btn" onClick={(e) => e.stopPropagation()}>
+            💬 {post.comments_count || 0}
+          </button>
+          <button className="post-action-btn" onClick={(e) => e.stopPropagation()}>
+            👁️ {post.views_count || 0}
+          </button>
+        </div>
+        {isMyPost && (
+          <div className="post-actions-right">
+            <button
+              className="post-action-btn edit-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(post);
+              }}
+              title="Sửa bài viết"
+            >
+              ✏️
+            </button>
+            <button
+              className="post-action-btn delete-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
+                  onDelete(post.id);
+                }
+              }}
+              title="Xóa bài viết"
+            >
+              🗑️
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Post Detail Modal Component
+const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTime }) => {
+  const [commentContent, setCommentContent] = useState('');
+  const [liked, setLiked] = useState(false);
+  const [comments, setComments] = useState(post.comments || []);
+
+  useEffect(() => {
+    if (userEmail) {
+      checkLiked();
+    }
+  }, [userEmail, post.id]);
+
+  const checkLiked = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/community/likes/check?post_id=${post.id}&user_email=${userEmail}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLiked(data.liked);
+      }
+    } catch (error) {
+      console.error('Error checking like:', error);
+    }
+  };
+
+  const handleSubmitComment = (e) => {
+    e.preventDefault();
+    onComment(post.id, commentContent);
+    setCommentContent('');
+    // Reload comments after a delay
+    setTimeout(() => {
+      loadComments();
+    }, 500);
+  };
+
+  const loadComments = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data.comments || []);
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  };
+
+  const tags = post.tags ? (typeof post.tags === 'string' ? post.tags.split(',') : post.tags) : [];
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="post-modal-overlay"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="post-modal"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="close-modal-btn" onClick={onClose}>×</button>
+          
+          <div className="post-modal-header">
+            <div className="post-author">
+              <span className="author-avatar">{post.author_name?.[0]?.toUpperCase() || '👤'}</span>
+              <div className="author-info">
+                <span className="author-name">{post.author_name || 'Người dùng'}</span>
+                <span className="post-time">{formatTime(post.created_at)}</span>
+              </div>
+            </div>
+            <span className="post-category">{post.category}</span>
+          </div>
+
+          <h2 className="post-modal-title">{post.title}</h2>
+          <div className="post-modal-content">{post.content}</div>
+
+          {tags.length > 0 && (
+            <div className="post-tags">
+              {tags.map((tag, i) => (
+                <span key={i} className="tag">#{tag}</span>
+              ))}
+            </div>
+          )}
+
+          <div className="post-modal-actions">
+            <button
+              className={`post-action-btn ${liked ? 'liked' : ''}`}
+              onClick={() => {
+                onLike(post.id);
+                setLiked(!liked);
+              }}
+            >
+              👍 {post.likes_count || 0}
+            </button>
+            <button className="post-action-btn">
+              💬 {comments.length}
+            </button>
+            <button className="post-action-btn">
+              👁️ {post.views_count || 0}
+            </button>
+          </div>
+
+          <div className="comments-section">
+            <h3>💬 Bình luận ({comments.length})</h3>
+            
+            {userEmail && (
+              <form onSubmit={handleSubmitComment} className="comment-form">
+                <textarea
+                  placeholder="Viết bình luận..."
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  rows="3"
+                  className="comment-input"
+                />
+                <button type="submit" className="comment-submit-btn">Gửi</button>
+              </form>
+            )}
+
+            <div className="comments-list">
+              {comments.map((comment) => (
+                <div key={comment.id} className="comment-item">
+                  <div className="comment-author">
+                    <span className="author-avatar-small">{comment.author_name?.[0]?.toUpperCase() || '👤'}</span>
+                    <div>
+                      <div className="comment-author-name">{comment.author_name || 'Người dùng'}</div>
+                      <div className="comment-time">{formatTime(comment.created_at)}</div>
+                    </div>
+                  </div>
+                  <div className="comment-content">{comment.content}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+// Loading Skeleton Component
+const LoadingSkeleton = () => {
+  return (
+    <div className="posts-list">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="post-card skeleton">
+          <div className="skeleton-header">
+            <div className="skeleton-avatar"></div>
+            <div className="skeleton-info">
+              <div className="skeleton-line short"></div>
+              <div className="skeleton-line shorter"></div>
+            </div>
+            <div className="skeleton-badge"></div>
+          </div>
+          <div className="skeleton-line long"></div>
+          <div className="skeleton-line medium"></div>
+          <div className="skeleton-line short"></div>
+          <div className="skeleton-footer">
+            <div className="skeleton-button"></div>
+            <div className="skeleton-button"></div>
+            <div className="skeleton-button"></div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
 
 export default Community;
-

@@ -14,6 +14,7 @@ const Admin = () => {
   const [bookings, setBookings] = useState([]);
   const [visits, setVisits] = useState([]);
   const [visitStats, setVisitStats] = useState([]);
+  const [communityPosts, setCommunityPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
@@ -46,7 +47,8 @@ const Admin = () => {
         axios.get(`${API_URL}/api/consultation/registrations`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/consultation/bookings`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/visits`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/community/posts/admin/all`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -58,6 +60,7 @@ const Admin = () => {
       setBookings(bookingsRes.data || []);
       setVisits(visitsRes.data || []);
       setVisitStats(statsRes.data || []);
+      setCommunityPosts(communityRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -80,6 +83,11 @@ const Admin = () => {
           endpoint = `/api/contacts/${id}`;
           await axios.delete(`${API_URL}${endpoint}`, { headers: { 'x-admin-token': token } });
           setContacts(contacts.filter(item => item.id !== id));
+          break;
+        case 'community':
+          endpoint = `/api/community/posts/${id}`;
+          await axios.delete(`${API_URL}${endpoint}`, { headers: { 'x-admin-token': token } });
+          setCommunityPosts(communityPosts.filter(item => item.id !== id));
           break;
         default:
           alert('Chức năng xóa chưa được hỗ trợ cho mục này');
@@ -133,6 +141,7 @@ const Admin = () => {
     { id: 'consultations', label: '🎓 Tư vấn', count: consultations.length, icon: '💬' },
     { id: 'bookings', label: '📅 Đặt lịch', count: bookings.length, icon: '📆' },
     { id: 'visits', label: '👁️ Truy cập', count: visits.length, icon: '🌐' },
+    { id: 'community', label: '💬 Cộng đồng', count: communityPosts.length, icon: '👥' },
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
@@ -145,6 +154,7 @@ const Admin = () => {
       case 'consultations': return consultations;
       case 'bookings': return bookings;
       case 'visits': return visits;
+      case 'community': return communityPosts;
       case 'newsletter': return newsletter;
       case 'events': return events;
       case 'recruitment': return recruitment;
@@ -277,6 +287,82 @@ const Admin = () => {
                               </button>
                             )}
                             <button onClick={() => handleDelete('consultations', item.id)} className="delete-btn">
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'community' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">Quản lý bài viết cộng đồng ({communityPosts.length})</h2>
+                {communityPosts.length === 0 ? (
+                  <div className="no-data">Chưa có bài viết nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Tiêu đề</th>
+                        <th>Tác giả</th>
+                        <th>Danh mục</th>
+                        <th>Loại</th>
+                        <th>Likes</th>
+                        <th>Comments</th>
+                        <th>Views</th>
+                        <th>Nổi bật</th>
+                        <th>Ngày đăng</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {communityPosts.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td className="message-cell" title={item.title}>
+                            {item.title.length > 50 ? item.title.substring(0, 50) + '...' : item.title}
+                          </td>
+                          <td>{item.author_name || 'N/A'}</td>
+                          <td>{item.category}</td>
+                          <td>
+                            {item.type === 'discussion' ? '💬 Thảo luận' :
+                             item.type === 'question' ? '❓ Hỏi đáp' :
+                             item.type === 'experience' ? '📖 Kinh nghiệm' : item.type}
+                          </td>
+                          <td>{item.likes_count || 0}</td>
+                          <td>{item.comments_count || 0}</td>
+                          <td>{item.views_count || 0}</td>
+                          <td>
+                            {item.is_featured ? '⭐' : '-'}
+                          </td>
+                          <td>{formatDate(item.created_at)}</td>
+                          <td>
+                            <button
+                              onClick={async () => {
+                                const token = getToken();
+                                if (!token) return;
+                                try {
+                                  await axios.patch(
+                                    `${API_URL}/api/community/posts/${item.id}/featured`,
+                                    {},
+                                    { headers: { 'x-admin-token': token } }
+                                  );
+                                  fetchAllData();
+                                } catch (err) {
+                                  alert('Không thể cập nhật. Vui lòng thử lại.');
+                                }
+                              }}
+                              className="feature-btn"
+                              title={item.is_featured ? 'Bỏ đánh dấu nổi bật' : 'Đánh dấu nổi bật'}
+                            >
+                              {item.is_featured ? '⭐' : '☆'}
+                            </button>
+                            <button onClick={() => handleDelete('community', item.id)} className="delete-btn">
                               🗑️
                             </button>
                           </td>
