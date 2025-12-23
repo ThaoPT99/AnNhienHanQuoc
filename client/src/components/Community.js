@@ -210,14 +210,37 @@ const Community = () => {
     }
   };
 
-  const handleViewPost = async (post) => {
+  const handleViewPost = async (post, scrollToComments = false) => {
     setSelectedPost(post);
     // Load comments
     try {
+      console.log('📤 Loading post details:', post.id, 'scrollToComments:', scrollToComments);
       const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
       if (response.ok) {
         const data = await response.json();
-        setSelectedPost(data);
+        console.log('📥 Post details loaded:', data);
+        setSelectedPost({ ...post, ...data });
+        
+        // If scrollToComments is true, scroll to comment form after modal opens
+        if (scrollToComments) {
+          setTimeout(() => {
+            const modal = document.querySelector('.post-modal');
+            if (modal) {
+              const commentForm = modal.querySelector('.comment-form, .comment-form-placeholder');
+              if (commentForm) {
+                commentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const textarea = commentForm.querySelector('textarea');
+                if (textarea && userEmail) {
+                  setTimeout(() => textarea.focus(), 300);
+                } else if (!userEmail) {
+                  setTimeout(() => {
+                    alert('Vui lòng nhập email để tham gia bình luận');
+                  }, 300);
+                }
+              }
+            }
+          }, 500);
+        }
       }
     } catch (error) {
       console.error('Error loading post details:', error);
