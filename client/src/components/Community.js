@@ -227,15 +227,17 @@ const Community = () => {
   const handleComment = async (postId, commentContent) => {
     if (!userEmail) {
       alert('Vui lòng nhập email để tham gia cộng đồng');
-      return;
+      throw new Error('Email required');
     }
 
     if (!commentContent.trim()) {
       alert('Vui lòng nhập nội dung comment');
-      return;
+      throw new Error('Comment content required');
     }
 
     try {
+      console.log('📤 Submitting comment:', { postId, commentContent: commentContent.substring(0, 50) });
+      
       const response = await fetch(`${API_URL}/api/community/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -246,11 +248,18 @@ const Community = () => {
         })
       });
 
+      console.log('📥 Comment response status:', response.status);
+
       if (response.ok) {
+        const newComment = await response.json();
+        console.log('✅ Comment created:', newComment);
+        
         // Reload post with comments
-        setTimeout(() => {
-          handleViewPost(selectedPost);
-        }, 300);
+        if (selectedPost && selectedPost.id === postId) {
+          setTimeout(() => {
+            handleViewPost(selectedPost);
+          }, 300);
+        }
         
         // Add points for commenting
         const pointsResult = addPoints(10, 'community_comment');
@@ -259,13 +268,20 @@ const Community = () => {
         } else {
           showPointsNotification(10);
         }
+        
+        return newComment; // Return success
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Không thể gửi bình luận. Vui lòng thử lại.');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Comment error:', errorData);
+        alert(errorData.error || `Không thể gửi bình luận (${response.status}). Vui lòng thử lại.`);
+        throw new Error(errorData.error || 'Failed to submit comment');
       }
     } catch (error) {
-      console.error('Error adding comment:', error);
-      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+      console.error('❌ Error adding comment:', error);
+      if (error.message !== 'Email required' && error.message !== 'Comment content required') {
+        alert(`Có lỗi xảy ra: ${error.message}. Vui lòng thử lại.`);
+      }
+      throw error; // Re-throw to let caller handle
     }
   };
 
@@ -1001,14 +1017,26 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
     }
   };
 
-  const handleSubmitComment = (e) => {
+  const handleSubmitComment = async (e) => {
     e.preventDefault();
-    onComment(post.id, commentContent);
-    setCommentContent('');
-    // Reload comments after a delay
-    setTimeout(() => {
-      loadComments();
-    }, 500);
+    
+    if (!commentContent.trim()) {
+      alert('Vui lòng nhập nội dung bình luận');
+      return;
+    }
+    
+    // Call onComment and wait for it to complete
+    try {
+      await onComment(post.id, commentContent);
+      setCommentContent('');
+      // Reload comments after successful submission
+      setTimeout(() => {
+        loadComments();
+      }, 500);
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      // Error is already handled in handleComment
+    }
   };
 
   const loadComments = async () => {
