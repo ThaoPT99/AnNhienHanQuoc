@@ -996,22 +996,36 @@ const PostCard = ({ post, index, userEmail, onLike, onView, formatTime, onDelete
 const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTime }) => {
   const [commentContent, setCommentContent] = useState('');
   const [liked, setLiked] = useState(false);
-  const [comments, setComments] = useState(post.comments || []);
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(true);
 
   const loadComments = async () => {
+    setLoadingComments(true);
     try {
       const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
       console.log('📤 Loading comments for post:', post.id);
       const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
+      console.log('📥 Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('📥 Loaded comments:', data.comments?.length || 0);
-        setComments(data.comments || []);
+        console.log('📥 Full response data:', data);
+        console.log('📥 Comments array:', data.comments);
+        console.log('📥 Comments length:', data.comments?.length || 0);
+        
+        const commentsArray = Array.isArray(data.comments) ? data.comments : [];
+        console.log('📥 Setting comments:', commentsArray);
+        setComments(commentsArray);
       } else {
-        console.error('❌ Failed to load comments:', response.status);
+        const errorText = await response.text();
+        console.error('❌ Failed to load comments:', response.status, errorText);
+        setComments([]);
       }
     } catch (error) {
       console.error('❌ Error loading comments:', error);
+      setComments([]);
+    } finally {
+      setLoadingComments(false);
     }
   };
 
