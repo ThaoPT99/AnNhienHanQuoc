@@ -8,4 +8,5 @@ generate-admin-token.js
 test-*.js
 check-*.js
 copy-*.js
+scripts/
 

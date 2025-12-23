@@ -12,8 +12,8 @@
  */
 
 require('dotenv').config();
-const { dbHelpers } = require('./database');
-const { uploadBufferToCloudinary, checkCloudinaryConfig, initCloudinary } = require('./cloudinary');
+const { dbHelpers } = require('../database');
+const { uploadBufferToCloudinary, checkCloudinaryConfig, initCloudinary } = require('../cloudinary');
 const https = require('https');
 const http = require('http');
 const fs = require('fs');

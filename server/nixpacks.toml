@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ["nodejs-18_x"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["echo 'Build phase - no migration scripts'"]
+# Explicitly do NOT run any migration scripts during build
+
+[start]
+cmd = "node index.js"
+
