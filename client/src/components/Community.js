@@ -1042,13 +1042,17 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
   const loadComments = async () => {
     try {
       const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      console.log('📤 Loading comments for post:', post.id);
       const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('📥 Loaded comments:', data.comments?.length || 0);
         setComments(data.comments || []);
+      } else {
+        console.error('❌ Failed to load comments:', response.status);
       }
     } catch (error) {
-      console.error('Error loading comments:', error);
+      console.error('❌ Error loading comments:', error);
     }
   };
 
