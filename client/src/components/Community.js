@@ -954,7 +954,14 @@ const PostCard = ({ post, index, userEmail, onLike, onView, formatTime, onDelete
           >
             👍 {post.likes_count || 0}
           </button>
-          <button className="post-action-btn" onClick={(e) => e.stopPropagation()}>
+          <button 
+            className="post-action-btn" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(post, true); // Pass true to scroll to comments
+            }}
+            title="Xem bình luận"
+          >
             💬 {post.comments_count || 0}
           </button>
           <button className="post-action-btn" onClick={(e) => e.stopPropagation()}>
@@ -1173,28 +1180,7 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
           <div className="comments-section">
             <h3>💬 Bình luận ({comments.length})</h3>
             
-            {userEmail && (
-              <form 
-                ref={commentFormRef}
-                onSubmit={handleSubmitComment} 
-                className="comment-form"
-              >
-                <textarea
-                  placeholder="Viết bình luận..."
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  rows="3"
-                  className="comment-input"
-                />
-                <button type="submit" className="comment-submit-btn">Gửi</button>
-              </form>
-            )}
-            {!userEmail && (
-              <div ref={commentFormRef} className="comment-form-placeholder">
-                <p>Vui lòng nhập email để tham gia bình luận</p>
-              </div>
-            )}
-
+            {/* Hiển thị comments trước */}
             <div className="comments-list">
               {loadingComments ? (
                 <div className="loading-comments">
@@ -1219,6 +1205,29 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
                 ))
               )}
             </div>
+
+            {/* Form comment ở sau */}
+            {userEmail && (
+              <form 
+                ref={commentFormRef}
+                onSubmit={handleSubmitComment} 
+                className="comment-form"
+              >
+                <textarea
+                  placeholder="Viết bình luận..."
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  rows="3"
+                  className="comment-input"
+                />
+                <button type="submit" className="comment-submit-btn">Gửi</button>
+              </form>
+            )}
+            {!userEmail && (
+              <div ref={commentFormRef} className="comment-form-placeholder">
+                <p>Vui lòng nhập email để tham gia bình luận</p>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>
