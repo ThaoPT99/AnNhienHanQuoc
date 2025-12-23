@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import './Resources.css';
 
 const Resources = () => {
-  const [email, setEmail] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  // Load email from localStorage on mount
+  const [email, setEmail] = useState(() => {
+    return localStorage.getItem('resource_download_email') || '';
+  });
+  const [submitted, setSubmitted] = useState(() => {
+    return !!localStorage.getItem('resource_download_email');
+  });
   const [selectedResource, setSelectedResource] = useState(null);
 
   const structuredData = {
@@ -136,8 +141,15 @@ const Resources = () => {
     ? resources
     : resources.filter(r => r.category === selectedCategory);
 
+  // Save email to localStorage whenever it changes
+  useEffect(() => {
+    if (email && submitted) {
+      localStorage.setItem('resource_download_email', email);
+    }
+  }, [email, submitted]);
+
   const handleDownload = async (resource) => {
-    if (!submitted) {
+    if (!submitted || !email) {
       setSelectedResource(resource);
       return;
     }
@@ -194,10 +206,8 @@ const Resources = () => {
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
           
-          // Reset form
-          setEmail('');
-          setSubmitted(false);
-          setSelectedResource(null);
+          // Don't reset email and submitted - allow multiple downloads
+          // Email is saved in localStorage, so user can download multiple files
         }
       } else {
         const error = await response.json();
@@ -213,11 +223,23 @@ const Resources = () => {
     e.preventDefault();
     if (email && email.includes('@')) {
       setSubmitted(true);
+      // Save email to localStorage
+      localStorage.setItem('resource_download_email', email);
+      // If there's a selected resource, download it immediately
       if (selectedResource) {
         handleDownload(selectedResource);
       }
     } else {
       alert('Vui lòng nhập email hợp lệ');
+    }
+  };
+
+  const handleClearEmail = () => {
+    if (window.confirm('Bạn có muốn xóa email và nhập lại không?')) {
+      setEmail('');
+      setSubmitted(false);
+      setSelectedResource(null);
+      localStorage.removeItem('resource_download_email');
     }
   };
 
@@ -255,7 +277,7 @@ const Resources = () => {
       </div>
 
       <div className="resources-content">
-        {!submitted && (
+        {!submitted ? (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -263,7 +285,7 @@ const Resources = () => {
           >
             <div className="email-form-card">
               <h3>📧 Nhận tài liệu miễn phí</h3>
-              <p>Để tải tài liệu, vui lòng cung cấp email của bạn. Chúng tôi sẽ gửi link download qua email.</p>
+              <p>Để tải tài liệu, vui lòng cung cấp email của bạn. Bạn chỉ cần nhập email một lần và có thể tải nhiều tài liệu.</p>
               <form onSubmit={handleEmailSubmit} className="email-form">
                 <input
                   type="email"
@@ -277,6 +299,29 @@ const Resources = () => {
                   Xác nhận
                 </button>
               </form>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="email-form-section"
+          >
+            <div className="email-form-card" style={{ background: '#d4edda', border: '2px solid #28a745' }}>
+              <h3>✅ Email đã được xác nhận</h3>
+              <p style={{ marginBottom: '10px' }}>
+                <strong>Email:</strong> {email}
+              </p>
+              <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '15px' }}>
+                Bạn có thể tải nhiều tài liệu mà không cần nhập lại email.
+              </p>
+              <button 
+                onClick={handleClearEmail} 
+                className="submit-email-btn"
+                style={{ background: '#dc3545', fontSize: '0.9em', padding: '8px 16px' }}
+              >
+                Đổi email
+              </button>
             </div>
           </motion.div>
         )}
