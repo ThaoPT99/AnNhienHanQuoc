@@ -573,6 +573,58 @@ app.patch('/api/recruitment/:id/status', (req, res) => {
   });
 });
 
+// Resource file mapping - Map resource IDs to file paths
+const RESOURCE_FILES = {
+  1: { filename: 'checklist-ho-so-du-hoc-han-quoc.pdf', name: 'Checklist hồ sơ du học Hàn Quốc.pdf' },
+  2: { filename: 'huong-dan-xin-visa-d2.pdf', name: 'Hướng dẫn xin visa D-2 chi tiết.pdf' },
+  3: { filename: 'template-thu-gioi-thieu-ban-than.docx', name: 'Template thư giới thiệu bản thân.docx' },
+  4: { filename: 'ke-hoach-hoc-tap-mau.docx', name: 'Kế hoạch học tập mẫu.docx' },
+  5: { filename: 'danh-sach-truong-dai-hoc-han-quoc.pdf', name: 'Danh sách trường đại học Hàn Quốc.pdf' },
+  6: { filename: 'huong-dan-luyen-thi-topik.pdf', name: 'Hướng dẫn luyện thi TOPIK.pdf' },
+  7: { filename: 'tu-vung-tieng-han-du-hoc-sinh.pdf', name: 'Từ vựng tiếng Hàn du học sinh.pdf' },
+  8: { filename: 'huong-dan-tim-nha-o-han-quoc.pdf', name: 'Hướng dẫn tìm nhà ở tại Hàn Quốc.pdf' },
+  9: { filename: 'checklist-chuan-bi-len-duong.pdf', name: 'Checklist chuẩn bị lên đường.pdf' },
+  10: { filename: 'huong-dan-lam-them-han-quoc.pdf', name: 'Hướng dẫn làm thêm tại Hàn Quốc.pdf' }
+};
+
+// Ensure resources directory exists
+const resourcesDir = path.join(__dirname, 'uploads', 'resources');
+if (!fs.existsSync(resourcesDir)) {
+  fs.mkdirSync(resourcesDir, { recursive: true });
+  console.log('📁 Created resources directory:', resourcesDir);
+}
+
+// GET route to serve resource files
+app.get('/api/resources/file/:id', (req, res) => {
+  const resourceId = parseInt(req.params.id);
+  const resourceFile = RESOURCE_FILES[resourceId];
+  
+  if (!resourceFile) {
+    res.status(404).json({ error: 'Resource not found' });
+    return;
+  }
+
+  const filePath = path.join(resourcesDir, resourceFile.filename);
+  
+  // Check if file exists
+  if (!fs.existsSync(filePath)) {
+    res.status(404).json({ 
+      error: 'File not found',
+      message: `File ${resourceFile.filename} does not exist. Please upload the file to server/uploads/resources/`
+    });
+    return;
+  }
+
+  // Send file with proper headers
+  res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(resourceFile.name)}"`);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error sending file:', err);
+      res.status(500).json({ error: 'Error sending file' });
+    }
+  });
+});
+
 // Resources downloads routes
 app.post('/api/resources/download', (req, res) => {
   const { email, resource_id, resource_title } = req.body;
@@ -589,12 +641,61 @@ app.post('/api/resources/download', (req, res) => {
     return;
   }
 
+  // Check if resource file exists
+  const resourceId = parseInt(resource_id);
+  const resourceFile = RESOURCE_FILES[resourceId];
+  
+  if (!resourceFile) {
+    res.status(404).json({ error: 'Resource not found' });
+    return;
+  }
+
+  const filePath = path.join(resourcesDir, resourceFile.filename);
+  
+  // Check if file exists
+  if (!fs.existsSync(filePath)) {
+    // Record download attempt even if file doesn't exist
+    dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(404).json({ 
+        error: 'File not found',
+        message: `File ${resourceFile.filename} does not exist. Please upload the file to server/uploads/resources/`,
+        download_id: download.id
+      });
+    });
+    return;
+  }
+
+  // Record download
   dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.status(201).json({ message: 'Download recorded successfully', download });
+    
+    // Determine content type based on file extension
+    const ext = path.extname(resourceFile.filename).toLowerCase();
+    let contentType = 'application/octet-stream';
+    if (ext === '.pdf') {
+      contentType = 'application/pdf';
+    } else if (ext === '.docx') {
+      contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    }
+    
+    // Send file with proper headers
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(resourceFile.name)}"`);
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Error sending file' });
+        }
+      }
+    });
   });
 });
 

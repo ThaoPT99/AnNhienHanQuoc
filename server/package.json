@@ -19,6 +19,9 @@
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "docx": "^9.5.1",
+    "html-docx-js": "^0.3.1",
+    "nodemon": "^3.0.1",
+    "puppeteer": "^24.34.0"
   }
 }

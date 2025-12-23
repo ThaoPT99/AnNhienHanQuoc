@@ -159,17 +159,52 @@ const Resources = () => {
       });
 
       if (response.ok) {
-        // Logic download thực tế sẽ được thêm sau
-        alert(`Đang tải xuống: ${resource.title}`);
-        // Reset form
-        setEmail('');
-        setSubmitted(false);
-        setSelectedResource(null);
+        // Check if response is a file (blob) or JSON
+        const contentType = response.headers.get('content-type');
+        
+        if (contentType && contentType.includes('application/json')) {
+          // Error response
+          const error = await response.json();
+          alert(`Có lỗi xảy ra: ${error.error || error.message || 'Vui lòng thử lại sau.'}`);
+        } else {
+          // File download
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          
+          // Get filename from Content-Disposition header or use resource title
+          const contentDisposition = response.headers.get('content-disposition');
+          let filename = resource.title;
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (filenameMatch && filenameMatch[1]) {
+              filename = decodeURIComponent(filenameMatch[1].replace(/['"]/g, ''));
+            }
+          }
+          
+          // Add file extension if not present
+          if (!filename.includes('.')) {
+            filename += resource.format === 'PDF' ? '.pdf' : '.docx';
+          }
+          
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          // Reset form
+          setEmail('');
+          setSubmitted(false);
+          setSelectedResource(null);
+        }
       } else {
         const error = await response.json();
-        alert(`Có lỗi xảy ra: ${error.error || 'Vui lòng thử lại sau.'}`);
+        alert(`Có lỗi xảy ra: ${error.error || error.message || 'Vui lòng thử lại sau.'}`);
       }
     } catch (error) {
+      console.error('Download error:', error);
       alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
     }
   };
