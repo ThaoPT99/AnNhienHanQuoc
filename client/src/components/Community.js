@@ -1152,18 +1152,28 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
             )}
 
             <div className="comments-list">
-              {comments.map((comment) => (
-                <div key={comment.id} className="comment-item">
-                  <div className="comment-author">
-                    <span className="author-avatar-small">{comment.author_name?.[0]?.toUpperCase() || '👤'}</span>
-                    <div>
-                      <div className="comment-author-name">{comment.author_name || 'Người dùng'}</div>
-                      <div className="comment-time">{formatTime(comment.created_at)}</div>
-                    </div>
-                  </div>
-                  <div className="comment-content">{comment.content}</div>
+              {loadingComments ? (
+                <div className="loading-comments">
+                  <p>Đang tải bình luận...</p>
                 </div>
-              ))}
+              ) : comments.length === 0 ? (
+                <div className="no-comments">
+                  <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận! 💬</p>
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="comment-item">
+                    <div className="comment-author">
+                      <span className="author-avatar-small">{comment.author_name?.[0]?.toUpperCase() || '👤'}</span>
+                      <div>
+                        <div className="comment-author-name">{comment.author_name || 'Người dùng'}</div>
+                        <div className="comment-time">{formatTime(comment.created_at)}</div>
+                      </div>
+                    </div>
+                    <div className="comment-content">{comment.content}</div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </motion.div>
