@@ -23,6 +23,13 @@ const Community = () => {
   const categories = ['Tất cả', 'Học bổng', 'Cuộc sống', 'Học tiếng', 'Visa', 'Tuyển dụng'];
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+  
+  // Log API URL on mount for debugging
+  useEffect(() => {
+    console.log('🔗 Community Component mounted');
+    console.log('🔗 API URL:', API_URL);
+    console.log('🔗 Environment:', process.env.NODE_ENV);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load posts from API when filters change
   useEffect(() => {
@@ -76,9 +83,15 @@ const Community = () => {
         offset: '0'
       });
       
-      const response = await fetch(`${API_URL}/api/community/posts?${params}`);
+      const url = `${API_URL}/api/community/posts?${params}`;
+      console.log('📤 Loading posts from:', url);
+      
+      const response = await fetch(url);
+      console.log('📥 Response status:', response.status, response.statusText);
+      
       if (response.ok) {
         let data = await response.json();
+        console.log('✅ Loaded posts:', data.length, 'items');
         
         // Client-side search filtering
         if (searchQuery.trim()) {
@@ -93,11 +106,15 @@ const Community = () => {
         setPosts(data);
         setHasMore(data.length >= 20);
       } else {
-        throw new Error('Failed to load posts');
+        const errorText = await response.text();
+        console.error('❌ API Error:', response.status, errorText);
+        setPosts([]);
       }
     } catch (error) {
-      console.error('Error loading posts:', error);
-      alert('Không thể tải bài viết. Vui lòng thử lại sau.');
+      console.error('❌ Error loading posts:', error);
+      console.error('API_URL:', API_URL);
+      // Don't show alert, just log and show empty state
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -259,21 +276,29 @@ const Community = () => {
     }
 
     try {
+      const postPayload = {
+        author_name: postData.author_name || userEmail.split('@')[0] || 'Người dùng',
+        author_email: userEmail,
+        title: postData.title,
+        content: postData.content,
+        category: postData.category || 'Tất cả',
+        tags: postData.tags || [],
+        type: activeTab === 'discussions' ? 'discussion' : activeTab === 'questions' ? 'question' : 'experience'
+      };
+      
+      console.log('📤 Creating post:', { API_URL, payload: postPayload });
+      
       const response = await fetch(`${API_URL}/api/community/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          author_name: postData.author_name || userEmail.split('@')[0] || 'Người dùng',
-          author_email: userEmail,
-          title: postData.title,
-          content: postData.content,
-          category: postData.category || 'Tất cả',
-          tags: postData.tags || [],
-          type: activeTab === 'discussions' ? 'discussion' : activeTab === 'questions' ? 'question' : 'experience'
-        })
+        body: JSON.stringify(postPayload)
       });
 
+      console.log('📥 Response status:', response.status, response.statusText);
+
       if (response.ok) {
+        const newPost = await response.json();
+        console.log('✅ Post created:', newPost);
         setShowNewPostForm(false);
         loadPosts();
         
@@ -288,12 +313,13 @@ const Community = () => {
           showPointsNotification(50);
         }
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || 'Có lỗi xảy ra. Vui lòng thử lại.');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('❌ Create post error:', errorData);
+        alert(errorData.error || `Có lỗi xảy ra (${response.status}). Vui lòng thử lại.`);
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet và thử lại.');
+      console.error('❌ Error creating post:', error);
+      alert(`Không thể kết nối đến server: ${error.message}. Vui lòng kiểm tra kết nối internet và thử lại.`);
     }
   };
 
