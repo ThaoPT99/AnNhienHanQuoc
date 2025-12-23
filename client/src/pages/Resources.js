@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './Resources.css';
 
 const Resources = () => {
@@ -205,6 +206,10 @@ const Resources = () => {
           a.click();
           window.URL.revokeObjectURL(url);
           document.body.removeChild(a);
+          
+          // Add points for downloading resource
+          const result = addPoints(POINTS_REWARDS.RESOURCE_DOWNLOAD, 'resource_download');
+          showPointsNotification(POINTS_REWARDS.RESOURCE_DOWNLOAD, result.badgeAwarded);
           
           // Don't reset email and submitted - allow multiple downloads
           // Email is saved in localStorage, so user can download multiple files

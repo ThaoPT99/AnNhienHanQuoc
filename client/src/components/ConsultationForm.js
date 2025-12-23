@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './ConsultationForm.css';
 
 const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
@@ -53,6 +54,15 @@ const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
           topikLevel: '',
           message: ''
         });
+        
+        // Add points for consultation registration (only once)
+        const consultationRegistered = localStorage.getItem('consultationRegistered');
+        if (!consultationRegistered) {
+          const result = addPoints(POINTS_REWARDS.CONSULTATION_REGISTER, 'consultation_register');
+          showPointsNotification(POINTS_REWARDS.CONSULTATION_REGISTER, result.badgeAwarded);
+          localStorage.setItem('consultationRegistered', 'true');
+        }
+        
         setTimeout(() => {
           onClose();
           setSubmitStatus(null);

@@ -10,13 +10,31 @@ const Gamification = () => {
 
   useEffect(() => {
     // Load user stats from localStorage
-    const savedPoints = localStorage.getItem('userPoints') || '0';
-    const savedLevel = localStorage.getItem('userLevel') || '1';
-    const savedBadges = JSON.parse(localStorage.getItem('userBadges') || '[]');
+    const loadStats = () => {
+      const savedPoints = localStorage.getItem('userPoints') || '0';
+      const savedLevel = localStorage.getItem('userLevel') || '1';
+      const savedBadges = JSON.parse(localStorage.getItem('userBadges') || '[]');
+      
+      setPoints(parseInt(savedPoints));
+      setLevel(parseInt(savedLevel));
+      setBadges(savedBadges);
+    };
     
-    setPoints(parseInt(savedPoints));
-    setLevel(parseInt(savedLevel));
-    setBadges(savedBadges);
+    loadStats();
+    
+    // Listen for points updates
+    const handlePointsUpdate = (event) => {
+      setPoints(event.detail.newPoints);
+      setLevel(event.detail.newLevel);
+      if (event.detail.badgeAwarded && event.detail.badgeAwarded.awarded) {
+        const currentBadges = JSON.parse(localStorage.getItem('userBadges') || '[]');
+        const newBadges = [...currentBadges, event.detail.badgeAwarded.badgeId];
+        setBadges(newBadges);
+      }
+    };
+    
+    window.addEventListener('pointsUpdated', handlePointsUpdate);
+    return () => window.removeEventListener('pointsUpdated', handlePointsUpdate);
 
     // Generate mock leaderboard
     const mockLeaderboard = [

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './ProgressTracker.css';
 
 const ProgressTracker = () => {
@@ -86,10 +87,38 @@ const ProgressTracker = () => {
   }, [progress]);
 
   const toggleStep = (stepId) => {
-    setProgress(prev => ({
-      ...prev,
-      [stepId]: !prev[stepId]
-    }));
+    setProgress(prev => {
+      const wasCompleted = prev[stepId];
+      const newProgress = {
+        ...prev,
+        [stepId]: !prev[stepId]
+      };
+      
+      // Add points when completing a step (only when marking as complete, not uncomplete)
+      if (!wasCompleted && newProgress[stepId]) {
+        const result = addPoints(POINTS_REWARDS.PROGRESS_STEP_COMPLETE, 'progress_step');
+        showPointsNotification(POINTS_REWARDS.PROGRESS_STEP_COMPLETE, result.badgeAwarded);
+        
+        // Check if all steps are completed
+        const allCompleted = steps.every(step => {
+          if (step.id === stepId) return true;
+          return newProgress[step.id];
+        });
+        
+        if (allCompleted) {
+          const progressCompleted = localStorage.getItem('progressAllCompleted');
+          if (!progressCompleted) {
+            localStorage.setItem('progressAllCompleted', 'true');
+            const badgeResult = addPoints(0, 'progress_complete');
+            if (badgeResult.badgeAwarded) {
+              showPointsNotification(0, badgeResult.badgeAwarded);
+            }
+          }
+        }
+      }
+      
+      return newProgress;
+    });
   };
 
   const getDeadline = (stepIndex) => {

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import SEO from '../components/SEO';
 import OptimizedImage from '../components/OptimizedImage';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './Contact.css';
 
 const Contact = () => {
@@ -34,6 +35,14 @@ const Contact = () => {
       const response = await axios.post(`${API_URL}/api/contacts`, formData);
       setSubmitStatus({ type: 'success', message: 'Gửi thông tin thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.' });
       setFormData({ name: '', email: '', phone: '', message: '' });
+      
+      // Add points for contacting/consultation (only once)
+      const consultationRegistered = localStorage.getItem('consultationRegistered');
+      if (!consultationRegistered) {
+        const result = addPoints(POINTS_REWARDS.CONSULTATION_REGISTER, 'consultation_register');
+        showPointsNotification(POINTS_REWARDS.CONSULTATION_REGISTER, result.badgeAwarded);
+        localStorage.setItem('consultationRegistered', 'true');
+      }
     } catch (error) {
       setSubmitStatus({ type: 'error', message: 'Có lỗi xảy ra. Vui lòng thử lại sau.' });
     } finally {

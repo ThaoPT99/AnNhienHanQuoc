@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import OptimizedImage from '../components/OptimizedImage';
 import { schools } from '../data/schoolsData';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './SchoolComparison.css';
 
 const SchoolComparison = () => {
@@ -55,7 +56,20 @@ const SchoolComparison = () => {
       if (prev.includes(schoolId)) {
         return prev.filter(id => id !== schoolId);
       } else if (prev.length < 3) {
-        return [...prev, schoolId];
+        const newSelected = [...prev, schoolId];
+        
+        // Add points when comparing schools (when at least 2 schools selected)
+        if (newSelected.length >= 2) {
+          const compareKey = `school_compare_${newSelected.sort().join('_')}`;
+          const hasCompared = localStorage.getItem(compareKey);
+          if (!hasCompared) {
+            localStorage.setItem(compareKey, 'true');
+            const result = addPoints(POINTS_REWARDS.SCHOOL_COMPARE, 'school_compare');
+            showPointsNotification(POINTS_REWARDS.SCHOOL_COMPARE, result.badgeAwarded);
+          }
+        }
+        
+        return newSelected;
       } else {
         return prev;
       }

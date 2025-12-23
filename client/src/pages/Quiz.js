@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/SEO';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './Quiz.css';
 
 const Quiz = () => {
@@ -282,6 +283,14 @@ const Quiz = () => {
     }
     
     setCurrentStep(questions.length);
+    
+    // Add points for completing quiz (only once)
+    const quizCompleted = localStorage.getItem('quizCompleted');
+    if (!quizCompleted) {
+      const result = addPoints(POINTS_REWARDS.QUIZ_COMPLETE, 'quiz_complete');
+      showPointsNotification(POINTS_REWARDS.QUIZ_COMPLETE, result.badgeAwarded);
+      localStorage.setItem('quizCompleted', 'true');
+    }
   };
 
   const resetQuiz = () => {

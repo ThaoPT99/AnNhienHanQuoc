@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import OptimizedImage from '../components/OptimizedImage';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './Videos.css';
 
 const Videos = () => {
@@ -176,7 +177,17 @@ const Videos = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className="video-card"
-              onClick={() => setSelectedVideo(video)}
+              onClick={() => {
+                setSelectedVideo(video);
+                // Add points for watching video (only once per video)
+                const watchedVideos = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
+                if (!watchedVideos.includes(video.id)) {
+                  watchedVideos.push(video.id);
+                  localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
+                  const result = addPoints(POINTS_REWARDS.VIDEO_WATCH, 'video_watch');
+                  showPointsNotification(POINTS_REWARDS.VIDEO_WATCH, result.badgeAwarded);
+                }
+              }}
             >
               <div className="video-thumbnail">
                 <OptimizedImage src={video.thumbnail} alt={video.title} loading="lazy" width="400" height="225" />

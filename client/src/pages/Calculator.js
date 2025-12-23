@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './Calculator.css';
 
 const Calculator = () => {
@@ -119,6 +120,14 @@ const Calculator = () => {
 
     // Chi phí ban đầu (sổ tiết kiệm, vé máy bay, v.v.)
     const initialCost = 50000000; // 50 triệu VNĐ
+
+    // Add points for using calculator (only once)
+    const calculatorUsed = localStorage.getItem('calculatorUsed');
+    if (!calculatorUsed) {
+      const result = addPoints(POINTS_REWARDS.CALCULATOR_USE, 'calculator_use');
+      showPointsNotification(POINTS_REWARDS.CALCULATOR_USE, result.badgeAwarded);
+      localStorage.setItem('calculatorUsed', 'true');
+    }
 
     setResult({
       tuition: {
