@@ -55,7 +55,7 @@ const Home = () => {
         structuredData={structuredData}
       />
       {/* Hero Section - Gen Z Style */}
-      <section className="hero">
+      <section className="hero" aria-label="Phần giới thiệu chính">
         <div className="hero-background">
           <div className="hero-blob hero-blob-1"></div>
           <div className="hero-blob hero-blob-2"></div>
@@ -120,16 +120,16 @@ const Home = () => {
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/contact" className="btn-primary hero-btn-primary">
+                <Link to="/contact" className="btn-primary hero-btn-primary" aria-label="Đi đến trang liên hệ để tư vấn ngay">
                   <span className="btn-text">Tư vấn ngay</span>
-                  <span className="btn-icon">💬</span>
-                  <div className="btn-glow"></div>
+                  <span className="btn-icon" aria-hidden="true">💬</span>
+                  <div className="btn-glow" aria-hidden="true"></div>
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/services" className="btn-secondary hero-btn-secondary">
+                <Link to="/services" className="btn-secondary hero-btn-secondary" aria-label="Đi đến trang dịch vụ để tìm hiểu thêm">
                   <span className="btn-text">Tìm hiểu thêm</span>
-                  <span className="btn-icon">🔍</span>
+                  <span className="btn-icon" aria-hidden="true">🔍</span>
                 </Link>
               </motion.div>
             </motion.div>
@@ -158,7 +158,7 @@ const Home = () => {
       </section>
 
       {/* Features Section - Gen Z Style */}
-      <section className="features section">
+      <section className="features section" aria-labelledby="features-heading">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -171,7 +171,7 @@ const Home = () => {
               <span>Why Choose Us</span>
               <span className="badge-sparkle">✨</span>
             </div>
-            <h2 className="section-title">Tại sao chọn chúng tôi?</h2>
+            <h2 id="features-heading" className="section-title">Tại sao chọn chúng tôi?</h2>
             <p className="section-subtitle">
               <span className="subtitle-emoji">💫</span>
               Với nhiều năm kinh nghiệm, chúng tôi tự hào là đối tác tin cậy của hàng nghìn học sinh

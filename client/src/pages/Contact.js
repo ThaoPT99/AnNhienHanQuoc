@@ -328,8 +328,12 @@ const Contact = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
+                  role={submitStatus.type === 'error' ? 'alert' : 'status'}
+                  aria-live={submitStatus.type === 'error' ? 'assertive' : 'polite'}
+                  aria-atomic="true"
+                  id="contact-form-status"
                 >
-                  <span className="status-icon">
+                  <span className="status-icon" aria-hidden="true">
                     {submitStatus.type === 'success' ? '✅' : '❌'}
                   </span>
                   {submitStatus.message}
@@ -340,16 +344,18 @@ const Contact = () => {
                 type="submit"
                 className="contact-submit-button"
                 disabled={isSubmitting}
+                aria-label={isSubmitting ? 'Đang gửi tin nhắn' : 'Gửi tin nhắn liên hệ'}
+                aria-describedby={submitStatus ? 'contact-form-status' : undefined}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <span className="button-text">
                   {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
                 </span>
-                <span className="button-icon">
+                <span className="button-icon" aria-hidden="true">
                   {isSubmitting ? '⏳' : '🚀'}
                 </span>
-                <div className="button-shine"></div>
+                <div className="button-shine" aria-hidden="true"></div>
               </motion.button>
             </form>
           </motion.div>

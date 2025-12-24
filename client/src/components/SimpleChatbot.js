@@ -1130,15 +1130,20 @@ const SimpleChatbot = () => {
       <motion.button
         className="chatbot-toggle"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? 'Đóng chatbot' : 'Mở chatbot tư vấn du học Hàn Quốc'}
+        aria-expanded={isOpen}
+        aria-controls="chatbot-window"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 1 }}
       >
-        {isOpen ? '✕' : '💬'}
+        <span aria-hidden="true">{isOpen ? '✕' : '💬'}</span>
         {!isOpen && messages.length > 1 && (
-          <span className="chatbot-badge">{messages.length - 1}</span>
+          <span className="chatbot-badge" aria-label={`${messages.length - 1} tin nhắn chưa đọc`}>
+            {messages.length - 1}
+          </span>
         )}
       </motion.button>
 
@@ -1146,7 +1151,11 @@ const SimpleChatbot = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="chatbot-window"
             className="chatbot-window"
+            role="dialog"
+            aria-label="Chatbot tư vấn du học Hàn Quốc"
+            aria-modal="false"
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -1176,26 +1185,35 @@ const SimpleChatbot = () => {
                         localStorage.removeItem(STORAGE_KEY);
                       }
                     }}
+                    aria-label="Xóa lịch sử chat"
                     title="Xóa lịch sử chat"
                   >
-                    🗑️
+                    <span aria-hidden="true">🗑️</span>
                   </button>
                 )}
                 <button
                   className="chatbot-close"
                   onClick={() => setIsOpen(false)}
+                  aria-label="Đóng chatbot"
                 >
-                  ✕
+                  <span aria-hidden="true">✕</span>
                 </button>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="chatbot-messages">
+            <div 
+              className="chatbot-messages"
+              role="log"
+              aria-live="polite"
+              aria-label="Tin nhắn chatbot"
+            >
               {messages.map((message, index) => (
                 <motion.div
                   key={index}
                   className={`chatbot-message ${message.sender}`}
+                  role={message.sender === 'bot' ? 'article' : 'article'}
+                  aria-label={message.sender === 'bot' ? 'Tin nhắn từ bot' : 'Tin nhắn của bạn'}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -1208,7 +1226,10 @@ const SimpleChatbot = () => {
                       </React.Fragment>
                     ))}
                   </div>
-                  <div className="message-time">
+                  <div className="message-time" aria-label={`Gửi lúc ${message.timestamp.toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}`}>
                     {message.timestamp.toLocaleTimeString('vi-VN', {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -1220,14 +1241,18 @@ const SimpleChatbot = () => {
               {/* Typing Indicator */}
               {isTyping && (
                 <motion.div
+                  id="typing-indicator"
                   className="chatbot-message bot typing-indicator"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Bot đang soạn tin nhắn"
                 >
                   <div className="message-content typing-content">
-                    <span className="typing-dot"></span>
-                    <span className="typing-dot"></span>
-                    <span className="typing-dot"></span>
+                    <span className="typing-dot" aria-hidden="true"></span>
+                    <span className="typing-dot" aria-hidden="true"></span>
+                    <span className="typing-dot" aria-hidden="true"></span>
                   </div>
                 </motion.div>
               )}
@@ -1256,8 +1281,12 @@ const SimpleChatbot = () => {
             )}
 
             {/* Input */}
-            <form className="chatbot-input-form" onSubmit={handleSendMessage}>
+            <form className="chatbot-input-form" onSubmit={handleSendMessage} aria-label="Form gửi tin nhắn">
+              <label htmlFor="chatbot-input" className="sr-only">
+                Nhập tin nhắn cho chatbot
+              </label>
               <input
+                id="chatbot-input"
                 type="text"
                 className="chatbot-input"
                 placeholder={isTyping ? "Bot đang trả lời..." : "Nhập tin nhắn..."}
@@ -1265,6 +1294,8 @@ const SimpleChatbot = () => {
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isTyping}
                 autoFocus
+                aria-label="Nhập tin nhắn"
+                aria-describedby={isTyping ? "typing-indicator" : undefined}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     handleSendMessage(e);
@@ -1275,8 +1306,9 @@ const SimpleChatbot = () => {
                 type="submit" 
                 className="chatbot-send-btn"
                 disabled={isTyping || !inputValue.trim()}
+                aria-label="Gửi tin nhắn"
               >
-                ➤
+                <span aria-hidden="true">➤</span>
               </button>
             </form>
           </motion.div>

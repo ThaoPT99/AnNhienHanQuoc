@@ -68,6 +68,10 @@ const ExitIntentPopup = () => {
             exit={{ opacity: 0 }}
             className="exit-intent-overlay"
             onClick={() => setIsOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exit-popup-title"
+            aria-describedby="exit-popup-description"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -76,38 +80,52 @@ const ExitIntentPopup = () => {
               className="exit-intent-popup"
               onClick={(e) => e.stopPropagation()}
             >
-              <button className="close-popup-btn" onClick={() => setIsOpen(false)}>×</button>
+              <button 
+                className="close-popup-btn" 
+                onClick={() => setIsOpen(false)}
+                aria-label="Đóng popup ưu đãi"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
               
               <div className="popup-content">
-                <div className="popup-icon">🎁</div>
-                <h2 className="popup-title">Đợi đã! Bạn có muốn nhận ưu đãi đặc biệt?</h2>
-                <p className="popup-subtitle">Đừng bỏ lỡ cơ hội du học Hàn Quốc với chi phí tốt nhất!</p>
+                <div className="popup-icon" aria-hidden="true">🎁</div>
+                <h2 id="exit-popup-title" className="popup-title">Đợi đã! Bạn có muốn nhận ưu đãi đặc biệt?</h2>
+                <p id="exit-popup-description" className="popup-subtitle">Đừng bỏ lỡ cơ hội du học Hàn Quốc với chi phí tốt nhất!</p>
                 
-                <div className="popup-offers">
-                  <div className="offer-item">
-                    <span className="offer-icon">✅</span>
+                <ul className="popup-offers" role="list">
+                  <li className="offer-item" role="listitem">
+                    <span className="offer-icon" aria-hidden="true">✅</span>
                     <span>Tư vấn miễn phí 100%</span>
-                  </div>
-                  <div className="offer-item">
-                    <span className="offer-icon">📚</span>
+                  </li>
+                  <li className="offer-item" role="listitem">
+                    <span className="offer-icon" aria-hidden="true">📚</span>
                     <span>Tài liệu du học Hàn Quốc miễn phí</span>
-                  </div>
-                  <div className="offer-item">
-                    <span className="offer-icon">🎓</span>
+                  </li>
+                  <li className="offer-item" role="listitem">
+                    <span className="offer-icon" aria-hidden="true">🎓</span>
                     <span>Hỗ trợ làm hồ sơ 0 đồng</span>
-                  </div>
-                  <div className="offer-item">
-                    <span className="offer-icon">💰</span>
+                  </li>
+                  <li className="offer-item" role="listitem">
+                    <span className="offer-icon" aria-hidden="true">💰</span>
                     <span>Ưu đãi học phí lên đến 50%</span>
-                  </div>
-                </div>
+                  </li>
+                </ul>
 
                 <div className="popup-actions">
-                  <button className="primary-action-btn" onClick={handleGetOffer}>
-                    🎯 Nhận ưu đãi ngay
+                  <button 
+                    className="primary-action-btn" 
+                    onClick={handleGetOffer}
+                    aria-label="Nhận ưu đãi đặc biệt ngay"
+                  >
+                    <span aria-hidden="true">🎯</span> Nhận ưu đãi ngay
                   </button>
-                  <button className="secondary-action-btn" onClick={handleDownloadResource}>
-                    📥 Tải tài liệu miễn phí
+                  <button 
+                    className="secondary-action-btn" 
+                    onClick={handleDownloadResource}
+                    aria-label="Tải tài liệu du học Hàn Quốc miễn phí"
+                  >
+                    <span aria-hidden="true">📥</span> Tải tài liệu miễn phí
                   </button>
                 </div>
 

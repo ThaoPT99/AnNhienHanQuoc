@@ -12,6 +12,7 @@ import PWAInstall from './components/PWAInstall';
 import PageViewTracker from './components/PageViewTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
+import SkipToContent from './components/SkipToContent';
 import './App.css';
 
 // Lazy load pages for better performance
@@ -50,10 +51,12 @@ function App() {
       <Router>
         <ErrorBoundary>
           <PageViewTracker />
+          <SkipToContent />
           <div className="App">
             <Navbar />
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
+            <main id="main-content">
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/services" element={<Services />} />
@@ -82,8 +85,9 @@ function App() {
                 <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin-gallery" element={<AdminGallery />} />
-              </Routes>
-            </Suspense>
+                </Routes>
+              </Suspense>
+            </main>
             <Footer />
             <SimpleChatbot />
             <ConsultationButton />

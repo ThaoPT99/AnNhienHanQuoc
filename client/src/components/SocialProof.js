@@ -78,9 +78,10 @@ const SocialProof = () => {
           <button 
             className="social-proof-toggle"
             onClick={() => setIsExpanded(!isExpanded)}
-            aria-label={isExpanded ? 'Thu gọn' : 'Mở rộng'}
+            aria-label={isExpanded ? 'Thu gọn thông tin xã hội' : 'Mở rộng thông tin xã hội'}
+            aria-expanded={isExpanded}
           >
-            {isExpanded ? '▼' : '▲'}
+            <span aria-hidden="true">{isExpanded ? '▼' : '▲'}</span>
           </button>
 
           {/* Main stats - always visible */}

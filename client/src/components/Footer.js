@@ -29,8 +29,8 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="footer">
-      <div className="footer-background">
+    <footer className="footer" role="contentinfo">
+      <div className="footer-background" aria-hidden="true">
         <div className="footer-blob footer-blob-1"></div>
         <div className="footer-blob footer-blob-2"></div>
         <div className="footer-blob footer-blob-3"></div>
@@ -40,7 +40,7 @@ const Footer = () => {
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 4}s`,
               animationDuration: `${5 + Math.random() * 3}s`
-            }}></div>
+            }} aria-hidden="true"></div>
           ))}
         </div>
       </div>
@@ -54,19 +54,19 @@ const Footer = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="brand-logo-wrapper">
-              <div className="brand-icon-wrapper">
-                <span className="brand-icon">🇰🇷</span>
+              <div className="brand-icon-wrapper" aria-hidden="true">
+                <span className="brand-icon" aria-hidden="true">🇰🇷</span>
                 <div className="brand-icon-glow"></div>
               </div>
               <h3 className="brand-title">
-                <span className="brand-kr">KR</span>
+                <span className="brand-kr" aria-hidden="true">KR</span>
                 <span className="brand-main">Du học An Nhiên</span>
               </h3>
             </div>
             <p className="brand-tagline">
-              <span className="tagline-icon">✨</span>
+              <span className="tagline-icon" aria-hidden="true">✨</span>
               Đồng hành cùng bạn trên hành trình du học Hàn Quốc
-              <span className="tagline-icon">✨</span>
+              <span className="tagline-icon" aria-hidden="true">✨</span>
             </p>
           </motion.div>
           
@@ -78,20 +78,20 @@ const Footer = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <h4 className="section-title">
-              <span className="title-icon">💬</span>
+              <span className="title-icon" aria-hidden="true">💬</span>
               Liên hệ
             </h4>
-            <div className="contact-item">
-              <span className="contact-icon">📍</span>
+            <address className="contact-item">
+              <span className="contact-icon" aria-hidden="true">📍</span>
               <span>Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội</span>
+            </address>
+            <div className="contact-item">
+              <span className="contact-icon" aria-hidden="true">📞</span>
+              <a href="tel:0961321930" aria-label="Gọi điện thoại 0961321930">0961321930</a>
             </div>
             <div className="contact-item">
-              <span className="contact-icon">📞</span>
-              <a href="tel:0961321930">0961321930</a>
-            </div>
-            <div className="contact-item">
-              <span className="contact-icon">📧</span>
-              <a href="mailto:annhienduhochan@gmail.com">annhienduhochan@gmail.com</a>
+              <span className="contact-icon" aria-hidden="true">📧</span>
+              <a href="mailto:annhienduhochan@gmail.com" aria-label="Gửi email đến annhienduhochan@gmail.com">annhienduhochan@gmail.com</a>
             </div>
           </motion.div>
           
@@ -119,10 +119,11 @@ const Footer = () => {
                     to={link.path} 
                     className="quick-link"
                     onClick={scrollToTop}
+                    aria-label={`Đi đến trang ${link.label}`}
                   >
-                    <span className="link-icon">{link.icon}</span>
+                    <span className="link-icon" aria-hidden="true">{link.icon}</span>
                     <span className="link-text">{link.label}</span>
-                    <div className="link-accent"></div>
+                    <div className="link-accent" aria-hidden="true"></div>
                   </Link>
                 </motion.div>
               ))}
@@ -149,6 +150,7 @@ const Footer = () => {
                   rel={social.url !== '#' ? "noopener noreferrer" : undefined}
                   className="social-link"
                   style={{ '--social-color': social.color }}
+                  aria-label={`Theo dõi chúng tôi trên ${social.label}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
@@ -156,9 +158,9 @@ const Footer = () => {
                   whileHover={{ scale: 1.1, y: -5 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span className="social-icon">{social.icon}</span>
+                  <span className="social-icon" aria-hidden="true">{social.icon}</span>
                   <span className="social-label">{social.label}</span>
-                  <div className="social-glow"></div>
+                  <div className="social-glow" aria-hidden="true"></div>
                 </motion.a>
               ))}
             </div>

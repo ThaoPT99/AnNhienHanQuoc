@@ -104,12 +104,24 @@ const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             className="consultation-modal"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="consultation-title"
+            aria-describedby="consultation-description"
           >
-            <button className="close-consultation-btn" onClick={onClose}>×</button>
+            <button 
+              className="close-consultation-btn" 
+              onClick={onClose}
+              aria-label="Đóng form đăng ký tư vấn"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
             
             <div className="consultation-header">
-              <h2>🎓 Đăng ký tư vấn miễn phí</h2>
-              <p>Điền thông tin để nhận tư vấn chi tiết về du học Hàn Quốc</p>
+              <h2 id="consultation-title">
+                <span aria-hidden="true">🎓</span> Đăng ký tư vấn miễn phí
+              </h2>
+              <p id="consultation-description">Điền thông tin để nhận tư vấn chi tiết về du học Hàn Quốc</p>
             </div>
 
             {submitStatus === 'success' ? (
@@ -117,13 +129,16 @@ const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 className="consultation-success"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
               >
-                <div className="success-icon">✅</div>
+                <div className="success-icon" aria-hidden="true">✅</div>
                 <h3>Cảm ơn bạn đã đăng ký!</h3>
                 <p>Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.</p>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="consultation-form">
+              <form onSubmit={handleSubmit} className="consultation-form" aria-label="Form đăng ký tư vấn">
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="name">Họ và tên *</label>
@@ -273,16 +288,32 @@ const ConsultationForm = ({ isOpen, onClose, triggerSource = 'general' }) => {
                 </div>
 
                 {submitStatus === 'error' && (
-                  <div className="form-error">
+                  <div 
+                    className="form-error"
+                    role="alert"
+                    aria-live="assertive"
+                    id="form-error-message"
+                  >
                     Có lỗi xảy ra. Vui lòng thử lại sau.
                   </div>
                 )}
 
                 <div className="form-actions">
-                  <button type="button" onClick={onClose} className="cancel-btn">
+                  <button 
+                    type="button" 
+                    onClick={onClose} 
+                    className="cancel-btn"
+                    aria-label="Hủy đăng ký tư vấn"
+                  >
                     Hủy
                   </button>
-                  <button type="submit" className="submit-btn" disabled={isSubmitting}>
+                  <button 
+                    type="submit" 
+                    className="submit-btn" 
+                    disabled={isSubmitting}
+                    aria-label={isSubmitting ? 'Đang gửi đăng ký' : 'Gửi đăng ký tư vấn'}
+                    aria-describedby={submitStatus === 'error' ? 'form-error-message' : undefined}
+                  >
                     {isSubmitting ? 'Đang gửi...' : 'Gửi đăng ký'}
                   </button>
                 </div>
