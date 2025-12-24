@@ -16,6 +16,7 @@ const Community = () => {
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [editingPost, setEditingPost] = useState(null);
+  const [modalKey, setModalKey] = useState(0); // Key to force modal remount
   const [userEmail, setUserEmail] = useState(() => {
     return localStorage.getItem('resource_download_email') || '';
   });
@@ -211,14 +212,17 @@ const Community = () => {
   };
 
   const handleViewPost = async (post, scrollToComments = false) => {
-    setSelectedPost(post);
-    // Load comments
+    // Increment modal key to force remount and reload comments
+    setModalKey(prev => prev + 1);
+    
+    // Always load fresh post details (including comments) from API
     try {
       console.log('📤 Loading post details:', post.id, 'scrollToComments:', scrollToComments);
       const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
       if (response.ok) {
         const data = await response.json();
         console.log('📥 Post details loaded:', data);
+        // Set selectedPost with fresh data including comments
         setSelectedPost({ ...post, ...data });
         
         // If scrollToComments is true, scroll to comment form after modal opens
@@ -241,9 +245,14 @@ const Community = () => {
             }
           }, 500);
         }
+      } else {
+        // If API fails, still set the post (fallback)
+        setSelectedPost(post);
       }
     } catch (error) {
       console.error('Error loading post details:', error);
+      // If error, still set the post (fallback)
+      setSelectedPost(post);
     }
   };
 
@@ -635,6 +644,7 @@ const Community = () => {
 
       {selectedPost && (
         <PostDetailModal
+          key={`post-${selectedPost.id}-${modalKey}`}
           post={selectedPost}
           userEmail={userEmail}
           onClose={() => setSelectedPost(null)}
@@ -1061,14 +1071,16 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
   };
 
   useEffect(() => {
-    // Load comments immediately when modal opens
+    // Always load fresh comments from API when modal opens
+    // This ensures we get the latest comments even if modal is reopened for the same post
     console.log('🔄 Modal opened, loading comments for post:', post.id);
     loadComments();
     
     if (userEmail) {
       checkLiked();
     }
-  }, [post.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post.id]); // Load comments whenever post.id changes
 
   // Scroll to comment form
   const scrollToCommentForm = () => {
@@ -1116,23 +1128,6 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
     } catch (error) {
       console.error('Error submitting comment:', error);
       // Error is already handled in handleComment
-    }
-  };
-
-  const loadComments = async () => {
-    try {
-      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-      console.log('📤 Loading comments for post:', post.id);
-      const response = await fetch(`${API_URL}/api/community/posts/${post.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('📥 Loaded comments:', data.comments?.length || 0);
-        setComments(data.comments || []);
-      } else {
-        console.error('❌ Failed to load comments:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Error loading comments:', error);
     }
   };
 
