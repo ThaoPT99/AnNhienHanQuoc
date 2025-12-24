@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import OptimizedImage from '../components/OptimizedImage';
@@ -6,6 +6,8 @@ import CountdownTimer from '../components/CountdownTimer';
 import './Events.css';
 
 const Events = () => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [registrationForm, setRegistrationForm] = useState({
     name: '',
@@ -26,123 +28,45 @@ const Events = () => {
     }
   };
 
-  const events = [
-    {
-      id: 1,
-      title: 'Hội thảo du học Hàn Quốc 2025',
-      date: '25/01/2025',
-      time: '14:00 - 17:00',
-      location: 'Văn phòng Du học An Nhiên, Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội',
-      type: 'Hội thảo',
-      status: 'upcoming',
-      image: 'https://res.cloudinary.com/dy84xpayv/image/upload/v1765942857/z7335282956837_dccc007a84cec34742579005d959eaec_j7sjs7.jpg',
-      description: 'Hội thảo giới thiệu về du học Hàn Quốc 2025 với các chủ đề: Chi phí du học, Học bổng, Visa, Chọn trường phù hợp. Có tư vấn trực tiếp với các chuyên gia.',
-      agenda: [
-        '14:00 - 14:30: Đón tiếp và khai mạc',
-        '14:30 - 15:30: Giới thiệu tổng quan về du học Hàn Quốc',
-        '15:30 - 16:00: Chia sẻ kinh nghiệm từ cựu du học sinh',
-        '16:00 - 17:00: Tư vấn trực tiếp và giải đáp thắc mắc'
-      ],
-      speakers: [
-        'Chuyên gia tư vấn Du học An Nhiên',
-        'Cựu du học sinh Đại học Yonsei',
-        'Đại diện các trường đại học Hàn Quốc'
-      ],
-      capacity: 50,
-      registered: 32
-    },
-    {
-      id: 2,
-      title: 'Workshop: Luyện thi TOPIK hiệu quả',
-      date: '02/02/2025',
-      time: '09:00 - 12:00',
-      location: 'Online (Zoom)',
-      type: 'Workshop',
-      status: 'upcoming',
-      image: 'https://i.pinimg.com/736x/30/1a/09/301a09086923fa9127185cdad0d995d8.jpg',
-      description: 'Workshop hướng dẫn phương pháp luyện thi TOPIK hiệu quả, chia sẻ tips và tricks để đạt điểm cao. Phù hợp cho người mới bắt đầu và đang ôn thi.',
-      agenda: [
-        '09:00 - 09:30: Giới thiệu về kỳ thi TOPIK',
-        '09:30 - 10:30: Phương pháp luyện thi từng kỹ năng',
-        '10:30 - 11:00: Nghỉ giải lao',
-        '11:00 - 12:00: Tips và tricks, Q&A'
-      ],
-      speakers: [
-        'Giáo viên tiếng Hàn TOPIK 6',
-        'Chuyên gia luyện thi TOPIK'
-      ],
-      capacity: 100,
-      registered: 67
-    },
-    {
-      id: 3,
-      title: 'Webinar: Học bổng du học Hàn Quốc 2025',
-      date: '10/02/2025',
-      time: '19:00 - 20:30',
-      location: 'Online (Facebook Live)',
-      type: 'Webinar',
-      status: 'upcoming',
-      image: 'https://i.pinimg.com/1200x/0e/da/d5/0edad57379e672c6dd8f659d991aa185.jpg',
-      description: 'Webinar giới thiệu các loại học bổng du học Hàn Quốc, cách xin học bổng và những lưu ý quan trọng. Phù hợp cho học sinh có ý định xin học bổng.',
-      agenda: [
-        '19:00 - 19:15: Giới thiệu các loại học bổng',
-        '19:15 - 19:45: Cách xin học bổng thành công',
-        '19:45 - 20:15: Chia sẻ từ học sinh đã nhận học bổng',
-        '20:15 - 20:30: Q&A'
-      ],
-      speakers: [
-        'Chuyên gia tư vấn học bổng',
-        'Học sinh đã nhận học bổng KGSP'
-      ],
-      capacity: 500,
-      registered: 234
-    },
-    {
-      id: 4,
-      title: 'Hội thảo: Chọn trường và ngành học phù hợp',
-      date: '15/02/2025',
-      time: '14:00 - 17:00',
-      location: 'Văn phòng Du học An Nhiên, Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa, Cầu Giấy, Hà Nội',
-      type: 'Hội thảo',
-      status: 'upcoming',
-      image: 'https://i.pinimg.com/1200x/49/6b/f6/496bf6ea630f923608b20c08c7af05ae.jpg',
-      description: 'Hội thảo tư vấn chọn trường và ngành học phù hợp với năng lực, sở thích và khả năng tài chính. Có test năng lực và tư vấn cá nhân.',
-      agenda: [
-        '14:00 - 14:30: Đón tiếp',
-        '14:30 - 15:30: Giới thiệu các trường và ngành học',
-        '15:30 - 16:00: Test năng lực và sở thích',
-        '16:00 - 17:00: Tư vấn cá nhân chọn trường'
-      ],
-      speakers: [
-        'Chuyên gia tư vấn chọn trường',
-        'Đại diện các trường đại học Hàn Quốc'
-      ],
-      capacity: 40,
-      registered: 18
-    },
-    {
-      id: 5,
-      title: 'Hội thảo du học Hàn Quốc - Tháng 12/2024',
-      date: '20/12/2024',
-      time: '14:00 - 17:00',
-      location: 'Văn phòng Du học An Nhiên',
-      type: 'Hội thảo',
-      status: 'past',
-      image: 'https://i.pinimg.com/1200x/52/cf/09/52cf090db4bf9bcbf3f386cd1693e50c.jpg',
-      description: 'Hội thảo đã diễn ra thành công với sự tham gia của hơn 50 phụ huynh và học sinh.',
-      attendees: 52,
-      highlights: [
-        'Hơn 50 người tham gia',
-        'Nhiều câu hỏi được giải đáp',
-        'Nhiều học sinh đăng ký tư vấn'
-      ]
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return '';
+    // If already in DD/MM/YYYY format, return as is
+    if (dateStr.includes('/')) return dateStr;
+    // If in YYYY-MM-DD format, convert to DD/MM/YYYY
+    if (dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
-  ];
+    return dateStr;
+  };
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/events/list`);
+        if (response.ok) {
+          const data = await response.json();
+          setEvents(data);
+        } else {
+          console.error('Failed to fetch events');
+          setEvents([]);
+        }
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, [API_URL]);
 
   const handleRegistration = async (e) => {
     e.preventDefault();
-    
-    const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
     
     try {
       const response = await fetch(`${API_URL}/api/events/register`, {
@@ -173,6 +97,16 @@ const Events = () => {
 
   const upcomingEvents = events.filter(e => e.status === 'upcoming');
   const pastEvents = events.filter(e => e.status === 'past');
+
+  if (loading) {
+    return (
+      <div className="events-page">
+        <div style={{ textAlign: 'center', padding: '100px 20px' }}>
+          <div className="loading">Đang tải sự kiện...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="events-page">
@@ -214,14 +148,27 @@ const Events = () => {
               <span>🎯</span>
               <span className="section-title-text">Sự kiện sắp tới</span>
             </h2>
-            {upcomingEvents[0] && (
-              <div className="event-countdown-wrapper">
-                <CountdownTimer 
-                  targetDate={new Date(upcomingEvents[0].date.split('/').reverse().join('-')).toISOString()}
-                  title={`⏰ ${upcomingEvents[0].title} bắt đầu sau`}
-                />
-              </div>
-            )}
+            {upcomingEvents[0] && upcomingEvents[0].date && (() => {
+              // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+              let dateStr = upcomingEvents[0].date;
+              let targetDate;
+              if (dateStr.includes('/')) {
+                // DD/MM/YYYY format
+                const parts = dateStr.split('/');
+                targetDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+              } else {
+                // YYYY-MM-DD format
+                targetDate = new Date(dateStr);
+              }
+              return (
+                <div className="event-countdown-wrapper">
+                  <CountdownTimer 
+                    targetDate={targetDate.toISOString()}
+                    title={`⏰ ${upcomingEvents[0].title} bắt đầu sau`}
+                  />
+                </div>
+              );
+            })()}
             <div className="events-grid">
               {upcomingEvents.map((event, index) => (
                 <motion.div
@@ -241,7 +188,7 @@ const Events = () => {
                     <div className="event-meta">
                       <div className="meta-item">
                         <span className="meta-icon">📅</span>
-                        <span>{event.date}</span>
+                        <span>{formatDateDisplay(event.date)}</span>
                       </div>
                       <div className="meta-item">
                         <span className="meta-icon">⏰</span>
@@ -307,11 +254,11 @@ const Events = () => {
                     <div className="event-meta">
                       <div className="meta-item">
                         <span className="meta-icon">📅</span>
-                        <span>{event.date}</span>
+                        <span>{formatDateDisplay(event.date)}</span>
                       </div>
                       <div className="meta-item">
                         <span className="meta-icon">👥</span>
-                        <span>{event.attendees} người tham gia</span>
+                        <span>{event.registered || 0} người tham gia</span>
                       </div>
                     </div>
                     <p className="event-description">{event.description}</p>
@@ -353,7 +300,7 @@ const Events = () => {
             
             <div className="event-details">
               <div className="detail-item">
-                <strong>📅 Ngày:</strong> {selectedEvent.date}
+                <strong>📅 Ngày:</strong> {formatDateDisplay(selectedEvent.date)}
               </div>
               <div className="detail-item">
                 <strong>⏰ Giờ:</strong> {selectedEvent.time}

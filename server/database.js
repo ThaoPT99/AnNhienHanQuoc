@@ -124,7 +124,7 @@ function initializeDatabase() {
       }
     });
 
-    // Create events table
+    // Create events table (for registrations)
     db.run(`CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       event_id INTEGER NOT NULL,
@@ -138,6 +138,30 @@ function initializeDatabase() {
         console.error('Error creating events table:', err.message);
       } else {
         console.log('✅ Events table ready');
+      }
+    });
+
+    // Create event_details table (for event information)
+    db.run(`CREATE TABLE IF NOT EXISTS event_details (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL,
+      location TEXT NOT NULL,
+      type TEXT DEFAULT 'Hội thảo',
+      status TEXT DEFAULT 'upcoming',
+      image TEXT,
+      agenda TEXT,
+      speakers TEXT,
+      capacity INTEGER DEFAULT 50,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating event_details table:', err.message);
+      } else {
+        console.log('✅ Event details table ready');
       }
     });
 
@@ -579,6 +603,180 @@ const dbHelpers = {
 
   getAllEventRegistrations: (callback) => {
     db.all('SELECT * FROM events ORDER BY registered_at DESC', callback);
+  },
+
+  // Event details functions (CRUD)
+  createEvent: (eventData, callback) => {
+    const { title, description, date, time, location, type, status, image, agenda, speakers, capacity } = eventData;
+    const agendaJson = Array.isArray(agenda) ? JSON.stringify(agenda) : agenda || '[]';
+    const speakersJson = Array.isArray(speakers) ? JSON.stringify(speakers) : speakers || '[]';
+    
+    db.run(
+      `INSERT INTO event_details (title, description, date, time, location, type, status, image, agenda, speakers, capacity) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, description, date, time, location, type || 'Hội thảo', status || 'upcoming', image, agendaJson, speakersJson, capacity || 50],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          const eventId = this.lastID;
+          db.get('SELECT * FROM event_details WHERE id = ?', [eventId], (err, event) => {
+            if (err) {
+              callback(err, null);
+            } else {
+              // Parse JSON fields
+              if (event.agenda) {
+                try {
+                  event.agenda = JSON.parse(event.agenda);
+                } catch (e) {
+                  event.agenda = [];
+                }
+              } else {
+                event.agenda = [];
+              }
+              if (event.speakers) {
+                try {
+                  event.speakers = JSON.parse(event.speakers);
+                } catch (e) {
+                  event.speakers = [];
+                }
+              } else {
+                event.speakers = [];
+              }
+              // Get registered count
+              db.get('SELECT COUNT(*) as count FROM events WHERE event_id = ?', [eventId], (err, result) => {
+                if (!err && result) event.registered = result.count || 0;
+                else event.registered = 0;
+                callback(null, event);
+              });
+            }
+          });
+        }
+      }
+    );
+  },
+
+  getAllEvents: (callback) => {
+    db.all('SELECT * FROM event_details ORDER BY date DESC, created_at DESC', (err, events) => {
+      if (err) {
+        callback(err, null);
+        return;
+      }
+      
+      if (!events || events.length === 0) {
+        callback(null, []);
+        return;
+      }
+
+      // Parse JSON fields and get registered count for each event
+      const processedEvents = events.map((event) => {
+        if (event.agenda) {
+          try {
+            event.agenda = JSON.parse(event.agenda);
+          } catch (e) {
+            event.agenda = [];
+          }
+        } else {
+          event.agenda = [];
+        }
+        if (event.speakers) {
+          try {
+            event.speakers = JSON.parse(event.speakers);
+          } catch (e) {
+            event.speakers = [];
+          }
+        } else {
+          event.speakers = [];
+        }
+        return event;
+      });
+
+      // Get registered count for all events
+      const promises = processedEvents.map((event) => {
+        return new Promise((resolve) => {
+          db.get('SELECT COUNT(*) as count FROM events WHERE event_id = ?', [event.id], (err, result) => {
+            if (!err && result) {
+              event.registered = result.count || 0;
+            } else {
+              event.registered = 0;
+            }
+            resolve(event);
+          });
+        });
+      });
+
+      Promise.all(promises).then(processed => {
+        callback(null, processed);
+      }).catch(err => {
+        callback(err, null);
+      });
+    });
+  },
+
+  getEventById: (id, callback) => {
+    db.get('SELECT * FROM event_details WHERE id = ?', [id], (err, event) => {
+      if (err) {
+        callback(err, null);
+      } else if (!event) {
+        callback(new Error('Event not found'), null);
+      } else {
+        // Parse JSON fields
+        if (event.agenda) {
+          try {
+            event.agenda = JSON.parse(event.agenda);
+          } catch (e) {
+            event.agenda = [];
+          }
+        } else {
+          event.agenda = [];
+        }
+        if (event.speakers) {
+          try {
+            event.speakers = JSON.parse(event.speakers);
+          } catch (e) {
+            event.speakers = [];
+          }
+        } else {
+          event.speakers = [];
+        }
+        
+        // Get registered count
+        db.get('SELECT COUNT(*) as count FROM events WHERE event_id = ?', [id], (err, result) => {
+          if (!err) event.registered = result ? (result.count || 0) : 0;
+          callback(null, event);
+        });
+      }
+    });
+  },
+
+  updateEvent: (id, eventData, callback) => {
+    const { title, description, date, time, location, type, status, image, agenda, speakers, capacity } = eventData;
+    const agendaJson = Array.isArray(agenda) ? JSON.stringify(agenda) : agenda || '[]';
+    const speakersJson = Array.isArray(speakers) ? JSON.stringify(speakers) : speakers || '[]';
+    
+    db.run(
+      `UPDATE event_details 
+       SET title = ?, description = ?, date = ?, time = ?, location = ?, type = ?, status = ?, image = ?, agenda = ?, speakers = ?, capacity = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [title, description, date, time, location, type, status, image, agendaJson, speakersJson, capacity, id],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          dbHelpers.getEventById(id, callback);
+        }
+      }
+    );
+  },
+
+  deleteEvent: (id, callback) => {
+    db.run('DELETE FROM event_details WHERE id = ?', [id], function(err) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, { deleted: this.changes > 0 });
+      }
+    });
   },
 
   // Recruitment application functions

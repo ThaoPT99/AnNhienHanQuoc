@@ -442,6 +442,152 @@ app.get('/api/events/registrations', (req, res) => {
   });
 });
 
+// Event Details CRUD API
+// Get all events (public)
+app.get('/api/events/list', (req, res) => {
+  dbHelpers.getAllEvents((err, events) => {
+    if (err) {
+      console.error('Error getting events:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(events);
+  });
+});
+
+// Get event by ID (public)
+app.get('/api/events/list/:id', (req, res) => {
+  const eventId = parseInt(req.params.id);
+  if (isNaN(eventId)) {
+    res.status(400).json({ error: 'Invalid event ID' });
+    return;
+  }
+  dbHelpers.getEventById(eventId, (err, event) => {
+    if (err) {
+      console.error('Error getting event:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+    res.json(event);
+  });
+});
+
+// Create event (admin only)
+app.post('/api/events/list', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const { title, description, date, time, location, type, status, image, agenda, speakers, capacity } = req.body;
+  
+  if (!title || !date || !time || !location) {
+    res.status(400).json({ error: 'Title, date, time, and location are required' });
+    return;
+  }
+
+  dbHelpers.createEvent({
+    title,
+    description,
+    date,
+    time,
+    location,
+    type,
+    status,
+    image,
+    agenda,
+    speakers,
+    capacity
+  }, (err, event) => {
+    if (err) {
+      console.error('Error creating event:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json(event);
+  });
+});
+
+// Update event (admin only)
+app.put('/api/events/list/:id', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const eventId = parseInt(req.params.id);
+  if (isNaN(eventId)) {
+    res.status(400).json({ error: 'Invalid event ID' });
+    return;
+  }
+
+  const { title, description, date, time, location, type, status, image, agenda, speakers, capacity } = req.body;
+  
+  if (!title || !date || !time || !location) {
+    res.status(400).json({ error: 'Title, date, time, and location are required' });
+    return;
+  }
+
+  dbHelpers.updateEvent(eventId, {
+    title,
+    description,
+    date,
+    time,
+    location,
+    type,
+    status,
+    image,
+    agenda,
+    speakers,
+    capacity
+  }, (err, event) => {
+    if (err) {
+      console.error('Error updating event:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!event) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+    res.json(event);
+  });
+});
+
+// Delete event (admin only)
+app.delete('/api/events/list/:id', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const eventId = parseInt(req.params.id);
+  if (isNaN(eventId)) {
+    res.status(400).json({ error: 'Invalid event ID' });
+    return;
+  }
+
+  dbHelpers.deleteEvent(eventId, (err, result) => {
+    if (err) {
+      console.error('Error deleting event:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!result || !result.deleted) {
+      res.status(404).json({ error: 'Event not found' });
+      return;
+    }
+    res.json({ message: 'Event deleted successfully' });
+  });
+});
+
 // Get all newsletter subscribers (for admin)
 app.get('/api/newsletter/subscribers', (req, res) => {
   const token = req.headers['x-admin-token'];

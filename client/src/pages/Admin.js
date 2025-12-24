@@ -15,6 +15,22 @@ const Admin = () => {
   const [visits, setVisits] = useState([]);
   const [visitStats, setVisitStats] = useState([]);
   const [communityPosts, setCommunityPosts] = useState([]);
+  const [eventList, setEventList] = useState([]);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    type: 'Hội thảo',
+    status: 'upcoming',
+    image: '',
+    agenda: [],
+    speakers: [],
+    capacity: 50
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -38,7 +54,7 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
@@ -48,7 +64,8 @@ const Admin = () => {
         axios.get(`${API_URL}/api/consultation/bookings`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/visits`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/community/posts/admin/all`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/community/posts/admin/all`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/events/list`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -61,6 +78,7 @@ const Admin = () => {
       setVisits(visitsRes.data || []);
       setVisitStats(statsRes.data || []);
       setCommunityPosts(communityRes.data || []);
+      setEventList(eventListRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -129,6 +147,129 @@ const Admin = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleCreateEvent = () => {
+    setEditingEvent(null);
+    setEventForm({
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      location: '',
+      type: 'Hội thảo',
+      status: 'upcoming',
+      image: '',
+      agenda: [],
+      speakers: [],
+      capacity: 50
+    });
+    setShowEventModal(true);
+  };
+
+  const handleEditEvent = (event) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title || '',
+      description: event.description || '',
+      date: event.date || '',
+      time: event.time || '',
+      location: event.location || '',
+      type: event.type || 'Hội thảo',
+      status: event.status || 'upcoming',
+      image: event.image || '',
+      agenda: Array.isArray(event.agenda) ? event.agenda : [],
+      speakers: Array.isArray(event.speakers) ? event.speakers : [],
+      capacity: event.capacity || 50
+    });
+    setShowEventModal(true);
+  };
+
+  const handleDeleteEvent = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
+
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/events/list/${id}`, {
+        headers: { 'x-admin-token': token }
+      });
+      setEventList(eventList.filter(item => item.id !== id));
+      alert('Đã xóa sự kiện thành công!');
+    } catch (err) {
+      alert('Không thể xóa. Vui lòng thử lại.');
+      console.error('Error deleting event:', err);
+    }
+  };
+
+  const handleSaveEvent = async (e) => {
+    e.preventDefault();
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      if (editingEvent) {
+        // Update
+        await axios.put(`${API_URL}/api/events/list/${editingEvent.id}`, eventForm, {
+          headers: { 'x-admin-token': token }
+        });
+        alert('Đã cập nhật sự kiện thành công!');
+      } else {
+        // Create
+        await axios.post(`${API_URL}/api/events/list`, eventForm, {
+          headers: { 'x-admin-token': token }
+        });
+        alert('Đã tạo sự kiện thành công!');
+      }
+      setShowEventModal(false);
+      fetchAllData();
+    } catch (err) {
+      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+      console.error('Error saving event:', err);
+    }
+  };
+
+  const addAgendaItem = () => {
+    setEventForm(prev => ({
+      ...prev,
+      agenda: [...prev.agenda, '']
+    }));
+  };
+
+  const updateAgendaItem = (index, value) => {
+    setEventForm(prev => ({
+      ...prev,
+      agenda: prev.agenda.map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const removeAgendaItem = (index) => {
+    setEventForm(prev => ({
+      ...prev,
+      agenda: prev.agenda.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addSpeaker = () => {
+    setEventForm(prev => ({
+      ...prev,
+      speakers: [...prev.speakers, '']
+    }));
+  };
+
+  const updateSpeaker = (index, value) => {
+    setEventForm(prev => ({
+      ...prev,
+      speakers: prev.speakers.map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const removeSpeaker = (index) => {
+    setEventForm(prev => ({
+      ...prev,
+      speakers: prev.speakers.filter((_, i) => i !== index)
+    }));
   };
 
   useEffect(() => {
@@ -583,41 +724,100 @@ const Admin = () => {
 
             {activeTab === 'events' && (
               <div className="data-table-wrapper">
-                <h2 className="section-title">Đăng ký sự kiện ({events.length})</h2>
-                {events.length === 0 ? (
-                  <div className="no-data">Chưa có đăng ký sự kiện nào</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 className="section-title">Quản lý sự kiện ({eventList.length})</h2>
+                  <button onClick={handleCreateEvent} className="refresh-btn" style={{ background: '#667eea' }}>
+                    ➕ Tạo sự kiện mới
+                  </button>
+                </div>
+                
+                {eventList.length === 0 ? (
+                  <div className="no-data">Chưa có sự kiện nào. Click "Tạo sự kiện mới" để bắt đầu.</div>
                 ) : (
                   <table className="data-table">
                     <thead>
                       <tr>
                         <th>STT</th>
-                        <th>Họ và tên</th>
-                        <th>Email</th>
-                        <th>Số điện thoại</th>
-                        <th>ID Sự kiện</th>
+                        <th>Tiêu đề</th>
+                        <th>Ngày</th>
+                        <th>Giờ</th>
+                        <th>Địa điểm</th>
+                        <th>Loại</th>
                         <th>Trạng thái</th>
-                        <th>Ngày đăng ký</th>
+                        <th>Đã đăng ký</th>
+                        <th>Thao tác</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {events.map((item, index) => (
+                      {eventList.map((item, index) => (
                         <tr key={item.id}>
                           <td>{index + 1}</td>
-                          <td>{item.name}</td>
-                          <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
-                          <td><a href={`tel:${item.phone}`}>{item.phone}</a></td>
-                          <td>Sự kiện #{item.event_id}</td>
+                          <td className="message-cell" title={item.title}>
+                            {item.title.length > 40 ? item.title.substring(0, 40) + '...' : item.title}
+                          </td>
+                          <td>{item.date}</td>
+                          <td>{item.time}</td>
+                          <td className="message-cell" title={item.location}>
+                            {item.location.length > 30 ? item.location.substring(0, 30) + '...' : item.location}
+                          </td>
+                          <td>{item.type}</td>
                           <td>
                             <span className={`status-badge ${item.status}`}>
-                              {item.status === 'pending' ? '⏳ Chờ xử lý' : '✅ Đã xử lý'}
+                              {item.status === 'upcoming' ? '⏳ Sắp tới' : '✅ Đã qua'}
                             </span>
                           </td>
-                          <td>{formatDate(item.registered_at)}</td>
+                          <td>{item.registered || 0}/{item.capacity || 50}</td>
+                          <td>
+                            <button onClick={() => handleEditEvent(item)} className="feature-btn" title="Sửa">
+                              ✏️
+                            </button>
+                            <button onClick={() => handleDeleteEvent(item.id)} className="delete-btn" title="Xóa">
+                              🗑️
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 )}
+
+                <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '2px solid #eee' }}>
+                  <h2 className="section-title">Đăng ký sự kiện ({events.length})</h2>
+                  {events.length === 0 ? (
+                    <div className="no-data">Chưa có đăng ký sự kiện nào</div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ và tên</th>
+                          <th>Email</th>
+                          <th>Số điện thoại</th>
+                          <th>ID Sự kiện</th>
+                          <th>Trạng thái</th>
+                          <th>Ngày đăng ký</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {events.map((item, index) => (
+                          <tr key={item.id}>
+                            <td>{index + 1}</td>
+                            <td>{item.name}</td>
+                            <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
+                            <td><a href={`tel:${item.phone}`}>{item.phone}</a></td>
+                            <td>Sự kiện #{item.event_id}</td>
+                            <td>
+                              <span className={`status-badge ${item.status}`}>
+                                {item.status === 'pending' ? '⏳ Chờ xử lý' : '✅ Đã xử lý'}
+                              </span>
+                            </td>
+                            <td>{formatDate(item.registered_at)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </div>
             )}
 
@@ -758,6 +958,170 @@ const Admin = () => {
           </div>
         </div>
       </div>
+
+      {/* Event Modal */}
+      {showEventModal && (
+        <div className="modal-overlay" onClick={() => setShowEventModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2>{editingEvent ? 'Sửa sự kiện' : 'Tạo sự kiện mới'}</h2>
+              <button onClick={() => setShowEventModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+            </div>
+            
+            <form onSubmit={handleSaveEvent}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <div>
+                  <label>Tiêu đề *</label>
+                  <input
+                    type="text"
+                    value={eventForm.title}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, title: e.target.value }))}
+                    required
+                    placeholder="Hội thảo du học Hàn Quốc 2025"
+                  />
+                </div>
+                <div>
+                  <label>Loại sự kiện</label>
+                  <select
+                    value={eventForm.type}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, type: e.target.value }))}
+                  >
+                    <option value="Hội thảo">Hội thảo</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Webinar">Webinar</option>
+                    <option value="Sự kiện">Sự kiện</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label>Mô tả</label>
+                <textarea
+                  value={eventForm.description}
+                  onChange={(e) => setEventForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows="3"
+                  placeholder="Mô tả về sự kiện..."
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <div>
+                  <label>Ngày *</label>
+                  <input
+                    type="date"
+                    value={eventForm.date}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, date: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Giờ *</label>
+                  <input
+                    type="text"
+                    value={eventForm.time}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, time: e.target.value }))}
+                    required
+                    placeholder="14:00 - 17:00"
+                  />
+                </div>
+                <div>
+                  <label>Sức chứa</label>
+                  <input
+                    type="number"
+                    value={eventForm.capacity}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, capacity: parseInt(e.target.value) || 50 }))}
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label>Địa điểm *</label>
+                <input
+                  type="text"
+                  value={eventForm.location}
+                  onChange={(e) => setEventForm(prev => ({ ...prev, location: e.target.value }))}
+                  required
+                  placeholder="Văn phòng Du học An Nhiên..."
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                <div>
+                  <label>Trạng thái</label>
+                  <select
+                    value={eventForm.status}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, status: e.target.value }))}
+                  >
+                    <option value="upcoming">Sắp tới</option>
+                    <option value="past">Đã qua</option>
+                  </select>
+                </div>
+                <div>
+                  <label>URL ảnh</label>
+                  <input
+                    type="url"
+                    value={eventForm.image}
+                    onChange={(e) => setEventForm(prev => ({ ...prev, image: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label>Chương trình (Agenda)</label>
+                {eventForm.agenda.map((item, index) => (
+                  <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) => updateAgendaItem(index, e.target.value)}
+                      placeholder={`Mục ${index + 1}: 14:00 - 14:30: Nội dung...`}
+                      style={{ flex: 1 }}
+                    />
+                    <button type="button" onClick={() => removeAgendaItem(index)} style={{ padding: '5px 10px', background: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                      Xóa
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={addAgendaItem} style={{ padding: '8px 15px', background: '#667eea', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  + Thêm mục chương trình
+                </button>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label>Diễn giả (Speakers)</label>
+                {eventForm.speakers.map((item, index) => (
+                  <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) => updateSpeaker(index, e.target.value)}
+                      placeholder={`Diễn giả ${index + 1}`}
+                      style={{ flex: 1 }}
+                    />
+                    <button type="button" onClick={() => removeSpeaker(index)} style={{ padding: '5px 10px', background: '#ff4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                      Xóa
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={addSpeaker} style={{ padding: '8px 15px', background: '#667eea', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  + Thêm diễn giả
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button type="button" onClick={() => setShowEventModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  Hủy
+                </button>
+                <button type="submit" style={{ padding: '10px 20px', background: '#667eea', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  {editingEvent ? 'Cập nhật' : 'Tạo mới'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
