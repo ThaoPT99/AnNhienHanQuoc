@@ -8,7 +8,17 @@ const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'contacts.db');
 // Ensure database directory exists
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+  try {
+    fs.mkdirSync(dbDir, { recursive: true });
+    console.log('📁 Created database directory:', dbDir);
+  } catch (error) {
+    console.error('❌ Error creating database directory:', error.message);
+    // If /data doesn't exist and we're trying to use it, it means Volume not mounted
+    if (dbPath.startsWith('/data')) {
+      console.error('⚠️  Railway Volume chưa được mount tại /data');
+      console.error('💡 Hãy tạo Volume trên Railway Dashboard với mount path: /data');
+    }
+  }
 }
 
 // Create database connection

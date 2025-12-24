@@ -5,7 +5,12 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { dbHelpers } = require('./database');
+// Auto-select database: Turso if configured, otherwise SQLite
+const { dbHelpers } = require(
+  process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN 
+    ? './database-turso' 
+    : './database'
+);
 const { 
   isCloudinaryConfigured,
   checkCloudinaryConfig,
@@ -165,8 +170,16 @@ app.use((req, res, next) => {
 // Support Railway Volume: set UPLOADS_DIR=/data/uploads/gallery in Railway environment variables
 const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads', 'gallery');
 if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Created uploads directory:', uploadsDir);
+  try {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('📁 Created uploads directory:', uploadsDir);
+  } catch (error) {
+    console.error('❌ Error creating uploads directory:', error.message);
+    if (uploadsDir.startsWith('/data')) {
+      console.error('⚠️  Railway Volume chưa được mount tại /data');
+      console.error('💡 Hãy đảm bảo Volume đã được mount và UPLOADS_DIR đúng');
+    }
+  }
 }
 console.log('📁 Uploads directory:', uploadsDir);
 
@@ -201,11 +214,26 @@ const galleryUpload = multer({
 });
 
 // Configure multer for recruitment CVs
-const recruitmentUploadsDir = process.env.RECRUITMENT_UPLOADS_DIR || path.join(__dirname, 'uploads', 'recruitment');
-if (!fs.existsSync(recruitmentUploadsDir)) {
-  fs.mkdirSync(recruitmentUploadsDir, { recursive: true });
-  console.log('📁 Created recruitment uploads directory:', recruitmentUploadsDir);
+// Support Railway Volume: if UPLOADS_DIR is set, use /data/uploads/recruitment
+let recruitmentUploadsDir = process.env.RECRUITMENT_UPLOADS_DIR;
+if (!recruitmentUploadsDir) {
+  if (process.env.UPLOADS_DIR && process.env.UPLOADS_DIR.startsWith('/data')) {
+    // For Railway Volume: use /data/uploads/recruitment
+    recruitmentUploadsDir = path.join(path.dirname(process.env.UPLOADS_DIR), 'recruitment');
+  } else {
+    // For local: use __dirname/uploads/recruitment
+    recruitmentUploadsDir = path.join(__dirname, 'uploads', 'recruitment');
+  }
 }
+if (!fs.existsSync(recruitmentUploadsDir)) {
+  try {
+    fs.mkdirSync(recruitmentUploadsDir, { recursive: true });
+    console.log('📁 Created recruitment uploads directory:', recruitmentUploadsDir);
+  } catch (error) {
+    console.error('❌ Error creating recruitment uploads directory:', error.message);
+  }
+}
+console.log('📁 Recruitment uploads directory:', recruitmentUploadsDir);
 
 const recruitmentStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -236,7 +264,30 @@ const recruitmentUpload = multer({
 });
 
 // Serve static files (images)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Support Railway Volume: calculate base uploads directory from UPLOADS_DIR
+// If UPLOADS_DIR=/data/uploads/gallery, base dir should be /data/uploads
+let baseUploadsDir = path.join(__dirname, 'uploads');
+if (process.env.UPLOADS_DIR) {
+  // If UPLOADS_DIR is set (e.g., /data/uploads/gallery), use parent directory for base
+  const uploadsDir = process.env.UPLOADS_DIR;
+  if (uploadsDir.startsWith('/data')) {
+    // For Railway Volume: /data/uploads/gallery -> /data/uploads
+    baseUploadsDir = path.dirname(uploadsDir);
+  } else {
+    // For local: use __dirname/uploads
+    baseUploadsDir = path.join(__dirname, 'uploads');
+  }
+}
+if (!fs.existsSync(baseUploadsDir)) {
+  try {
+    fs.mkdirSync(baseUploadsDir, { recursive: true });
+    console.log('📁 Created base uploads directory:', baseUploadsDir);
+  } catch (error) {
+    console.error('⚠️  Could not create base uploads directory:', error.message);
+  }
+}
+console.log('📁 Serving static files from:', baseUploadsDir);
+app.use('/uploads', express.static(baseUploadsDir));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -734,11 +785,26 @@ const RESOURCE_FILES = {
 };
 
 // Ensure resources directory exists
-const resourcesDir = path.join(__dirname, 'uploads', 'resources');
-if (!fs.existsSync(resourcesDir)) {
-  fs.mkdirSync(resourcesDir, { recursive: true });
-  console.log('📁 Created resources directory:', resourcesDir);
+// Support Railway Volume: if UPLOADS_DIR is set, use /data/uploads/resources
+let resourcesDir = process.env.RESOURCES_DIR;
+if (!resourcesDir) {
+  if (process.env.UPLOADS_DIR && process.env.UPLOADS_DIR.startsWith('/data')) {
+    // For Railway Volume: use /data/uploads/resources
+    resourcesDir = path.join(path.dirname(process.env.UPLOADS_DIR), 'resources');
+  } else {
+    // For local: use __dirname/uploads/resources
+    resourcesDir = path.join(__dirname, 'uploads', 'resources');
+  }
 }
+if (!fs.existsSync(resourcesDir)) {
+  try {
+    fs.mkdirSync(resourcesDir, { recursive: true });
+    console.log('📁 Created resources directory:', resourcesDir);
+  } catch (error) {
+    console.error('❌ Error creating resources directory:', error.message);
+  }
+}
+console.log('📁 Resources directory:', resourcesDir);
 
 // GET route to serve resource files
 app.get('/api/resources/file/:id', (req, res) => {
