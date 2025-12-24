@@ -5,7 +5,7 @@ const SEO = ({
   title = 'Du học Hàn Quốc - Tư vấn du học Hàn Quốc uy tín | Du học An Nhiên',
   description = 'Du học Hàn Quốc chuyên nghiệp tại Du học An Nhiên. Tư vấn du học Hàn Quốc uy tín, hỗ trợ làm hồ sơ, xin visa, tìm trường và học bổng. Đồng hành cùng bạn trên hành trình du học tại xứ sở Kim Chi.',
   keywords = 'du học Hàn Quốc, tư vấn du học Hàn Quốc, du học Seoul, học bổng Hàn Quốc, visa Hàn Quốc, du học An Nhiên, làm hồ sơ du học Hàn Quốc, chi phí du học Hàn Quốc, điều kiện du học Hàn Quốc, trường đại học Hàn Quốc',
-  image = 'https://res.cloudinary.com/dy84xpayv/image/upload/v1765942857/z7335282956837_dccc007a84cec34742579005d959eaec_j7sjs7.jpg',
+  image = 'https://res.cloudinary.com/dy84xpayv/image/upload/v1766546723/og-images/auny11reshcxxfnze0cj.jpg',
   url = 'https://duhocannhien.vercel.app',
   type = 'website',
   structuredData = null,
@@ -14,7 +14,7 @@ const SEO = ({
 }) => {
   const fullTitle = title.includes('Du học An Nhiên') ? title : `${title} | Du học An Nhiên`;
   const siteName = 'Du học An Nhiên';
-  const defaultImage = 'https://res.cloudinary.com/dy84xpayv/image/upload/v1765942857/z7335282956837_dccc007a84cec34742579005d959eaec_j7sjs7.jpg';
+  const defaultImage = 'https://res.cloudinary.com/dy84xpayv/image/upload/v1766546723/og-images/auny11reshcxxfnze0cj.jpg';
   const finalImage = image || defaultImage;
 
   return (
