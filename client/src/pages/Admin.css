@@ -309,6 +309,42 @@
   gap: 20px;
 }
 
+.status-select {
+  padding: 6px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.status-select:hover {
+  border-color: #667eea;
+}
+
+.status-select.pending {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.status-select.confirmed,
+.status-select.reviewing,
+.status-select.in_progress {
+  background: #cfe2ff;
+  border-color: #0d6efd;
+}
+
+.status-select.completed {
+  background: #d4edda;
+  border-color: #28a745;
+}
+
+.status-select.cancelled {
+  background: #f8d7da;
+  border-color: #dc3545;
+}
+
 .status-badge {
   display: inline-block;
   padding: 5px 12px;

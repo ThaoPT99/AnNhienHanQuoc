@@ -170,6 +170,65 @@ const Admin = () => {
     }
   };
 
+  const handleUpdateServiceStatus = async (id, status, admin_notes = null) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await axios.put(`${API_URL}/api/admin/service-redemptions/${id}`, 
+        { status, admin_notes },
+        { headers: { 'x-admin-token': token } }
+      );
+      setServiceRedemptions(serviceRedemptions.map(item => 
+        item.id === id ? { ...item, status, admin_notes: admin_notes || item.admin_notes } : item
+      ));
+      if (admin_notes) {
+        alert('✅ Đã cập nhật ghi chú thành công!');
+      }
+    } catch (err) {
+      alert('Không thể cập nhật. Vui lòng thử lại.');
+      console.error('Error updating service redemption:', err);
+    }
+  };
+
+  const handleUpdateDocumentReview = async (id, admin_review, admin_feedback, status) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await axios.put(`${API_URL}/api/admin/document-reviews/${id}`, 
+        { admin_review, admin_feedback, status },
+        { headers: { 'x-admin-token': token } }
+      );
+      setDocumentReviews(documentReviews.map(item => 
+        item.id === id ? { ...item, admin_review, admin_feedback, status } : item
+      ));
+      alert('✅ Đã cập nhật review thành công!');
+    } catch (err) {
+      alert('Không thể cập nhật. Vui lòng thử lại.');
+      console.error('Error updating document review:', err);
+    }
+  };
+
+  const handleUpdateVisaSupport = async (id, admin_response, status) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await axios.put(`${API_URL}/api/admin/visa-support/${id}`, 
+        { admin_response, status },
+        { headers: { 'x-admin-token': token } }
+      );
+      setVisaSupport(visaSupport.map(item => 
+        item.id === id ? { ...item, admin_response, status } : item
+      ));
+      alert('✅ Đã cập nhật phản hồi thành công!');
+    } catch (err) {
+      alert('Không thể cập nhật. Vui lòng thử lại.');
+      console.error('Error updating visa support:', err);
+    }
+  };
+
   const handleDeleteUser = async (email) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa người dùng ${email}?`)) return;
 
