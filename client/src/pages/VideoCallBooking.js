@@ -30,6 +30,7 @@ const VideoCallBooking = () => {
     if (userEmail) {
       setFormData(prev => ({ ...prev, user_email: userEmail, user_name: localStorage.getItem('userName') || '' }));
       loadBookings();
+      loadFriends();
     }
     
     // Check for room parameter in URL
@@ -47,6 +48,96 @@ const VideoCallBooking = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [userEmail]);
+
+  const loadFriends = async () => {
+    if (!userEmail) return;
+    setLoadingFriends(true);
+    try {
+      const res = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFriends(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading friends:', error);
+    } finally {
+      setLoadingFriends(false);
+    }
+  };
+
+  const callFriend = async (friendEmail, friendName) => {
+    const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const userEmail = localStorage.getItem('userEmail') || '';
+    const userName = localStorage.getItem('userName') || userEmail;
+    const roomLink = `${window.location.origin}/video-call?room=${roomId}`;
+    
+    setActiveCall({
+      roomId,
+      userEmail,
+      userName,
+      friendEmail,
+      friendName
+    });
+    
+    setShowCallFriendForm(false);
+    
+    // Send real-time call notification via WebSocket (like Messenger)
+    try {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = API_URL.replace(/^https?:\/\//, '').replace(/^wss?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${wsHost}/webrtc-signaling`;
+      
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        // First, join the room
+        ws.send(JSON.stringify({
+          type: 'join-room',
+          roomId: roomId,
+          userId: userEmail
+        }));
+        
+        // Then send incoming call notification to friend
+        setTimeout(() => {
+          ws.send(JSON.stringify({
+            type: 'incoming-call',
+            roomId: roomId,
+            roomLink: roomLink,
+            targetUserId: friendEmail,
+            callerName: userName,
+            callerEmail: userEmail
+          }));
+          ws.close();
+        }, 500);
+      };
+    } catch (error) {
+      console.error('Error sending WebSocket notification:', error);
+    }
+    
+    // Also send email notification (optional)
+    try {
+      const res = await fetch(`${API_URL}/api/video-call/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roomId,
+          roomLink,
+          callerEmail: userEmail,
+          callerName: userName,
+          recipientEmail: friendEmail,
+          recipientName: friendName
+        })
+      });
+      
+      if (res.ok) {
+        console.log('✅ Email notification sent');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+    
+    alert(`📞 Đang gọi ${friendName || friendEmail}...\n\n💡 Họ sẽ nhận được thông báo cuộc gọi đến ngay lập tức (như Messenger)!`);
+  };
 
   const loadBookings = async () => {
     if (!userEmail) {
@@ -249,6 +340,87 @@ const VideoCallBooking = () => {
             </div>
             <button type="submit" className="btn-submit">📅 Đặt lịch</button>
           </motion.form>
+        )}
+
+        {showCallFriendForm && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="call-friend-form"
+          >
+            <h2>👥 Gọi cho bạn</h2>
+            <p className="form-description">Chọn người bạn muốn gọi hoặc nhập email</p>
+            
+            {loadingFriends ? (
+              <div className="loading">Đang tải danh sách bạn...</div>
+            ) : friends.length > 0 ? (
+              <div className="friends-list">
+                <h3>Bạn bè của bạn:</h3>
+                <div className="friends-grid">
+                  {friends.map((friend) => (
+                    <div 
+                      key={friend.email} 
+                      className="friend-card"
+                      onClick={() => callFriend(friend.email, friend.name)}
+                    >
+                      <div className="friend-avatar">
+                        {friend.name ? friend.name.charAt(0).toUpperCase() : friend.email.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="friend-info">
+                        <div className="friend-name">{friend.name || friend.email}</div>
+                        <div className="friend-email">{friend.email}</div>
+                      </div>
+                      <button className="call-friend-btn">📞 Gọi</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="no-friends">
+                <p>Bạn chưa follow ai. Hãy follow người khác trong Community để gọi họ!</p>
+                <a href="/community" className="go-to-community-btn">Đi đến Community</a>
+              </div>
+            )}
+            
+            <div className="call-by-email">
+              <h3>Hoặc gọi bằng email:</h3>
+              <div className="email-input-group">
+                <input
+                  type="email"
+                  placeholder="Nhập email người bạn muốn gọi"
+                  className="friend-email-input"
+                  id="friend-email-input"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && e.target.value) {
+                      callFriend(e.target.value, e.target.value);
+                    }
+                  }}
+                />
+                <button 
+                  className="call-email-btn"
+                  onClick={(e) => {
+                    const input = document.getElementById('friend-email-input');
+                    if (input && input.value) {
+                      callFriend(input.value, input.value);
+                    }
+                  }}
+                >
+                  📞 Gọi
+                </button>
+              </div>
+              <p className="call-info-text">
+                💡 Họ sẽ nhận được thông báo cuộc gọi đến ngay lập tức (như Messenger)!<br/>
+                Không cần mở email, chỉ cần đang ở trên website.
+              </p>
+            </div>
+            
+            <button 
+              className="close-form-btn"
+              onClick={() => setShowCallFriendForm(false)}
+            >
+              ✖️ Đóng
+            </button>
+          </motion.div>
         )}
 
         <div className="bookings-list">
