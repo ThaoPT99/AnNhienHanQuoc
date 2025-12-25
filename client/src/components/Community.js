@@ -689,7 +689,7 @@ const Community = () => {
           post={selectedPost}
           userEmail={userEmail}
           onClose={() => setSelectedPost(null)}
-          onLike={handleLike}
+          onReaction={handleReaction}
           onComment={handleComment}
           formatTime={formatTime}
         />
