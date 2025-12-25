@@ -202,7 +202,7 @@ function initializeDatabase() {
       email TEXT NOT NULL,
       resource_id INTEGER NOT NULL,
       resource_title TEXT,
-      downloaded_at DATETIME DEFAULT datetime('now')
+      downloaded_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating resources_downloads table:', err.message);
@@ -246,7 +246,7 @@ function initializeDatabase() {
       preferred_method TEXT DEFAULT 'zoom',
       notes TEXT,
       status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT datetime('now')
+      created_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating consultation_booking table:', err.message);
@@ -305,7 +305,7 @@ function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      created_at DATETIME DEFAULT datetime('now')
+      created_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating admins table:', err.message);
@@ -344,7 +344,7 @@ function initializeDatabase() {
       author_email TEXT,
       content TEXT NOT NULL,
       likes_count INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT datetime('now'),
+      created_at DATETIME DEFAULT (datetime('now')),
       FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE
     )`, (err) => {
       if (err) {
@@ -360,7 +360,7 @@ function initializeDatabase() {
       post_id INTEGER,
       comment_id INTEGER,
       user_email TEXT NOT NULL,
-      created_at DATETIME DEFAULT datetime('now'),
+      created_at DATETIME DEFAULT (datetime('now')),
       FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
       FOREIGN KEY (comment_id) REFERENCES community_comments(id) ON DELETE CASCADE,
       UNIQUE(post_id, comment_id, user_email)

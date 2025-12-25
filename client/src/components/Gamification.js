@@ -20,19 +20,37 @@ const Gamification = () => {
 
   useEffect(() => {
     // Load user stats from localStorage
-    const loadStats = () => {
+    const loadStats = async () => {
       const savedPoints = localStorage.getItem('userPoints') || '0';
       const savedLevel = localStorage.getItem('userLevel') || '1';
       const savedBadges = JSON.parse(localStorage.getItem('userBadges') || '[]');
       const savedEmail = localStorage.getItem('userEmail') || '';
       
-      setPoints(parseInt(savedPoints));
-      setLevel(parseInt(savedLevel));
+      const pointsNum = parseInt(savedPoints);
+      const levelNum = parseInt(savedLevel);
+      
+      setPoints(pointsNum);
+      setLevel(levelNum);
       setBadges(savedBadges);
       setUserEmail(savedEmail);
       
+      // Auto-sync points to server if email exists
+      if (savedEmail && pointsNum >= 0) {
+        try {
+          await axios.post(`${API_URL}/api/leaderboard/sync`, {
+            user_email: savedEmail,
+            user_name: localStorage.getItem('userName') || null,
+            points: pointsNum,
+            level: levelNum
+          });
+          console.log('✅ Points auto-synced to server');
+        } catch (error) {
+          console.error('Error auto-syncing points:', error);
+        }
+      }
+      
       // Show email modal if no email and has points
-      if (!savedEmail && parseInt(savedPoints) > 0) {
+      if (!savedEmail && pointsNum > 0) {
         setShowEmailModal(true);
       }
     };
