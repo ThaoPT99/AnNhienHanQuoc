@@ -80,6 +80,21 @@
   margin: 20px 0;
 }
 
+.stat-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.stat-link:hover {
+  transform: translateY(-2px);
+}
+
+.stat-link .stat-value {
+  color: #667eea;
+}
+
 .stat {
   display: flex;
   flex-direction: column;

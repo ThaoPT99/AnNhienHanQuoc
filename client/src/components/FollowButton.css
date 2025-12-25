@@ -1,0 +1,35 @@
+.follow-btn-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.follow-btn-small:hover {
+  background: #667eea;
+  color: white;
+  transform: scale(1.1);
+}
+
+.follow-btn-small.following {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.follow-btn-small.following:hover {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+

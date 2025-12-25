@@ -139,14 +139,20 @@ const UserProfile = () => {
             {profile?.location && <p className="profile-location">📍 {profile.location}</p>}
 
             <div className="profile-stats">
-              <div className="stat">
+              <Link 
+                to={`/friends?tab=followers&user=${encodeURIComponent(email)}`}
+                className="stat stat-link"
+              >
                 <span className="stat-value">{followCounts.followers_count || 0}</span>
                 <span className="stat-label">Followers</span>
-              </div>
-              <div className="stat">
+              </Link>
+              <Link 
+                to={`/friends?tab=following&user=${encodeURIComponent(email)}`}
+                className="stat stat-link"
+              >
                 <span className="stat-value">{followCounts.following_count || 0}</span>
                 <span className="stat-label">Following</span>
-              </div>
+              </Link>
             </div>
 
             <div className="profile-actions">

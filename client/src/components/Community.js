@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { addPoints, showPointsNotification } from '../utils/pointsSystem';
 import { getRelativeTime } from '../utils/timezone';
 import ReactionsPicker from './ReactionsPicker';
+import FollowButton from './FollowButton';
 import { showNotification } from './NotificationCenter';
 import './Community.css';
 
@@ -961,7 +962,7 @@ const EditPostForm = ({ post, onClose, onSubmit, categories }) => {
 };
 
 // Post Card Component
-const PostCard = ({ post, index, userEmail, onReaction, onView, formatTime, onDelete, onEdit, onReload }) => {
+const PostCard = ({ post, index, userEmail, onReaction, onView, formatTime, onDelete, onEdit, onReload, onFollow }) => {
   const [currentReaction, setCurrentReaction] = useState(null);
   const [reactionsCount, setReactionsCount] = useState([]);
   const isMyPost = userEmail && post.author_email === userEmail;

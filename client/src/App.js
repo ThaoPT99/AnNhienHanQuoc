@@ -53,6 +53,7 @@ const TestNotifications = lazy(() => import('./pages/TestNotifications'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
 const AIMatching = lazy(() => import('./pages/AIMatching'));
 const VideoCallBooking = lazy(() => import('./pages/VideoCallBooking'));
+const Friends = lazy(() => import('./pages/Friends'));
 
 function App() {
   return (
@@ -100,6 +101,7 @@ function App() {
                 <Route path="/profile/:email" element={<UserProfile />} />
                 <Route path="/ai-matching" element={<AIMatching />} />
                 <Route path="/video-call" element={<VideoCallBooking />} />
+                <Route path="/friends" element={<Friends />} />
                 </Routes>
               </Suspense>
             </main>

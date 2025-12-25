@@ -35,6 +35,7 @@ const Navbar = () => {
     { path: '/services', label: 'Dịch vụ', icon: '🎯' },
     { path: '/blog', label: 'Blog', icon: '📚' },
     { path: '/dashboard', label: 'Dashboard', icon: '📊', highlight: true },
+    { path: '/friends', label: 'Bạn bè', icon: '👥', highlight: true },
     { path: '/contact', label: 'Liên hệ', icon: '💬' }
   ];
 
