@@ -1312,6 +1312,7 @@ const dbHelpers = {
 
   getLeaderboard: (limit = 10, callback) => {
     // SQLite doesn't support ROW_NUMBER() in older versions, use subquery instead
+    // Show all users, even with 0 points
     db.all(
       `SELECT 
         user_email,
@@ -1323,7 +1324,6 @@ const dbHelpers = {
          WHERE up2.points > up1.points 
          OR (up2.points = up1.points AND up2.created_at < up1.created_at)) as rank
        FROM user_points up1
-       WHERE points >= 0
        ORDER BY points DESC, created_at ASC
        LIMIT ?`,
       [limit],

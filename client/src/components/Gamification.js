@@ -242,12 +242,52 @@ const Gamification = () => {
           ) : leaderboard.length === 0 ? (
             <div className="no-leaderboard">
               <p>Chưa có dữ liệu bảng xếp hạng.</p>
-              <p className="hint">Nhập email để tham gia bảng xếp hạng!</p>
-              {userEmail && (
-                <p className="hint" style={{ marginTop: '10px', color: '#667eea' }}>
-                  Bạn đã có email: {userEmail}. Điểm hiện tại: {points}. 
-                  {points === 0 && ' Hãy kiếm điểm để xuất hiện trên bảng xếp hạng!'}
-                </p>
+              {userEmail ? (
+                <>
+                  <p className="hint" style={{ marginTop: '10px', color: '#667eea' }}>
+                    Bạn đã có email: <strong>{userEmail}</strong>
+                  </p>
+                  <p className="hint" style={{ marginTop: '5px' }}>
+                    Điểm hiện tại: <strong>{points} điểm</strong>
+                  </p>
+                  {points === 0 ? (
+                    <p className="hint" style={{ marginTop: '10px', color: '#ff6b6b' }}>
+                      Hãy kiếm điểm để xuất hiện trên bảng xếp hạng!
+                    </p>
+                  ) : (
+                    <>
+                      <p className="hint" style={{ marginTop: '10px', color: '#667eea' }}>
+                        Điểm của bạn đã được đồng bộ. Nếu chưa thấy, hãy click nút refresh (🔄) ở trên.
+                      </p>
+                      <button 
+                        className="btn-sync-manual"
+                        onClick={async () => {
+                          try {
+                            setLoadingLeaderboard(true);
+                            await axios.post(`${API_URL}/api/leaderboard/sync`, {
+                              user_email: userEmail,
+                              user_name: null,
+                              points,
+                              level
+                            });
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            await loadLeaderboard();
+                            alert('✅ Đã đồng bộ điểm thành công!');
+                          } catch (error) {
+                            console.error('Error syncing:', error);
+                            alert('❌ Có lỗi khi đồng bộ. Vui lòng thử lại.');
+                          } finally {
+                            setLoadingLeaderboard(false);
+                          }
+                        }}
+                      >
+                        🔄 Đồng bộ điểm ngay
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className="hint">Nhập email để tham gia bảng xếp hạng!</p>
               )}
             </div>
           ) : (
