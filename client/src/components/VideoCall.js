@@ -99,22 +99,110 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   };
 
   const startSignaling = async (pc) => {
-    // Simple peer-to-peer connection without signaling server
-    // This works for same-page testing, but in production you need a signaling server
-    
-    // For demo: Create offer and set local description
     try {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      // Connect to WebSocket signaling server
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = API_URL.replace(/^https?:\/\//, '').replace(/^wss?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${wsHost}/webrtc-signaling`;
       
-      // In production, send offer via WebSocket to other peer
-      // For now, we'll simulate by creating answer on same page
-      // This is just for demonstration
-      
-      console.log('Offer created:', offer);
+      const ws = new WebSocket(wsUrl);
+      socketRef.current = ws;
+
+      ws.onopen = () => {
+        console.log('✅ Connected to signaling server');
+        setConnectionStatus('connecting');
+        
+        // Join room
+        ws.send(JSON.stringify({
+          type: 'join-room',
+          roomId: roomId,
+          userId: userEmail || `user_${Date.now()}`
+        }));
+      };
+
+      ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        console.log('📨 Received signaling message:', data.type);
+
+        switch (data.type) {
+          case 'room-joined':
+            setConnectionStatus('connected');
+            // Create offer after joining
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({
+              type: 'offer',
+              roomId: roomId,
+              offer: offer
+            }));
+            break;
+
+          case 'offer':
+            // Received offer from another peer
+            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            ws.send(JSON.stringify({
+              type: 'answer',
+              roomId: roomId,
+              answer: answer
+            }));
+            break;
+
+          case 'answer':
+            // Received answer from another peer
+            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+            break;
+
+          case 'ice-candidate':
+            // Received ICE candidate
+            if (data.candidate) {
+              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+            break;
+
+          case 'user-joined':
+            console.log('👤 User joined:', data.userId);
+            break;
+
+          case 'user-left':
+            console.log('👋 User left:', data.userId);
+            break;
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setError('Lỗi kết nối signaling server. Đang thử lại...');
+        // Retry connection after 3 seconds
+        setTimeout(() => {
+          if (socketRef.current?.readyState === WebSocket.CLOSED) {
+            startSignaling(pc);
+          }
+        }, 3000);
+      };
+
+      ws.onclose = () => {
+        console.log('🔌 Signaling connection closed');
+        setConnectionStatus('disconnected');
+        setIsConnected(false);
+      };
+
+      // Handle ICE candidates
+      pc.onicecandidate = (event) => {
+        if (event.candidate && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'ice-candidate',
+            roomId: roomId,
+            candidate: event.candidate
+          }));
+        }
+      };
+
     } catch (err) {
-      console.error('Error creating offer:', err);
-      setError('Lỗi khi thiết lập kết nối');
+      console.error('Error setting up signaling:', err);
+      setError('Lỗi khi thiết lập kết nối. Vui lòng thử lại.');
     }
   };
 

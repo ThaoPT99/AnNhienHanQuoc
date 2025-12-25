@@ -2572,9 +2572,17 @@ app.delete('/api/gallery/:id', async (req, res) => {
   });
 });
 
-const server = app.listen(PORT, () => {
+const http = require('http');
+const server = http.createServer(app);
+
+// Initialize WebRTC Signaling Server
+const WebRTCSignalingServer = require('./webrtc-signaling');
+const signalingServer = new WebRTCSignalingServer(server);
+
+server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📁 Uploads directory: ${uploadsDir}`);
+  console.log(`📹 WebRTC Signaling Server ready at ws://localhost:${PORT}/webrtc-signaling`);
   console.log(`✅ Available endpoints:`);
   console.log(`   - POST /api/recruitment/apply`);
   console.log(`   - POST /api/events/register`);
