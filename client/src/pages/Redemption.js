@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import SEO from '../components/SEO';
-import { getPoints, addPoints } from '../utils/pointsSystem';
+import { getPoints, syncPointsToServer } from '../utils/pointsSystem';
 import './Redemption.css';
 
 const Redemption = () => {
@@ -111,7 +111,6 @@ const Redemption = () => {
         localStorage.setItem('userPoints', newPoints.toString());
         
         // Sync to server
-        const { syncPointsToServer } = require('../utils/pointsSystem');
         syncPointsToServer(newPoints, Math.floor(newPoints / 500) + 1);
         
         // Trigger points update event
