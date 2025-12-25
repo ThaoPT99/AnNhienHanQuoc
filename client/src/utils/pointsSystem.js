@@ -192,6 +192,48 @@ export const addPoints = (pointsToAdd, action = '') => {
   // Sync points to server if user has email
   syncPointsToServer(newPoints, newLevel);
 
+  // Show notification for points earned (only if significant)
+  if (pointsToAdd > 0 && pointsToAdd >= 20) {
+    // Use dynamic import to avoid circular dependency
+    import('../components/NotificationCenter').then(({ showNotification }) => {
+      showNotification(
+        `💎 +${pointsToAdd} điểm!`,
+        `Bạn đã kiếm được ${pointsToAdd} điểm. Tổng điểm: ${newPoints}`,
+        'info',
+        '💎'
+      );
+    }).catch(() => {
+      // Silent fail if NotificationCenter not loaded
+    });
+  }
+
+  // Show notification for level up
+  if (levelUp) {
+    import('../components/NotificationCenter').then(({ showNotification }) => {
+      showNotification(
+        `⭐ Level Up!`,
+        `Chúc mừng! Bạn đã lên Level ${newLevel}!`,
+        'milestone',
+        '⭐'
+      );
+    }).catch(() => {});
+  }
+
+  // Show notification for badge
+  if (badgeAwarded && badgeAwarded.awarded) {
+    import('../components/NotificationCenter').then(({ showNotification }) => {
+      const badge = Object.values(BADGES).find(b => b.id === badgeAwarded.badgeId);
+      if (badge) {
+        showNotification(
+          `🏆 Badge mới: ${badge.name}`,
+          badge.description,
+          'milestone',
+          badge.icon
+        );
+      }
+    }).catch(() => {});
+  }
+
   // Trigger custom event để các component khác có thể lắng nghe
   window.dispatchEvent(new CustomEvent('pointsUpdated', {
     detail: {
