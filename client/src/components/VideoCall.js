@@ -68,16 +68,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         setIsCallActive(true);
       };
 
-      // Handle ICE candidates
-      pc.onicecandidate = (event) => {
-        if (event.candidate && socketRef.current) {
-          socketRef.current.emit('ice-candidate', {
-            roomId,
-            candidate: event.candidate
-          });
-        }
-      };
-
       // Handle connection state changes
       pc.onconnectionstatechange = () => {
         setConnectionStatus(pc.connectionState);
@@ -88,8 +78,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         }
       };
 
-      // For now, we'll use a simple signaling mechanism
-      // In production, you'd use WebSocket or Socket.io
+      // Start WebSocket signaling
       startSignaling(pc);
 
     } catch (err) {
