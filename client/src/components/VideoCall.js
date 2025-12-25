@@ -12,7 +12,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [error, setError] = useState(null);
   const [participants, setParticipants] = useState([]);
-  const [showRoomInfo, setShowRoomInfo] = useState(true);
+  const [showRoomInfo, setShowRoomInfo] = useState(false); // Hide by default on mobile
   const [roomLink, setRoomLink] = useState('');
 
   const localVideoRef = useRef(null);
@@ -34,6 +34,10 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     // Generate room link
     const link = `${window.location.origin}/video-call?room=${roomId}`;
     setRoomLink(link);
+    
+    // Show room info on desktop, hide on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    setShowRoomInfo(!isMobile);
     
     initializeCall();
     return () => {
@@ -118,7 +122,21 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
     } catch (err) {
       console.error('Error accessing media devices:', err);
-      setError('Không thể truy cập camera/microphone. Vui lòng kiểm tra quyền truy cập.');
+      let errorMessage = 'Không thể truy cập camera/microphone.';
+      
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = 'Vui lòng cho phép truy cập camera và microphone trong cài đặt trình duyệt.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = 'Không tìm thấy camera hoặc microphone. Vui lòng kiểm tra thiết bị.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage = 'Camera hoặc microphone đang được sử dụng bởi ứng dụng khác.';
+      } else if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+        errorMessage = 'Thiết bị không hỗ trợ yêu cầu video/audio.';
+      } else if (err.name === 'NotSupportedError') {
+        errorMessage = 'Trình duyệt không hỗ trợ video call. Vui lòng dùng Chrome, Firefox hoặc Safari.';
+      }
+      
+      setError(errorMessage);
     }
   };
 
@@ -126,12 +144,22 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     try {
       // Connect to WebSocket signaling server
       const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      
+      // Always use WSS for secure connection (required for mobile)
+      const wsProtocol = 'wss:';
       const wsHost = API_URL.replace(/^https?:\/\//, '').replace(/^wss?:\/\//, '');
       const wsUrl = `${wsProtocol}//${wsHost}/webrtc-signaling`;
       
+      console.log('🔌 Connecting to signaling server:', wsUrl);
+      
       const ws = new WebSocket(wsUrl);
       socketRef.current = ws;
+      
+      // Handle connection errors
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setError('Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet.');
+      };
 
       ws.onopen = () => {
         console.log('✅ Connected to signaling server');
@@ -326,7 +354,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         </div>
 
         {showRoomInfo && (
-          <div className="room-info-panel">
+          <div className={`room-info-panel ${showRoomInfo ? 'show' : ''}`}>
             <div className="room-info-section">
               <h4>🔗 Chia sẻ phòng với người khác</h4>
               <div className="room-link-container">
@@ -390,6 +418,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
+                webkit-playsinline="true"
                 className="remote-video"
               />
             ) : (
@@ -408,6 +437,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 ref={localVideoRef}
                 autoPlay
                 playsInline
+                webkit-playsinline="true"
                 muted
                 className="local-video"
               />
