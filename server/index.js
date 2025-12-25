@@ -1,10 +1,14 @@
 require('dotenv').config();
+// Set timezone to Vietnam (UTC+7)
+process.env.TZ = 'Asia/Ho_Chi_Minh';
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { getVietnamTimeISO } = require('./timezone');
 // Auto-select database: Turso if configured, otherwise SQLite
 const { dbHelpers } = require(
   process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN 
@@ -291,7 +295,7 @@ app.use('/uploads', express.static(baseUploadsDir));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: getVietnamTimeISO() });
 });
 
 // Admin authentication
@@ -1412,7 +1416,8 @@ app.get('/api/community/posts/admin/all', (req, res) => {
 // Dynamic Sitemap
 app.get('/sitemap.xml', (req, res) => {
   const baseUrl = 'https://duhocannhien.vercel.app';
-  const today = new Date().toISOString().split('T')[0];
+  const { getVietnamTimeISO } = require('./timezone');
+  const today = getVietnamTimeISO().split('T')[0];
   
   const pages = [
     { url: '/', priority: '1.0', changefreq: 'daily' },

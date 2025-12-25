@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
+import { formatVietnamDate } from '../utils/timezone';
 import './ProgressTracker.css';
 
 const ProgressTracker = () => {
@@ -135,7 +136,7 @@ const ProgressTracker = () => {
   };
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('vi-VN', {
+    return formatVietnamDate(date, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'

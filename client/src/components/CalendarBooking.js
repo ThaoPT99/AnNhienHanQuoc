@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { formatVietnamDate } from '../utils/timezone';
 import './CalendarBooking.css';
 
 const CalendarBooking = ({ isOpen, onClose }) => {
@@ -58,7 +59,7 @@ const CalendarBooking = ({ isOpen, onClose }) => {
   };
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('vi-VN', {
+    return formatVietnamDate(date, {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -67,7 +68,7 @@ const CalendarBooking = ({ isOpen, onClose }) => {
   };
 
   const formatDateShort = (date) => {
-    return date.toLocaleDateString('vi-VN', {
+    return formatVietnamDate(date, {
       day: '2-digit',
       month: '2-digit'
     });
