@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import VideoCall from '../components/VideoCall';
-import { isLoggedIn, getUserEmail } from '../utils/auth';
+import { isLoggedIn, getUserEmail, getAuthToken } from '../utils/auth';
 import { showNotification } from '../components/NotificationCenter';
 import './VideoCallBooking.css';
 
@@ -157,10 +157,29 @@ const VideoCallBooking = () => {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/video-call/bookings/${encodeURIComponent(userEmail)}`);
+      // Get auth token if available
+      const token = localStorage.getItem('authToken');
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const res = await fetch(`${API_URL}/api/video-call/bookings/${encodeURIComponent(userEmail)}`, {
+        headers
+      });
+      
       if (res.ok) {
         const data = await res.json();
         setBookings(data);
+      } else if (res.status === 401) {
+        // User not logged in - that's okay, just show empty bookings
+        console.log('User not authenticated, showing empty bookings');
+        setBookings([]);
+      } else {
+        console.error('Error loading bookings:', res.status, res.statusText);
       }
     } catch (error) {
       console.error('Error loading bookings:', error);
@@ -184,9 +203,16 @@ const VideoCallBooking = () => {
     }
 
     try {
+      const token = getAuthToken();
+      const headers = { 'Content-Type': 'application/json' };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const res = await fetch(`${API_URL}/api/video-call/bookings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(formData)
       });
 
