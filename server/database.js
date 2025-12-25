@@ -42,8 +42,8 @@ function initializeDatabase() {
       phone TEXT NOT NULL,
       message TEXT,
       status TEXT DEFAULT 'new',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating contacts table:', err.message);
@@ -56,7 +56,7 @@ function initializeDatabase() {
         });
         
         // Migration: Add updated_at column if it doesn't exist
-        db.run(`ALTER TABLE contacts ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`, (alterErr) => {
+        db.run(`ALTER TABLE contacts ADD COLUMN updated_at DATETIME DEFAULT datetime('now')`, (alterErr) => {
           // Ignore error if column already exists
         });
       }
@@ -93,8 +93,8 @@ function initializeDatabase() {
       file_path TEXT,
       file_size INTEGER,
       mime_type TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating gallery table:', err.message);
@@ -116,7 +116,7 @@ function initializeDatabase() {
       email TEXT NOT NULL UNIQUE,
       name TEXT,
       status TEXT DEFAULT 'active',
-      subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      subscribed_at DATETIME DEFAULT (datetime('now')),
       unsubscribed_at DATETIME,
       source TEXT DEFAULT 'website'
     )`, (err) => {
@@ -141,7 +141,7 @@ function initializeDatabase() {
       name TEXT NOT NULL,
       email TEXT NOT NULL,
       phone TEXT NOT NULL,
-      registered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      registered_at DATETIME DEFAULT (datetime('now')),
       status TEXT DEFAULT 'pending'
     )`, (err) => {
       if (err) {
@@ -165,8 +165,8 @@ function initializeDatabase() {
       agenda TEXT,
       speakers TEXT,
       capacity INTEGER DEFAULT 50,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating event_details table:', err.message);
@@ -186,7 +186,7 @@ function initializeDatabase() {
       message TEXT,
       cv_file_path TEXT,
       cv_file_name TEXT,
-      applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      applied_at DATETIME DEFAULT (datetime('now')),
       status TEXT DEFAULT 'pending'
     )`, (err) => {
       if (err) {
@@ -202,7 +202,7 @@ function initializeDatabase() {
       email TEXT NOT NULL,
       resource_id INTEGER NOT NULL,
       resource_title TEXT,
-      downloaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      downloaded_at DATETIME DEFAULT datetime('now')
     )`, (err) => {
       if (err) {
         console.error('Error creating resources_downloads table:', err.message);
@@ -224,7 +224,7 @@ function initializeDatabase() {
       topik_level TEXT,
       message TEXT,
       trigger_source TEXT DEFAULT 'general',
-      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      submitted_at DATETIME DEFAULT (datetime('now')),
       status TEXT DEFAULT 'new'
     )`, (err) => {
       if (err) {
@@ -246,7 +246,7 @@ function initializeDatabase() {
       preferred_method TEXT DEFAULT 'zoom',
       notes TEXT,
       status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT datetime('now')
     )`, (err) => {
       if (err) {
         console.error('Error creating consultation_booking table:', err.message);
@@ -305,7 +305,7 @@ function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT datetime('now')
     )`, (err) => {
       if (err) {
         console.error('Error creating admins table:', err.message);
@@ -326,8 +326,8 @@ function initializeDatabase() {
       comments_count INTEGER DEFAULT 0,
       views_count INTEGER DEFAULT 0,
       is_featured INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating community_posts table:', err.message);
@@ -344,7 +344,7 @@ function initializeDatabase() {
       author_email TEXT,
       content TEXT NOT NULL,
       likes_count INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT datetime('now'),
       FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE
     )`, (err) => {
       if (err) {
@@ -360,7 +360,7 @@ function initializeDatabase() {
       post_id INTEGER,
       comment_id INTEGER,
       user_email TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT datetime('now'),
       FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
       FOREIGN KEY (comment_id) REFERENCES community_comments(id) ON DELETE CASCADE,
       UNIQUE(post_id, comment_id, user_email)
@@ -418,7 +418,7 @@ const dbHelpers = {
   // Update contact status
   updateContactStatus: (id, status, callback) => {
     db.run(
-      'UPDATE contacts SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE contacts SET status = ?, updated_at = datetime('now') WHERE id = ?',
       [status, id],
       function(err) {
         if (err) {
@@ -518,7 +518,7 @@ const dbHelpers = {
       return;
     }
     
-    updates.push('updated_at = CURRENT_TIMESTAMP');
+    updates.push('updated_at = datetime('now')');
     values.push(id);
     
     db.run(
@@ -572,7 +572,7 @@ const dbHelpers = {
 
   unsubscribeNewsletter: (email, callback) => {
     db.run(
-      'UPDATE newsletter SET status = ?, unsubscribed_at = CURRENT_TIMESTAMP WHERE email = ?',
+      'UPDATE newsletter SET status = ?, unsubscribed_at = datetime('now') WHERE email = ?',
       ['unsubscribed', email],
       function(err) {
         if (err) {
@@ -766,7 +766,7 @@ const dbHelpers = {
     
     db.run(
       `UPDATE event_details 
-       SET title = ?, description = ?, date = ?, time = ?, location = ?, type = ?, status = ?, image = ?, agenda = ?, speakers = ?, capacity = ?, updated_at = CURRENT_TIMESTAMP
+       SET title = ?, description = ?, date = ?, time = ?, location = ?, type = ?, status = ?, image = ?, agenda = ?, speakers = ?, capacity = ?, updated_at = datetime('now')
        WHERE id = ?`,
       [title, description, date, time, location, type, status, image, agendaJson, speakersJson, capacity, id],
       function(err) {

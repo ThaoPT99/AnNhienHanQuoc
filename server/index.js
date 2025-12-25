@@ -1359,7 +1359,7 @@ app.put('/api/community/posts/:id', (req, res) => {
     
     const tagsStr = Array.isArray(tags) ? tags.join(',') : (tags || '');
     db.run(
-      'UPDATE community_posts SET title = ?, content = ?, category = ?, tags = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE community_posts SET title = ?, content = ?, category = ?, tags = ?, updated_at = datetime(\'now\') WHERE id = ?',
       [title, content, category || 'Tất cả', tagsStr, postId],
       function(updateErr) {
         if (updateErr) {

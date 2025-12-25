@@ -4,9 +4,10 @@
 
 /**
  * Parse date string from database
- * SQLite timestamps from server in Hà Lan timezone need to be converted to Vietnam time
+ * IMPORTANT: This function assumes timestamps from database are in UTC
+ * Backend should always store and return timestamps in UTC format
  * @param {Date|string} date - Date object or ISO string
- * @returns {Date} Date object
+ * @returns {Date} Date object (in UTC, will be formatted to Vietnam time later)
  */
 export const toVietnamTime = (date) => {
   // If it's already a Date object, return it
@@ -21,46 +22,16 @@ export const toVietnamTime = (date) => {
   }
   
   // If it's a database timestamp without timezone (e.g., "2025-12-25 06:48:00")
-  // SQLite CURRENT_TIMESTAMP stores in server timezone (Hà Lan = UTC+1 or UTC+2)
-  // But SQLite datetime('now') returns UTC
-  // 
-  // Problem: Timestamps stored with CURRENT_TIMESTAMP are in Hà Lan time
-  // When we parse "2025-12-25 06:48:00" without timezone, JavaScript treats it as local time
-  // If browser is in Vietnam, it thinks it's 06:48 Vietnam time (wrong!)
-  // Actually it's 06:48 Hà Lan time = 05:48 UTC = 12:48 Vietnam time
-  //
-  // Solution: Treat the timestamp as if it's in Hà Lan timezone, convert to UTC, then to Vietnam
-  // Hà Lan is UTC+1 (winter, Oct-Mar) or UTC+2 (summer, Mar-Oct)
-  // Vietnam is UTC+7
-  // Net offset from Hà Lan to Vietnam: +6 hours (winter) or +5 hours (summer)
+  // ASSUME it's in UTC (backend should use datetime('now') which returns UTC)
+  // If backend uses CURRENT_TIMESTAMP (server timezone), it's a backend bug that needs fixing
   if (typeof date === 'string') {
     // Check if it matches SQLite datetime format: YYYY-MM-DD HH:MM:SS
     const sqliteMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})[\sT](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$/);
     if (sqliteMatch) {
       const [, year, month, day, hour, minute, second] = sqliteMatch;
-      const monthNum = parseInt(month);
-      
-      // Determine if it's summer time in Hà Lan (March-October = UTC+2)
-      // or winter time (November-February = UTC+1)
-      const isSummer = monthNum >= 3 && monthNum <= 10;
-      const netherlandsOffsetHours = isSummer ? 2 : 1; // UTC+2 (summer) or UTC+1 (winter)
-      
-      // The timestamp from database is in Hà Lan time (stored with CURRENT_TIMESTAMP)
-      // Example: "2025-12-25 06:48:00" means 06:48 Hà Lan time
-      // Hà Lan time (UTC+1) = 05:48 UTC = 12:48 Vietnam time (UTC+7)
-      //
-      // Strategy: Parse as UTC, then adjust
-      // 1. Parse as if it's UTC: "2025-12-25T06:48:00Z" = 06:48 UTC
-      // 2. But it's actually Hà Lan time, so real UTC = 06:48 - netherlandsOffset = 05:48 UTC
-      // 3. Vietnam time = 05:48 UTC + 7 = 12:48 Vietnam
-      // Net: Add (7 - netherlandsOffset) hours
-      const utcDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
-      
-      // Calculate net offset: Vietnam (UTC+7) - Hà Lan (UTC+1 or +2)
-      const netOffsetHours = 7 - netherlandsOffsetHours; // +6 (winter) or +5 (summer)
-      const vietnamDate = new Date(utcDate.getTime() + (netOffsetHours * 3600000));
-      
-      return vietnamDate;
+      // Treat as UTC by appending 'Z'
+      const utcString = `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+      return new Date(utcString);
     }
   }
   
