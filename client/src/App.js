@@ -48,6 +48,9 @@ const Admin = lazy(() => import('./pages/Admin'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 const TestNotifications = lazy(() => import('./pages/TestNotifications'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const AIMatching = lazy(() => import('./pages/AIMatching'));
+const VideoCallBooking = lazy(() => import('./pages/VideoCallBooking'));
 
 function App() {
   return (
@@ -92,6 +95,9 @@ function App() {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin-gallery" element={<AdminGallery />} />
                 <Route path="/test-notifications" element={<TestNotifications />} />
+                <Route path="/profile/:email" element={<UserProfile />} />
+                <Route path="/ai-matching" element={<AIMatching />} />
+                <Route path="/video-call" element={<VideoCallBooking />} />
                 </Routes>
               </Suspense>
             </main>
