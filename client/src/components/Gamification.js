@@ -12,6 +12,9 @@ const Gamification = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [userRank, setUserRank] = useState(null);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
@@ -21,10 +24,17 @@ const Gamification = () => {
       const savedPoints = localStorage.getItem('userPoints') || '0';
       const savedLevel = localStorage.getItem('userLevel') || '1';
       const savedBadges = JSON.parse(localStorage.getItem('userBadges') || '[]');
+      const savedEmail = localStorage.getItem('userEmail') || '';
       
       setPoints(parseInt(savedPoints));
       setLevel(parseInt(savedLevel));
       setBadges(savedBadges);
+      setUserEmail(savedEmail);
+      
+      // Show email modal if no email and has points
+      if (!savedEmail && parseInt(savedPoints) > 0) {
+        setShowEmailModal(true);
+      }
     };
     
     loadStats();
@@ -38,6 +48,11 @@ const Gamification = () => {
         const newBadges = [...currentBadges, event.detail.badgeAwarded.badgeId];
         setBadges(newBadges);
       }
+      
+      // Show email modal if earned points but no email
+      if (!userEmail && event.detail.newPoints > 0) {
+        setShowEmailModal(true);
+      }
     };
     
     window.addEventListener('pointsUpdated', handlePointsUpdate);
@@ -46,7 +61,7 @@ const Gamification = () => {
     loadLeaderboard();
     
     return () => window.removeEventListener('pointsUpdated', handlePointsUpdate);
-  }, []);
+  }, [userEmail]);
 
   const loadLeaderboard = async () => {
     try {
@@ -55,10 +70,10 @@ const Gamification = () => {
       setLeaderboard(response.data);
       
       // Load user rank if has email
-      const userEmail = localStorage.getItem('userEmail');
-      if (userEmail) {
+      const email = localStorage.getItem('userEmail');
+      if (email) {
         try {
-          const rankResponse = await axios.get(`${API_URL}/api/leaderboard/rank/${userEmail}`);
+          const rankResponse = await axios.get(`${API_URL}/api/leaderboard/rank/${email}`);
           setUserRank(rankResponse.data);
         } catch (error) {
           console.error('Error loading user rank:', error);
@@ -70,6 +85,36 @@ const Gamification = () => {
       setLeaderboard([]);
     } finally {
       setLoadingLeaderboard(false);
+    }
+  };
+
+  const handleEmailSubmit = async () => {
+    if (!emailInput || !emailInput.includes('@')) {
+      alert('Vui lòng nhập email hợp lệ!');
+      return;
+    }
+
+    const email = emailInput.trim();
+    localStorage.setItem('userEmail', email);
+    setUserEmail(email);
+    setShowEmailModal(false);
+    
+    // Sync current points to server
+    try {
+      await axios.post(`${API_URL}/api/leaderboard/sync`, {
+        user_email: email,
+        user_name: null,
+        points,
+        level
+      });
+      
+      // Reload leaderboard and rank
+      loadLeaderboard();
+      
+      alert('✅ Đã tham gia bảng xếp hạng! Điểm của bạn đã được đồng bộ.');
+    } catch (error) {
+      console.error('Error syncing points:', error);
+      alert('Đã lưu email nhưng có lỗi khi đồng bộ điểm. Vui lòng thử lại sau.');
     }
   };
 
