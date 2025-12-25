@@ -93,8 +93,9 @@ const Gamification = () => {
   const loadLeaderboard = async () => {
     try {
       setLoadingLeaderboard(true);
-      const response = await axios.get(`${API_URL}/api/leaderboard?limit=10`);
+      const response = await axios.get(`${API_URL}/api/leaderboard?limit=50`);
       console.log('📊 Leaderboard data received:', response.data);
+      console.log('📊 Total users in leaderboard:', response.data?.length || 0);
       setLeaderboard(response.data || []);
       
       // Load user rank if has email

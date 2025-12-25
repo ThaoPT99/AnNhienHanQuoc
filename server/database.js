@@ -1313,21 +1313,30 @@ const dbHelpers = {
   getLeaderboard: (limit = 10, callback) => {
     // SQLite doesn't support ROW_NUMBER() in older versions, use subquery instead
     // Show all users, even with 0 points
+    // Fixed ranking: rank = number of users with higher points + 1
     db.all(
       `SELECT 
         user_email,
         COALESCE(user_name, SUBSTR(user_email, 1, INSTR(user_email, '@') - 1)) as display_name,
         points,
         level,
-        (SELECT COUNT(*) + 1 
+        (SELECT COUNT(*) 
          FROM user_points up2 
          WHERE up2.points > up1.points 
-         OR (up2.points = up1.points AND up2.created_at < up1.created_at)) as rank
+         OR (up2.points = up1.points AND up2.created_at < up1.created_at)) + 1 as rank
        FROM user_points up1
        ORDER BY points DESC, created_at ASC
        LIMIT ?`,
       [limit],
-      callback
+      (err, rows) => {
+        if (err) {
+          console.error('Error in getLeaderboard:', err);
+          callback(err, null);
+        } else {
+          console.log(`📊 getLeaderboard returned ${rows?.length || 0} users`);
+          callback(null, rows);
+        }
+      }
     );
   },
 

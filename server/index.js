@@ -2069,13 +2069,16 @@ app.post('/api/leaderboard/sync', (req, res) => {
 
 // Get leaderboard
 app.get('/api/leaderboard', (req, res) => {
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = parseInt(req.query.limit) || 50;
+  console.log(`📊 Fetching leaderboard with limit: ${limit}`);
   dbHelpers.getLeaderboard(limit, (err, leaderboard) => {
     if (err) {
+      console.error('❌ Error fetching leaderboard:', err);
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(leaderboard);
+    console.log(`✅ Leaderboard returned ${leaderboard?.length || 0} users`);
+    res.json(leaderboard || []);
   });
 });
 
