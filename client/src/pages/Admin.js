@@ -19,6 +19,9 @@ const Admin = () => {
   const [eventList, setEventList] = useState([]);
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
+  const [serviceRedemptions, setServiceRedemptions] = useState([]);
+  const [documentReviews, setDocumentReviews] = useState([]);
+  const [visaSupport, setVisaSupport] = useState([]);
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState({
@@ -57,7 +60,7 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes, serviceRes, reviewsRes, visaRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
@@ -69,7 +72,10 @@ const Admin = () => {
         axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/community/posts/admin/all`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/list`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/admin/users`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/admin/users`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/service-redemptions`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/document-reviews`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/visa-support`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -84,6 +90,9 @@ const Admin = () => {
       setCommunityPosts(communityRes.data || []);
       setEventList(eventListRes.data || []);
       setUsers(usersRes.data || []);
+      setServiceRedemptions(serviceRes.data || []);
+      setDocumentReviews(reviewsRes.data || []);
+      setVisaSupport(visaRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -325,6 +334,9 @@ const Admin = () => {
     { id: 'visits', label: '👁️ Truy cập', count: visits.length, icon: '🌐' },
     { id: 'community', label: '💬 Cộng đồng', count: communityPosts.length, icon: '👥' },
     { id: 'users', label: '👤 Người dùng', count: users.length, icon: '⭐' },
+    { id: 'services', label: '🎯 Dịch vụ', count: serviceRedemptions.length, icon: '🎯' },
+    { id: 'reviews', label: '📄 Review', count: documentReviews.length, icon: '📄' },
+    { id: 'visa', label: '🛂 Visa', count: visaSupport.length, icon: '🛂' },
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
@@ -640,6 +652,270 @@ const Admin = () => {
                               title="Xóa người dùng"
                             >
                               🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'services' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">🎯 Đăng ký dịch vụ ({serviceRedemptions.length})</h2>
+                {serviceRedemptions.length === 0 ? (
+                  <div className="no-data">Chưa có đăng ký dịch vụ nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Email</th>
+                        <th>Dịch vụ</th>
+                        <th>Ngày mong muốn</th>
+                        <th>Giờ</th>
+                        <th>Phương thức</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày đăng ký</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {serviceRedemptions.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td><a href={`mailto:${item.user_email}`}>{item.user_email}</a></td>
+                          <td><strong>{item.reward_name || 'N/A'}</strong></td>
+                          <td>{item.preferred_date || '-'}</td>
+                          <td>{item.preferred_time || '-'}</td>
+                          <td>
+                            {item.preferred_method === 'zoom' ? '📹 Zoom' :
+                             item.preferred_method === 'phone' ? '📞 Điện thoại' :
+                             item.preferred_method === 'office' ? '🏢 Văn phòng' : item.preferred_method}
+                          </td>
+                          <td className="message-cell">
+                            {item.notes ? (
+                              <button onClick={() => alert(item.notes)} className="view-message-btn" title="Xem ghi chú">
+                                💬 {item.notes.length > 30 ? item.notes.substring(0, 30) + '...' : item.notes}
+                              </button>
+                            ) : <em>Không có</em>}
+                          </td>
+                          <td>
+                            <select
+                              value={item.status}
+                              onChange={(e) => handleUpdateServiceStatus(item.id, e.target.value)}
+                              className={`status-select ${item.status}`}
+                            >
+                              <option value="pending">⏳ Chờ xử lý</option>
+                              <option value="confirmed">✅ Đã xác nhận</option>
+                              <option value="completed">✅ Hoàn thành</option>
+                              <option value="cancelled">❌ Đã hủy</option>
+                            </select>
+                          </td>
+                          <td>{formatDate(item.created_at)}</td>
+                          <td>
+                            <button
+                              onClick={() => {
+                                const notes = prompt('Ghi chú admin:', item.admin_notes || '');
+                                if (notes !== null) {
+                                  handleUpdateServiceStatus(item.id, item.status, notes);
+                                }
+                              }}
+                              className="edit-btn"
+                              title="Thêm ghi chú"
+                            >
+                              📝
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">📄 Review hồ sơ ({documentReviews.length})</h2>
+                {documentReviews.length === 0 ? (
+                  <div className="no-data">Chưa có yêu cầu review nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Email</th>
+                        <th>Loại review</th>
+                        <th>Link/Tên file</th>
+                        <th>Ghi chú user</th>
+                        <th>Review admin</th>
+                        <th>Feedback</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày gửi</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documentReviews.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td><a href={`mailto:${item.user_email}`}>{item.user_email}</a></td>
+                          <td><strong>{item.reward_name || 'N/A'}</strong></td>
+                          <td>
+                            {item.document_url ? (
+                              <a href={item.document_url} target="_blank" rel="noopener noreferrer">
+                                🔗 Link
+                              </a>
+                            ) : (
+                              item.document_name || '-'
+                            )}
+                          </td>
+                          <td className="message-cell">
+                            {item.user_notes ? (
+                              <button onClick={() => alert(item.user_notes)} className="view-message-btn" title="Xem ghi chú">
+                                💬 {item.user_notes.length > 30 ? item.user_notes.substring(0, 30) + '...' : item.user_notes}
+                              </button>
+                            ) : <em>Không có</em>}
+                          </td>
+                          <td className="message-cell">
+                            {item.admin_review ? (
+                              <button onClick={() => alert(item.admin_review)} className="view-message-btn" title="Xem review">
+                                📝 {item.admin_review.length > 30 ? item.admin_review.substring(0, 30) + '...' : item.admin_review}
+                              </button>
+                            ) : <em>Chưa review</em>}
+                          </td>
+                          <td className="message-cell">
+                            {item.admin_feedback ? (
+                              <button onClick={() => alert(item.admin_feedback)} className="view-message-btn" title="Xem feedback">
+                                💬 {item.admin_feedback.length > 30 ? item.admin_feedback.substring(0, 30) + '...' : item.admin_feedback}
+                              </button>
+                            ) : <em>Chưa có</em>}
+                          </td>
+                          <td>
+                            <select
+                              value={item.status}
+                              onChange={(e) => {
+                                const review = prompt('Review:', item.admin_review || '');
+                                const feedback = prompt('Feedback:', item.admin_feedback || '');
+                                if (review !== null && feedback !== null) {
+                                  handleUpdateDocumentReview(item.id, review, feedback, e.target.value);
+                                }
+                              }}
+                              className={`status-select ${item.status}`}
+                            >
+                              <option value="pending">⏳ Chờ xử lý</option>
+                              <option value="reviewing">👀 Đang review</option>
+                              <option value="completed">✅ Hoàn thành</option>
+                              <option value="cancelled">❌ Đã hủy</option>
+                            </select>
+                          </td>
+                          <td>{formatDate(item.created_at)}</td>
+                          <td>
+                            <button
+                              onClick={() => {
+                                const review = prompt('Review:', item.admin_review || '');
+                                const feedback = prompt('Feedback:', item.admin_feedback || '');
+                                if (review !== null && feedback !== null) {
+                                  handleUpdateDocumentReview(item.id, review, feedback, item.status);
+                                }
+                              }}
+                              className="edit-btn"
+                              title="Cập nhật review"
+                            >
+                              ✏️
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'visa' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">🛂 Hỗ trợ visa ({visaSupport.length})</h2>
+                {visaSupport.length === 0 ? (
+                  <div className="no-data">Chưa có yêu cầu hỗ trợ visa nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Email</th>
+                        <th>Loại hỗ trợ</th>
+                        <th>Tình trạng</th>
+                        <th>Câu hỏi</th>
+                        <th>Tài liệu</th>
+                        <th>Phản hồi admin</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày gửi</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visaSupport.map((item, index) => (
+                        <tr key={item.id}>
+                          <td>{index + 1}</td>
+                          <td><a href={`mailto:${item.user_email}`}>{item.user_email}</a></td>
+                          <td><strong>{item.reward_name || 'N/A'}</strong></td>
+                          <td>{item.current_status || '-'}</td>
+                          <td className="message-cell">
+                            {item.questions ? (
+                              <button onClick={() => alert(item.questions)} className="view-message-btn" title="Xem câu hỏi">
+                                💬 {item.questions.length > 30 ? item.questions.substring(0, 30) + '...' : item.questions}
+                              </button>
+                            ) : <em>Không có</em>}
+                          </td>
+                          <td>
+                            {item.documents_uploaded ? (
+                              <a href={item.documents_uploaded} target="_blank" rel="noopener noreferrer">
+                                🔗 Link
+                              </a>
+                            ) : '-'}
+                          </td>
+                          <td className="message-cell">
+                            {item.admin_response ? (
+                              <button onClick={() => alert(item.admin_response)} className="view-message-btn" title="Xem phản hồi">
+                                📝 {item.admin_response.length > 30 ? item.admin_response.substring(0, 30) + '...' : item.admin_response}
+                              </button>
+                            ) : <em>Chưa phản hồi</em>}
+                          </td>
+                          <td>
+                            <select
+                              value={item.status}
+                              onChange={(e) => {
+                                const response = prompt('Phản hồi admin:', item.admin_response || '');
+                                if (response !== null) {
+                                  handleUpdateVisaSupport(item.id, response, e.target.value);
+                                }
+                              }}
+                              className={`status-select ${item.status}`}
+                            >
+                              <option value="pending">⏳ Chờ xử lý</option>
+                              <option value="in_progress">🔄 Đang xử lý</option>
+                              <option value="completed">✅ Hoàn thành</option>
+                              <option value="cancelled">❌ Đã hủy</option>
+                            </select>
+                          </td>
+                          <td>{formatDate(item.created_at)}</td>
+                          <td>
+                            <button
+                              onClick={() => {
+                                const response = prompt('Phản hồi admin:', item.admin_response || '');
+                                if (response !== null) {
+                                  handleUpdateVisaSupport(item.id, response, item.status);
+                                }
+                              }}
+                              className="edit-btn"
+                              title="Cập nhật phản hồi"
+                            >
+                              ✏️
                             </button>
                           </td>
                         </tr>
