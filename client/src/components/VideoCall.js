@@ -11,6 +11,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [localStream, setLocalStream] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [error, setError] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [showRoomInfo, setShowRoomInfo] = useState(true);
+  const [roomLink, setRoomLink] = useState('');
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);

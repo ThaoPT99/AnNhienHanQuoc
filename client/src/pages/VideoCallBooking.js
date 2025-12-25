@@ -28,6 +28,21 @@ const VideoCallBooking = () => {
       setFormData(prev => ({ ...prev, user_email: userEmail, user_name: localStorage.getItem('userName') || '' }));
       loadBookings();
     }
+    
+    // Check for room parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room');
+    if (roomId) {
+      const userEmail = localStorage.getItem('userEmail') || '';
+      const userName = localStorage.getItem('userName') || userEmail;
+      setActiveCall({
+        roomId,
+        userEmail,
+        userName
+      });
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, [userEmail]);
 
   const loadBookings = async () => {
