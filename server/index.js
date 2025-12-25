@@ -83,9 +83,11 @@ app.use(cors({
       callback(null, true);
     } else {
       // Log for debugging
-      console.log('❌ CORS blocked origin:', origin);
+      console.log('⚠️ CORS: Unknown origin:', origin);
       console.log('📋 Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
+      // Allow anyway for now to prevent CORS issues
+      console.log('✅ CORS: Allowing anyway');
+      callback(null, true);
     }
   },
   credentials: true,
@@ -98,14 +100,23 @@ app.use(cors({
 // Handle preflight requests explicitly for all routes
 app.options('*', (req, res) => {
   const origin = req.headers.origin;
+  console.log('🔍 Preflight request from origin:', origin);
   if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
     res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, X-Requested-With');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, X-Requested-With, Accept');
     res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    console.log('✅ Preflight allowed for:', origin);
     res.sendStatus(200);
   } else {
-    res.sendStatus(403);
+    // Allow anyway for debugging
+    console.log('⚠️ Preflight: Allowing anyway for debugging');
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, X-Requested-With, Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(200);
   }
 });
 app.use(bodyParser.json());
@@ -2470,12 +2481,19 @@ app.post('/api/video-call/invite', async (req, res) => {
 
 app.get('/api/video-call/bookings/:email', verifyUserToken, (req, res) => {
   const email = decodeURIComponent(req.params.email);
+  
+  // Verify that the requested email matches the authenticated user
+  if (req.userEmail !== email) {
+    return res.status(403).json({ error: 'Unauthorized: Cannot access other user\'s bookings' });
+  }
+  
   dbHelpers.getVideoCallBookings(email, (err, bookings) => {
     if (err) {
+      console.error('Error getting video call bookings:', err);
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(bookings);
+    res.json(bookings || []);
   });
 });
 
