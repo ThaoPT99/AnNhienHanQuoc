@@ -1978,13 +1978,18 @@ app.post('/api/rewards/redeem', (req, res) => {
 
 // Get user's redemption history
 app.get('/api/rewards/redemptions/:email', (req, res) => {
-  const user_email = req.params.email;
+  const user_email = decodeURIComponent(req.params.email);
+  if (!user_email || !user_email.includes('@')) {
+    res.status(400).json({ error: 'Invalid email address' });
+    return;
+  }
   dbHelpers.getUserRedemptions(user_email, (err, redemptions) => {
     if (err) {
+      console.error('Error getting user redemptions:', err);
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(redemptions);
+    res.json(redemptions || []);
   });
 });
 
@@ -2052,9 +2057,14 @@ app.get('/api/leaderboard', (req, res) => {
 
 // Get user rank
 app.get('/api/leaderboard/rank/:email', (req, res) => {
-  const user_email = req.params.email;
+  const user_email = decodeURIComponent(req.params.email);
+  if (!user_email || !user_email.includes('@')) {
+    res.status(400).json({ error: 'Invalid email address' });
+    return;
+  }
   dbHelpers.getUserRank(user_email, (err, rankData) => {
     if (err) {
+      console.error('Error getting user rank:', err);
       res.status(500).json({ error: err.message });
       return;
     }

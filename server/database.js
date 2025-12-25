@@ -1149,13 +1149,23 @@ const dbHelpers = {
 
   getUserRedemptions: (user_email, callback) => {
     db.all(
-      `SELECT r.*, rw.name as reward_name, rw.description as reward_description, rw.category, rw.type
+      `SELECT r.*, 
+              COALESCE(rw.name, 'Unknown Reward') as reward_name, 
+              rw.description as reward_description, 
+              rw.category, 
+              rw.type
        FROM redemptions r
-       JOIN rewards rw ON r.reward_id = rw.id
+       LEFT JOIN rewards rw ON r.reward_id = rw.id
        WHERE r.user_email = ?
        ORDER BY r.created_at DESC`,
       [user_email],
-      callback
+      (err, rows) => {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, rows || []);
+        }
+      }
     );
   },
 
