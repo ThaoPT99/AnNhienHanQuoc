@@ -1732,30 +1732,7 @@ const dbHelpers = {
         callback(null, { deleted: this.changes > 0 });
       }
     });
-  }
-};
-
-// Close database connection
-const closeDatabase = () => {
-  return new Promise((resolve, reject) => {
-    db.close((err) => {
-      if (err) {
-        console.error('Error closing database:', err.message);
-        reject(err);
-      } else {
-        console.log('Database connection closed');
-        resolve();
-      }
-    });
-  });
-};
-
-// Handle process termination
-process.on('SIGINT', () => {
-  closeDatabase().then(() => {
-    process.exit(0);
-  });
-});
+  },
 
   // Social Features: Follow system
   followUser: (followerEmail, followingEmail, callback) => {
@@ -2123,6 +2100,28 @@ process.on('SIGINT', () => {
     );
   }
 };
+
+// Close database connection
+const closeDatabase = () => {
+  return new Promise((resolve, reject) => {
+    db.close((err) => {
+      if (err) {
+        console.error('Error closing database:', err.message);
+        reject(err);
+      } else {
+        console.log('Database connection closed');
+        resolve();
+      }
+    });
+  });
+};
+
+// Handle process termination
+process.on('SIGINT', () => {
+  closeDatabase().then(() => {
+    process.exit(0);
+  });
+});
 
 module.exports = { db, dbHelpers, closeDatabase };
 
