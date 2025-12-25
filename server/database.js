@@ -551,6 +551,28 @@ function initializeDatabase() {
       if (err) console.error('Error creating index:', err.message);
     });
 
+    // Clean up duplicate rewards function
+    const cleanupDuplicateRewards = () => {
+      // Delete duplicates, keeping only the first one (lowest id)
+      db.run(`
+        DELETE FROM rewards 
+        WHERE id NOT IN (
+          SELECT MIN(id) 
+          FROM rewards 
+          GROUP BY name, category, points_required
+        )
+      `, function(err) {
+        if (err) {
+          console.error('Error cleaning up duplicate rewards:', err.message);
+        } else if (this.changes > 0) {
+          console.log(`✅ Cleaned up ${this.changes} duplicate rewards`);
+        }
+      });
+    };
+
+    // Clean up duplicates on startup
+    cleanupDuplicateRewards();
+
     // Insert default rewards (Phase 1)
     db.run(`INSERT OR IGNORE INTO rewards (name, description, category, points_required, type, value, is_active) VALUES
       ('Voucher 50k học tiếng Hàn', 'Voucher giảm giá 50.000đ cho khóa học tiếng Hàn', 'voucher', 400, 'voucher', 'VOUCHER50K', 1),
