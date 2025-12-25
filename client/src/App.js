@@ -46,6 +46,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Admin = lazy(() => import('./pages/Admin'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
+const TestNotifications = lazy(() => import('./pages/TestNotifications'));
 
 function App() {
   return (
@@ -89,6 +90,7 @@ function App() {
                 <Route path="/admin-login" element={<AdminLogin />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin-gallery" element={<AdminGallery />} />
+                <Route path="/test-notifications" element={<TestNotifications />} />
                 </Routes>
               </Suspense>
             </main>

@@ -45,12 +45,14 @@ const NotificationCenter = () => {
       action: notificationData.action || null
     };
 
-    const updatedNotifications = [newNotification, ...notifications];
-    // Keep only last 50 notifications
-    const limitedNotifications = updatedNotifications.slice(0, 50);
-    setNotifications(limitedNotifications);
-    setUnreadCount(limitedNotifications.filter(n => !n.read).length);
-    localStorage.setItem('userNotifications', JSON.stringify(limitedNotifications));
+    setNotifications(prev => {
+      const updated = [newNotification, ...prev];
+      // Keep only last 50 notifications
+      const limited = updated.slice(0, 50);
+      localStorage.setItem('userNotifications', JSON.stringify(limited));
+      setUnreadCount(limited.filter(n => !n.read).length);
+      return limited;
+    });
 
     // Show browser notification if permission granted
     if ('Notification' in window && Notification.permission === 'granted') {
