@@ -43,10 +43,31 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
   const initializeCall = async () => {
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia is not supported in this browser');
+      }
+
+      // Mobile-optimized constraints
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      const videoConstraints = isMobile ? {
+        facingMode: 'user', // Front camera on mobile
+        width: { ideal: 640 },
+        height: { ideal: 480 }
+      } : {
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      };
+
       // Get user media (camera and microphone)
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
+        video: videoConstraints,
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
       });
 
       localStreamRef.current = stream;
@@ -54,6 +75,10 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
+        // Important for mobile: set playsInline and autoplay
+        localVideoRef.current.setAttribute('playsinline', 'true');
+        localVideoRef.current.setAttribute('autoplay', 'true');
+        localVideoRef.current.setAttribute('muted', 'true');
       }
 
       // Create peer connection
@@ -71,6 +96,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         setRemoteStream(remoteStream);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
+          // Important for mobile: set playsInline and autoplay
+          remoteVideoRef.current.setAttribute('playsinline', 'true');
+          remoteVideoRef.current.setAttribute('autoplay', 'true');
         }
         setIsCallActive(true);
       };
