@@ -190,12 +190,29 @@
   background: #5568d3;
 }
 
+.booking-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
 .meeting-link.webrtc-btn {
   background: #28a745;
 }
 
 .meeting-link.webrtc-btn:hover {
   background: #218838;
+}
+
+.meeting-link.webrtc-alternative-btn {
+  background: #17a2b8;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+}
+
+.meeting-link.webrtc-alternative-btn:hover {
+  background: #138496;
 }
 
 .booking-notes {

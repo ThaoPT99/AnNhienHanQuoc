@@ -124,9 +124,26 @@ const VideoCallBooking = () => {
         <div className="header-section">
           <h1>📹 Đặt lịch Video Call</h1>
           <p>Tư vấn trực tuyến - Gọi trực tiếp trên website hoặc qua Zoom/Google Meet</p>
-          <button className="btn-new-booking" onClick={() => setShowForm(!showForm)}>
-            {showForm ? '✖️ Hủy' : '+ Đặt lịch mới'}
-          </button>
+          <div className="header-actions">
+            <button 
+              className="btn-call-now webrtc-call-btn"
+              onClick={() => {
+                const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const userEmail = localStorage.getItem('userEmail') || '';
+                const userName = localStorage.getItem('userName') || userEmail;
+                setActiveCall({
+                  roomId,
+                  userEmail,
+                  userName
+                });
+              }}
+            >
+              📹 Gọi ngay trên website
+            </button>
+            <button className="btn-new-booking" onClick={() => setShowForm(!showForm)}>
+              {showForm ? '✖️ Hủy' : '+ Đặt lịch mới'}
+            </button>
+          </div>
         </div>
 
         {showForm && (
