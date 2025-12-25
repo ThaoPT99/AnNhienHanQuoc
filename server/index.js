@@ -1692,53 +1692,250 @@ app.post('/api/matching/calculate', (req, res) => {
       return;
     }
     
-    // Simple matching algorithm (can be enhanced with ML)
+    // Enhanced matching algorithm with comprehensive school database
     const schools = [
-      { name: 'Seoul National University', location: 'Seoul', type: 'public', scholarship: 'high' },
-      { name: 'Yonsei University', location: 'Seoul', type: 'private', scholarship: 'medium' },
-      { name: 'Korea University', location: 'Seoul', type: 'private', scholarship: 'medium' },
-      { name: 'Pusan National University', location: 'Busan', type: 'public', scholarship: 'high' },
-      { name: 'Kyung Hee University', location: 'Seoul', type: 'private', scholarship: 'medium' },
-      { name: 'Hanyang University', location: 'Seoul', type: 'private', scholarship: 'medium' },
-      { name: 'Sungkyunkwan University', location: 'Seoul', type: 'private', scholarship: 'high' },
-      { name: 'Ewha Womans University', location: 'Seoul', type: 'private', scholarship: 'high' }
+      { 
+        name: 'Seoul National University', 
+        location: 'Seoul', 
+        type: 'public', 
+        scholarship: 'high',
+        ranking: 1,
+        majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Nhân văn', 'Luật'],
+        languageRequirement: 'high',
+        tuition: 'high',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Yonsei University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'high',
+        ranking: 2,
+        majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Nghệ thuật', 'Nhân văn'],
+        languageRequirement: 'high',
+        tuition: 'very_high',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Korea University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'high',
+        ranking: 3,
+        majors: ['Kinh tế', 'Kỹ thuật', 'Luật', 'Nhân văn'],
+        languageRequirement: 'high',
+        tuition: 'very_high',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Pusan National University', 
+        location: 'Busan', 
+        type: 'public', 
+        scholarship: 'high',
+        ranking: 4,
+        majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Nhân văn'],
+        languageRequirement: 'medium',
+        tuition: 'medium',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Kyung Hee University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'medium',
+        ranking: 5,
+        majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Nghệ thuật'],
+        languageRequirement: 'medium',
+        tuition: 'high',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Hanyang University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'medium',
+        ranking: 6,
+        majors: ['Kỹ thuật', 'Kinh tế', 'Nghệ thuật'],
+        languageRequirement: 'medium',
+        tuition: 'high',
+        accommodation: 'limited'
+      },
+      { 
+        name: 'Sungkyunkwan University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'high',
+        ranking: 7,
+        majors: ['Kinh tế', 'Kỹ thuật', 'Y tế', 'Luật'],
+        languageRequirement: 'high',
+        tuition: 'very_high',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Ewha Womans University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'high',
+        ranking: 8,
+        majors: ['Kinh tế', 'Y tế', 'Nghệ thuật', 'Nhân văn'],
+        languageRequirement: 'high',
+        tuition: 'high',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Sogang University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'medium',
+        ranking: 9,
+        majors: ['Kinh tế', 'Nhân văn', 'Nghệ thuật'],
+        languageRequirement: 'medium',
+        tuition: 'high',
+        accommodation: 'limited'
+      },
+      { 
+        name: 'Inha University', 
+        location: 'Incheon', 
+        type: 'private', 
+        scholarship: 'medium',
+        ranking: 10,
+        majors: ['Kỹ thuật', 'Kinh tế'],
+        languageRequirement: 'medium',
+        tuition: 'medium',
+        accommodation: 'available'
+      },
+      { 
+        name: 'Chung-Ang University', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'medium',
+        ranking: 11,
+        majors: ['Nghệ thuật', 'Kinh tế', 'Y tế'],
+        languageRequirement: 'medium',
+        tuition: 'high',
+        accommodation: 'limited'
+      },
+      { 
+        name: 'Hankuk University of Foreign Studies', 
+        location: 'Seoul', 
+        type: 'private', 
+        scholarship: 'medium',
+        ranking: 12,
+        majors: ['Nhân văn', 'Kinh tế'],
+        languageRequirement: 'high',
+        tuition: 'high',
+        accommodation: 'available'
+      }
     ];
     
     const results = schools.map(school => {
-      let score = 50;
+      let score = 40; // Base score
       const reasons = [];
+      const weights = {
+        location: 25,
+        type: 20,
+        scholarship: 20,
+        major: 15,
+        budget: 15,
+        language: 10,
+        ranking: 5
+      };
       
-      if (questionnaire.location_preference && school.location === questionnaire.location_preference) {
-        score += 20;
-        reasons.push('Location matches your preference');
-      }
-      
-      if (questionnaire.university_type && school.type === questionnaire.university_type) {
-        score += 15;
-        reasons.push('University type matches your preference');
-      }
-      
-      if (questionnaire.scholarship_priority > 0) {
-        if (school.scholarship === 'high') {
-          score += 15;
-          reasons.push('High scholarship opportunities');
-        } else if (school.scholarship === 'medium') {
-          score += 10;
-          reasons.push('Good scholarship opportunities');
+      // Location matching (25 points)
+      if (questionnaire.location_preference) {
+        if (school.location === questionnaire.location_preference) {
+          score += weights.location;
+          reasons.push(`📍 Địa điểm: ${school.location} phù hợp với sở thích của bạn`);
+        } else if (questionnaire.location_preference === 'Other' && school.location !== 'Seoul') {
+          score += weights.location * 0.7;
+          reasons.push(`📍 Địa điểm: ${school.location} - thành phố khác với chi phí hợp lý hơn`);
         }
       }
       
-      if (questionnaire.budget_range === 'low' && school.type === 'public') {
-        score += 10;
-        reasons.push('Public university fits your budget');
+      // University type matching (20 points)
+      if (questionnaire.university_type && school.type === questionnaire.university_type) {
+        score += weights.type;
+        reasons.push(`🏛️ Loại trường: ${school.type === 'public' ? 'Công lập' : 'Tư thục'} phù hợp`);
+      }
+      
+      // Scholarship priority (20 points)
+      if (questionnaire.scholarship_priority > 0) {
+        const scholarshipWeight = weights.scholarship * (questionnaire.scholarship_priority / 5);
+        if (school.scholarship === 'high') {
+          score += scholarshipWeight;
+          reasons.push(`💰 Học bổng: Nhiều cơ hội học bổng cao`);
+        } else if (school.scholarship === 'medium') {
+          score += scholarshipWeight * 0.6;
+          reasons.push(`💰 Học bổng: Có cơ hội học bổng tốt`);
+        }
+      }
+      
+      // Major matching (15 points)
+      if (questionnaire.major && school.majors.includes(questionnaire.major)) {
+        score += weights.major;
+        reasons.push(`📚 Ngành học: Có chương trình ${questionnaire.major} chất lượng cao`);
+      }
+      
+      // Budget matching (15 points)
+      if (questionnaire.budget_range) {
+        if (questionnaire.budget_range === 'low') {
+          if (school.type === 'public' || school.tuition === 'medium') {
+            score += weights.budget;
+            reasons.push(`💵 Chi phí: Phù hợp với ngân sách hạn chế`);
+          }
+        } else if (questionnaire.budget_range === 'medium') {
+          if (school.tuition === 'medium' || school.tuition === 'high') {
+            score += weights.budget * 0.8;
+            reasons.push(`💵 Chi phí: Phù hợp với ngân sách trung bình`);
+          }
+        } else if (questionnaire.budget_range === 'high') {
+          score += weights.budget * 0.9; // High budget can afford any school
+          reasons.push(`💵 Chi phí: Phù hợp với ngân sách`);
+        }
+      }
+      
+      // Language requirement matching (10 points)
+      if (questionnaire.language_level) {
+        if (questionnaire.language_level === 'beginner' && school.languageRequirement === 'medium') {
+          score += weights.language;
+          reasons.push(`🗣️ Ngôn ngữ: Yêu cầu tiếng Hàn vừa phải, phù hợp với trình độ của bạn`);
+        } else if (questionnaire.language_level === 'intermediate' && 
+                   (school.languageRequirement === 'medium' || school.languageRequirement === 'high')) {
+          score += weights.language;
+          reasons.push(`🗣️ Ngôn ngữ: Yêu cầu tiếng Hàn phù hợp với trình độ của bạn`);
+        } else if (questionnaire.language_level === 'advanced' && school.languageRequirement === 'high') {
+          score += weights.language;
+          reasons.push(`🗣️ Ngôn ngữ: Yêu cầu tiếng Hàn cao, phù hợp với trình độ của bạn`);
+        }
+      }
+      
+      // Ranking bonus (5 points)
+      if (school.ranking <= 5) {
+        score += weights.ranking;
+        reasons.push(`⭐ Xếp hạng: Top ${school.ranking} trường đại học Hàn Quốc`);
+      } else if (school.ranking <= 10) {
+        score += weights.ranking * 0.6;
+        reasons.push(`⭐ Xếp hạng: Top ${school.ranking} trường đại học Hàn Quốc`);
+      }
+      
+      // Accommodation preference
+      if (questionnaire.accommodation_preference && school.accommodation === 'available') {
+        score += 5;
+        reasons.push(`🏠 Ký túc xá: Có ký túc xá cho sinh viên quốc tế`);
       }
       
       return {
         school_name: school.name,
-        match_score: Math.min(100, score),
+        match_score: Math.min(100, Math.round(score)),
         match_reasons: reasons.join('; ')
       };
-    }).sort((a, b) => b.match_score - a.match_score);
+    }).sort((a, b) => {
+      // Sort by score first, then by school name for consistency
+      if (b.match_score !== a.match_score) {
+        return b.match_score - a.match_score;
+      }
+      return a.school_name.localeCompare(b.school_name);
+    });
     
     // Save results
     const savePromises = results.map(result => {
