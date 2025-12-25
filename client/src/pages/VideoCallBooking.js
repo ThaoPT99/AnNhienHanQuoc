@@ -7,11 +7,12 @@ import './VideoCallBooking.css';
 const VideoCallBooking = () => {
   const [bookings, setBookings] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [activeCall, setActiveCall] = useState(null);
   const [formData, setFormData] = useState({
     user_email: '',
     user_name: '',
     call_type: 'consultation',
-    platform: 'zoom',
+    platform: 'webrtc',
     scheduled_time: '',
     duration: 30,
     timezone: 'Asia/Ho_Chi_Minh',
@@ -70,13 +71,24 @@ const VideoCallBooking = () => {
           user_email: userEmail,
           user_name: localStorage.getItem('userName') || '',
           call_type: 'consultation',
-          platform: 'zoom',
+          platform: 'webrtc',
           scheduled_time: '',
           duration: 30,
           timezone: 'Asia/Ho_Chi_Minh',
           notes: ''
         });
-        alert('Đặt lịch thành công!');
+        
+        // If WebRTC, start call immediately
+        if (formData.platform === 'webrtc') {
+          const roomId = booking.meeting_id || `room_${Date.now()}`;
+          setActiveCall({
+            roomId,
+            userEmail,
+            userName: formData.user_name || userEmail
+          });
+        } else {
+          alert('Đặt lịch thành công! Link cuộc gọi sẽ được gửi qua email.');
+        }
       } else {
         alert('Có lỗi xảy ra. Vui lòng thử lại.');
       }
@@ -111,7 +123,7 @@ const VideoCallBooking = () => {
       <div className="booking-container">
         <div className="header-section">
           <h1>📹 Đặt lịch Video Call</h1>
-          <p>Tư vấn trực tuyến qua Zoom hoặc Google Meet</p>
+          <p>Tư vấn trực tuyến - Gọi trực tiếp trên website hoặc qua Zoom/Google Meet</p>
           <button className="btn-new-booking" onClick={() => setShowForm(!showForm)}>
             {showForm ? '✖️ Hủy' : '+ Đặt lịch mới'}
           </button>
@@ -146,9 +158,15 @@ const VideoCallBooking = () => {
                   onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
                   required
                 >
+                  <option value="webrtc">📹 Gọi trực tiếp trên website (WebRTC)</option>
                   <option value="zoom">Zoom</option>
                   <option value="google-meet">Google Meet</option>
                 </select>
+                <small style={{ color: '#666', marginTop: '5px', display: 'block' }}>
+                  {formData.platform === 'webrtc' 
+                    ? '✅ Gọi trực tiếp trên website, không cần cài app' 
+                    : 'Cần link từ Zoom/Google Meet'}
+                </small>
               </div>
             </div>
             <div className="form-row">
@@ -210,13 +228,30 @@ const VideoCallBooking = () => {
                   <span className={`status-badge ${booking.status}`}>{booking.status}</span>
                 </div>
                 <div className="booking-details">
-                  <p><strong>Nền tảng:</strong> {booking.platform === 'zoom' ? 'Zoom' : 'Google Meet'}</p>
+                  <p><strong>Nền tảng:</strong> {
+                    booking.platform === 'webrtc' ? '📹 Gọi trực tiếp trên website' :
+                    booking.platform === 'zoom' ? 'Zoom' : 
+                    booking.platform === 'google-meet' ? 'Google Meet' : 'Khác'
+                  }</p>
                   <p><strong>Thời lượng:</strong> {booking.duration} phút</p>
-                  {booking.meeting_url && (
+                  {booking.platform === 'webrtc' ? (
+                    <button
+                      className="meeting-link webrtc-btn"
+                      onClick={() => {
+                        setActiveCall({
+                          roomId: booking.meeting_id || `room_${booking.id}`,
+                          userEmail: booking.user_email,
+                          userName: booking.user_name || booking.user_email
+                        });
+                      }}
+                    >
+                      📹 Bắt đầu cuộc gọi trên website
+                    </button>
+                  ) : booking.meeting_url ? (
                     <a href={booking.meeting_url} target="_blank" rel="noopener noreferrer" className="meeting-link">
-                      🔗 Tham gia cuộc gọi
+                      🔗 Tham gia cuộc gọi ({booking.platform === 'zoom' ? 'Zoom' : 'Google Meet'})
                     </a>
-                  )}
+                  ) : null}
                   {booking.notes && <p className="booking-notes">{booking.notes}</p>}
                 </div>
               </motion.div>
