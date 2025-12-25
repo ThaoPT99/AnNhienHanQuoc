@@ -268,6 +268,17 @@
   background: #c82333;
 }
 
+.call-info-text {
+  margin-top: 15px;
+  padding: 12px;
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+  color: #1976d2;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .header-section h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;

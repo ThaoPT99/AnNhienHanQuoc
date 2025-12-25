@@ -2070,6 +2070,37 @@ app.get('/api/video-call/config', (req, res) => {
   });
 });
 
+// Send video call invitation
+app.post('/api/video-call/invite', (req, res) => {
+  const { roomId, roomLink, callerEmail, callerName, recipientEmail, recipientName } = req.body;
+  
+  if (!roomId || !roomLink || !callerEmail || !recipientEmail) {
+    res.status(400).json({ error: 'Missing required fields' });
+    return;
+  }
+  
+  // For now, we'll just log the invitation
+  // In production, you would send email/SMS here
+  console.log('📞 Video Call Invitation:', {
+    roomId,
+    roomLink,
+    caller: { email: callerEmail, name: callerName },
+    recipient: { email: recipientEmail, name: recipientName },
+    timestamp: new Date().toISOString()
+  });
+  
+  // TODO: Integrate with email service (SendGrid, Mailgun, etc.)
+  // TODO: Integrate with SMS service (Twilio, etc.)
+  // For now, return success - the frontend will show the link to copy
+  
+  res.json({ 
+    success: true, 
+    message: 'Invitation logged. Email/SMS integration pending.',
+    roomLink,
+    roomId
+  });
+});
+
 app.get('/api/video-call/bookings/:email', (req, res) => {
   const email = decodeURIComponent(req.params.email);
   dbHelpers.getVideoCallBookings(email, (err, bookings) => {
