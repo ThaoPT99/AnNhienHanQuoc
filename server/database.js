@@ -1200,14 +1200,18 @@ const dbHelpers = {
   },
 
   getLeaderboard: (limit = 10, callback) => {
+    // SQLite doesn't support ROW_NUMBER() in older versions, use subquery instead
     db.all(
       `SELECT 
         user_email,
         COALESCE(user_name, SUBSTR(user_email, 1, INSTR(user_email, '@') - 1)) as display_name,
         points,
         level,
-        ROW_NUMBER() OVER (ORDER BY points DESC, created_at ASC) as rank
-       FROM user_points
+        (SELECT COUNT(*) + 1 
+         FROM user_points up2 
+         WHERE up2.points > up1.points 
+         OR (up2.points = up1.points AND up2.created_at < up1.created_at)) as rank
+       FROM user_points up1
        WHERE points >= 0
        ORDER BY points DESC, created_at ASC
        LIMIT ?`,
@@ -1219,16 +1223,13 @@ const dbHelpers = {
   getUserRank: (user_email, callback) => {
     db.get(
       `SELECT 
-        rank,
-        total_users
-       FROM (
-         SELECT 
-           user_email,
-           ROW_NUMBER() OVER (ORDER BY points DESC) as rank,
-           (SELECT COUNT(*) FROM user_points) as total_users
-         FROM user_points
-       ) ranked
-       WHERE user_email = ?`,
+        (SELECT COUNT(*) + 1 
+         FROM user_points up2 
+         WHERE up2.points > up1.points 
+         OR (up2.points = up1.points AND up2.created_at < up1.created_at)) as rank,
+        (SELECT COUNT(*) FROM user_points) as total_users
+       FROM user_points up1
+       WHERE up1.user_email = ?`,
       [user_email],
       callback
     );
