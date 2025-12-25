@@ -311,6 +311,43 @@ const Gamification = () => {
           </div>
         </div>
       </div>
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="modal-overlay" onClick={() => setShowEmailModal(false)}>
+          <div className="modal-content email-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>📧 Nhập email để tham gia bảng xếp hạng</h3>
+            <p className="modal-description">
+              Nhập email của bạn để đồng bộ điểm và tham gia bảng xếp hạng. Email chỉ dùng để hiển thị trên leaderboard.
+            </p>
+            <input
+              type="email"
+              placeholder="Email của bạn (ví dụ: yourname@email.com)"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleEmailSubmit();
+                }
+              }}
+              autoFocus
+              className="email-input"
+            />
+            <div className="modal-actions">
+              <button onClick={() => setShowEmailModal(false)} className="btn-cancel">
+                Bỏ qua
+              </button>
+              <button 
+                onClick={handleEmailSubmit}
+                disabled={!emailInput || !emailInput.includes('@')}
+                className="btn-submit"
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
