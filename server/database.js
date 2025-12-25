@@ -2123,59 +2123,5 @@ process.on('SIGINT', () => {
   });
 });
 
-  // User authentication helpers
-  getUserByEmail: (email, callback) => {
-    db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
-      if (err) {
-        callback(err, null);
-      } else {
-        callback(null, row);
-      }
-    });
-  },
-
-  createUser: (email, passwordHash, verificationToken, callback) => {
-    db.run(
-      'INSERT INTO users (email, password_hash, verification_token) VALUES (?, ?, ?)',
-      [email, passwordHash, verificationToken],
-      function(err) {
-        if (err) {
-          callback(err, null);
-        } else {
-          callback(null, this.lastID);
-        }
-      }
-    );
-  },
-
-  verifyUserEmail: (email, callback) => {
-    db.run(
-      'UPDATE users SET email_verified = 1, verification_token = NULL WHERE email = ?',
-      [email],
-      (err) => {
-        if (err) {
-          callback(err);
-        } else {
-          callback(null);
-        }
-      }
-    );
-  },
-
-  updateUserLastLogin: (email, callback) => {
-    db.run(
-      'UPDATE users SET last_login = datetime(\'now\') WHERE email = ?',
-      [email],
-      (err) => {
-        if (err) {
-          callback(err);
-        } else {
-          callback(null);
-        }
-      }
-    );
-  }
-};
-
 module.exports = { db, dbHelpers, closeDatabase };
 
