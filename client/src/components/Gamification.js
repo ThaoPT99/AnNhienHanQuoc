@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import './Gamification.css';
 
 const Gamification = () => {
@@ -9,6 +10,10 @@ const Gamification = () => {
   const [level, setLevel] = useState(1);
   const [badges, setBadges] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [userRank, setUserRank] = useState(null);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   useEffect(() => {
     // Load user stats from localStorage
@@ -36,18 +41,37 @@ const Gamification = () => {
     };
     
     window.addEventListener('pointsUpdated', handlePointsUpdate);
+    
+    // Load leaderboard from server
+    loadLeaderboard();
+    
     return () => window.removeEventListener('pointsUpdated', handlePointsUpdate);
-
-    // Generate mock leaderboard
-    const mockLeaderboard = [
-      { rank: 1, name: 'Nguyễn Văn A', points: 1250, avatar: '👨‍🎓' },
-      { rank: 2, name: 'Trần Thị B', points: 980, avatar: '👩‍🎓' },
-      { rank: 3, name: 'Lê Văn C', points: 850, avatar: '👨‍🎓' },
-      { rank: 4, name: 'Phạm Thị D', points: 720, avatar: '👩‍🎓' },
-      { rank: 5, name: 'Hoàng Văn E', points: 650, avatar: '👨‍🎓' }
-    ];
-    setLeaderboard(mockLeaderboard);
   }, []);
+
+  const loadLeaderboard = async () => {
+    try {
+      setLoadingLeaderboard(true);
+      const response = await axios.get(`${API_URL}/api/leaderboard?limit=10`);
+      setLeaderboard(response.data);
+      
+      // Load user rank if has email
+      const userEmail = localStorage.getItem('userEmail');
+      if (userEmail) {
+        try {
+          const rankResponse = await axios.get(`${API_URL}/api/leaderboard/rank/${userEmail}`);
+          setUserRank(rankResponse.data);
+        } catch (error) {
+          console.error('Error loading user rank:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+      // Fallback to empty array
+      setLeaderboard([]);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
 
   const availableBadges = [
     { id: 'quiz-master', name: 'Quiz Master', icon: '🎯', description: 'Hoàn thành Quiz tìm trường', points: 100 },
@@ -149,29 +173,48 @@ const Gamification = () => {
         {/* Leaderboard */}
         <div className="leaderboard-section">
           <h3>📊 Bảng xếp hạng</h3>
-          <div className="leaderboard-list">
-            {leaderboard.map((user, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className={`leaderboard-item ${user.rank <= 3 ? 'top-three' : ''}`}
-              >
-                <div className="rank-badge">{user.rank}</div>
-                <div className="user-avatar-small">{user.avatar}</div>
-                <div className="user-name">{user.name}</div>
-                <div className="user-points">{user.points} điểm</div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="your-rank">
-            <div className="rank-badge">?</div>
-            <div className="user-avatar-small">👤</div>
-            <div className="user-name">Bạn</div>
-            <div className="user-points">{points} điểm</div>
-          </div>
+          {loadingLeaderboard ? (
+            <div className="loading-leaderboard">Đang tải...</div>
+          ) : leaderboard.length === 0 ? (
+            <div className="no-leaderboard">
+              <p>Chưa có dữ liệu bảng xếp hạng.</p>
+              <p className="hint">Nhập email để tham gia bảng xếp hạng!</p>
+            </div>
+          ) : (
+            <>
+              <div className="leaderboard-list">
+                {leaderboard.map((user, index) => {
+                  const avatar = user.display_name ? user.display_name.charAt(0).toUpperCase() : '👤';
+                  return (
+                    <motion.div
+                      key={user.user_email || index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`leaderboard-item ${user.rank <= 3 ? 'top-three' : ''}`}
+                    >
+                      <div className="rank-badge">{user.rank}</div>
+                      <div className="user-avatar-small">{avatar}</div>
+                      <div className="user-name">{user.display_name || user.user_email}</div>
+                      <div className="user-points">{user.points} điểm</div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+              <div className="your-rank">
+                <div className="rank-badge">{userRank?.rank || '?'}</div>
+                <div className="user-avatar-small">👤</div>
+                <div className="user-name">Bạn</div>
+                <div className="user-points">{points} điểm</div>
+                {userRank && (
+                  <div className="rank-info">
+                    Hạng {userRank.rank} / {userRank.total_users} người
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* How to Earn Points */}

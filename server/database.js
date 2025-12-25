@@ -1171,6 +1171,66 @@ const dbHelpers = {
         }
       }
     );
+  },
+
+  // User points functions for leaderboard
+  upsertUserPoints: (userData, callback) => {
+    const { user_email, user_name, points, level } = userData;
+    db.run(
+      `INSERT INTO user_points (user_email, user_name, points, level, last_updated)
+       VALUES (?, ?, ?, ?, datetime('now'))
+       ON CONFLICT(user_email) DO UPDATE SET
+         points = ?,
+         level = ?,
+         last_updated = datetime('now'),
+         user_name = COALESCE(?, user_name)`,
+      [user_email, user_name || null, points, level, points, level, user_name || null],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM user_points WHERE user_email = ?', [user_email], callback);
+        }
+      }
+    );
+  },
+
+  getUserPoints: (user_email, callback) => {
+    db.get('SELECT * FROM user_points WHERE user_email = ?', [user_email], callback);
+  },
+
+  getLeaderboard: (limit = 10, callback) => {
+    db.all(
+      `SELECT 
+        user_email,
+        COALESCE(user_name, SUBSTR(user_email, 1, INSTR(user_email, '@') - 1)) as display_name,
+        points,
+        level,
+        ROW_NUMBER() OVER (ORDER BY points DESC) as rank
+       FROM user_points
+       ORDER BY points DESC
+       LIMIT ?`,
+      [limit],
+      callback
+    );
+  },
+
+  getUserRank: (user_email, callback) => {
+    db.get(
+      `SELECT 
+        rank,
+        total_users
+       FROM (
+         SELECT 
+           user_email,
+           ROW_NUMBER() OVER (ORDER BY points DESC) as rank,
+           (SELECT COUNT(*) FROM user_points) as total_users
+         FROM user_points
+       ) ranked
+       WHERE user_email = ?`,
+      [user_email],
+      callback
+    );
   }
 };
 
@@ -1218,6 +1278,23 @@ process.on('SIGINT', () => {
     }
   });
 
+  // Create user_points table for leaderboard
+  db.run(`CREATE TABLE IF NOT EXISTS user_points (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_email TEXT NOT NULL UNIQUE,
+    user_name TEXT,
+    points INTEGER DEFAULT 0,
+    level INTEGER DEFAULT 1,
+    last_updated DATETIME DEFAULT (datetime('now')),
+    created_at DATETIME DEFAULT (datetime('now'))
+  )`, (err) => {
+    if (err) {
+      console.error('Error creating user_points table:', err.message);
+    } else {
+      console.log('✅ User points table ready');
+    }
+  });
+
   // Create redemptions table
   db.run(`CREATE TABLE IF NOT EXISTS redemptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1248,6 +1325,15 @@ process.on('SIGINT', () => {
   });
 
   db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_status ON redemptions(status)`, (err) => {
+    if (err) console.error('Error creating index:', err.message);
+  });
+
+  // Create indexes for user_points
+  db.run(`CREATE INDEX IF NOT EXISTS idx_user_points_email ON user_points(user_email)`, (err) => {
+    if (err) console.error('Error creating index:', err.message);
+  });
+
+  db.run(`CREATE INDEX IF NOT EXISTS idx_user_points_points ON user_points(points DESC)`, (err) => {
     if (err) console.error('Error creating index:', err.message);
   });
 

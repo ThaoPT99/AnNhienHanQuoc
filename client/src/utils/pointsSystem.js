@@ -171,6 +171,9 @@ export const addPoints = (pointsToAdd, action = '') => {
     badgeAwarded = checkAndAwardBadge(BADGES.PROGRESS_MASTER.id, currentBadges);
   }
   
+  // Sync points to server if user has email
+  syncPointsToServer(newPoints, newLevel);
+
   // Trigger custom event để các component khác có thể lắng nghe
   window.dispatchEvent(new CustomEvent('pointsUpdated', {
     detail: {
@@ -188,6 +191,32 @@ export const addPoints = (pointsToAdd, action = '') => {
     levelUp,
     badgeAwarded
   };
+};
+
+/**
+ * Sync points to server for leaderboard
+ */
+const syncPointsToServer = async (points, level) => {
+  const userEmail = localStorage.getItem('userEmail');
+  if (!userEmail) return; // No email, skip sync
+
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+  
+  try {
+    await fetch(`${API_URL}/api/leaderboard/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_email: userEmail,
+        user_name: localStorage.getItem('userName') || null,
+        points,
+        level
+      })
+    });
+  } catch (error) {
+    console.error('Error syncing points to server:', error);
+    // Silent fail - don't interrupt user experience
+  }
 };
 
 /**

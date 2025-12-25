@@ -2013,3 +2013,52 @@ app.put('/api/rewards/redemptions/:id/status', (req, res) => {
   });
 });
 
+// ==================== LEADERBOARD API ====================
+
+// Sync user points to database
+app.post('/api/leaderboard/sync', (req, res) => {
+  const { user_email, user_name, points, level } = req.body;
+
+  if (!user_email || points === undefined) {
+    res.status(400).json({ error: 'user_email and points are required' });
+    return;
+  }
+
+  dbHelpers.upsertUserPoints({
+    user_email,
+    user_name: user_name || null,
+    points: parseInt(points),
+    level: parseInt(level) || 1
+  }, (err, userPoints) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ success: true, userPoints });
+  });
+});
+
+// Get leaderboard
+app.get('/api/leaderboard', (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
+  dbHelpers.getLeaderboard(limit, (err, leaderboard) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(leaderboard);
+  });
+});
+
+// Get user rank
+app.get('/api/leaderboard/rank/:email', (req, res) => {
+  const user_email = req.params.email;
+  dbHelpers.getUserRank(user_email, (err, rankData) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rankData || { rank: null, total_users: 0 });
+  });
+});
+

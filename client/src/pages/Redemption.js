@@ -110,6 +110,10 @@ const Redemption = () => {
         const newPoints = currentPoints - reward.points_required;
         localStorage.setItem('userPoints', newPoints.toString());
         
+        // Sync to server
+        const { syncPointsToServer } = require('../utils/pointsSystem');
+        syncPointsToServer(newPoints, Math.floor(newPoints / 500) + 1);
+        
         // Trigger points update event
         window.dispatchEvent(new CustomEvent('pointsUpdated', {
           detail: {
