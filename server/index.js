@@ -2642,6 +2642,14 @@ const server = http.createServer(app);
 const WebRTCSignalingServer = require('./webrtc-signaling');
 const signalingServer = new WebRTCSignalingServer(server);
 
+// Initialize email service on startup
+if (emailService.isEmailConfigured()) {
+  emailService.initializeEmailService();
+  console.log('📧 Email service: Configured and ready');
+} else {
+  console.log('⚠️ Email service: Not configured. Set EMAIL_PROVIDER and related env variables to enable email notifications.');
+}
+
 server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📁 Uploads directory: ${uploadsDir}`);
