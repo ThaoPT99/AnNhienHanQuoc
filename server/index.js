@@ -1413,6 +1413,437 @@ app.get('/api/community/posts/admin/all', (req, res) => {
   });
 });
 
+// ========== SOCIAL FEATURES API ==========
+
+// Follow System
+app.post('/api/social/follow', (req, res) => {
+  const { follower_email, following_email } = req.body;
+  if (!follower_email || !following_email) {
+    res.status(400).json({ error: 'Missing follower_email or following_email' });
+    return;
+  }
+  if (follower_email === following_email) {
+    res.status(400).json({ error: 'Cannot follow yourself' });
+    return;
+  }
+  
+  dbHelpers.followUser(follower_email, following_email, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+app.post('/api/social/unfollow', (req, res) => {
+  const { follower_email, following_email } = req.body;
+  if (!follower_email || !following_email) {
+    res.status(400).json({ error: 'Missing follower_email or following_email' });
+    return;
+  }
+  
+  dbHelpers.unfollowUser(follower_email, following_email, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+app.get('/api/social/followers/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getFollowers(email, (err, followers) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(followers);
+  });
+});
+
+app.get('/api/social/following/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getFollowing(email, (err, following) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(following);
+  });
+});
+
+app.get('/api/social/follow-status/:follower/:following', (req, res) => {
+  const follower = decodeURIComponent(req.params.follower);
+  const following = decodeURIComponent(req.params.following);
+  dbHelpers.checkFollowStatus(follower, following, (err, status) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ isFollowing: !!status });
+  });
+});
+
+app.get('/api/social/follow-counts/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getFollowCounts(email, (err, counts) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(counts);
+  });
+});
+
+// User Profiles
+app.post('/api/social/profile', (req, res) => {
+  const profileData = req.body;
+  if (!profileData.email) {
+    res.status(400).json({ error: 'Missing email' });
+    return;
+  }
+  
+  dbHelpers.upsertUserProfile(profileData, (err, profile) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(profile);
+  });
+});
+
+app.get('/api/social/profile/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getUserProfile(email, (err, profile) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!profile) {
+      res.status(404).json({ error: 'Profile not found' });
+      return;
+    }
+    res.json(profile);
+  });
+});
+
+// Reactions
+app.post('/api/social/reactions', (req, res) => {
+  const { post_id, comment_id, user_email, reaction_type } = req.body;
+  if (!user_email || (!post_id && !comment_id)) {
+    res.status(400).json({ error: 'Missing required fields' });
+    return;
+  }
+  
+  dbHelpers.addReaction({ post_id, comment_id, user_email, reaction_type }, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+app.delete('/api/social/reactions', (req, res) => {
+  const { post_id, comment_id, user_email, reaction_type } = req.body;
+  if (!user_email || (!post_id && !comment_id)) {
+    res.status(400).json({ error: 'Missing required fields' });
+    return;
+  }
+  
+  dbHelpers.removeReaction({ post_id, comment_id, user_email, reaction_type }, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+app.get('/api/social/reactions/:postId?/:commentId?', (req, res) => {
+  const post_id = req.params.postId ? parseInt(req.params.postId) : null;
+  const comment_id = req.params.commentId ? parseInt(req.params.commentId) : null;
+  
+  if (!post_id && !comment_id) {
+    res.status(400).json({ error: 'Must provide post_id or comment_id' });
+    return;
+  }
+  
+  dbHelpers.getReactions(post_id, comment_id, (err, reactions) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(reactions);
+  });
+});
+
+app.get('/api/social/reactions/user/:postId?/:commentId?/:userEmail', (req, res) => {
+  const post_id = req.params.postId ? parseInt(req.params.postId) : null;
+  const comment_id = req.params.commentId ? parseInt(req.params.commentId) : null;
+  const user_email = decodeURIComponent(req.params.userEmail);
+  
+  dbHelpers.getUserReaction(post_id, comment_id, user_email, (err, reaction) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ reaction: reaction || null });
+  });
+});
+
+// Mentions
+app.post('/api/social/mentions', (req, res) => {
+  const { post_id, comment_id, mentioned_email, mentioned_by_email } = req.body;
+  if (!mentioned_email || !mentioned_by_email) {
+    res.status(400).json({ error: 'Missing required fields' });
+    return;
+  }
+  
+  dbHelpers.addMention({ post_id, comment_id, mentioned_email, mentioned_by_email }, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+app.get('/api/social/mentions/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getMentions(email, (err, mentions) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(mentions);
+  });
+});
+
+app.put('/api/social/mentions/:id/read', (req, res) => {
+  const id = parseInt(req.params.id);
+  dbHelpers.markMentionAsRead(id, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(result);
+  });
+});
+
+app.get('/api/social/mentions/:email/unread-count', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getUnreadMentionsCount(email, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ count: result?.count || 0 });
+  });
+});
+
+// ========== AI-POWERED MATCHING API ==========
+
+app.post('/api/matching/questionnaire', (req, res) => {
+  const questionnaireData = req.body;
+  if (!questionnaireData.user_email) {
+    res.status(400).json({ error: 'Missing user_email' });
+    return;
+  }
+  
+  dbHelpers.upsertQuestionnaire(questionnaireData, (err, questionnaire) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(questionnaire);
+  });
+});
+
+app.get('/api/matching/questionnaire/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getQuestionnaire(email, (err, questionnaire) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(questionnaire || {});
+  });
+});
+
+app.post('/api/matching/calculate', (req, res) => {
+  const { user_email } = req.body;
+  if (!user_email) {
+    res.status(400).json({ error: 'Missing user_email' });
+    return;
+  }
+  
+  // Get user questionnaire
+  dbHelpers.getQuestionnaire(user_email, (err, questionnaire) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    
+    if (!questionnaire) {
+      res.status(404).json({ error: 'Questionnaire not found. Please complete the questionnaire first.' });
+      return;
+    }
+    
+    // Simple matching algorithm (can be enhanced with ML)
+    const schools = [
+      { name: 'Seoul National University', location: 'Seoul', type: 'public', scholarship: 'high' },
+      { name: 'Yonsei University', location: 'Seoul', type: 'private', scholarship: 'medium' },
+      { name: 'Korea University', location: 'Seoul', type: 'private', scholarship: 'medium' },
+      { name: 'Pusan National University', location: 'Busan', type: 'public', scholarship: 'high' },
+      { name: 'Kyung Hee University', location: 'Seoul', type: 'private', scholarship: 'medium' },
+      { name: 'Hanyang University', location: 'Seoul', type: 'private', scholarship: 'medium' },
+      { name: 'Sungkyunkwan University', location: 'Seoul', type: 'private', scholarship: 'high' },
+      { name: 'Ewha Womans University', location: 'Seoul', type: 'private', scholarship: 'high' }
+    ];
+    
+    const results = schools.map(school => {
+      let score = 50;
+      const reasons = [];
+      
+      if (questionnaire.location_preference && school.location === questionnaire.location_preference) {
+        score += 20;
+        reasons.push('Location matches your preference');
+      }
+      
+      if (questionnaire.university_type && school.type === questionnaire.university_type) {
+        score += 15;
+        reasons.push('University type matches your preference');
+      }
+      
+      if (questionnaire.scholarship_priority > 0) {
+        if (school.scholarship === 'high') {
+          score += 15;
+          reasons.push('High scholarship opportunities');
+        } else if (school.scholarship === 'medium') {
+          score += 10;
+          reasons.push('Good scholarship opportunities');
+        }
+      }
+      
+      if (questionnaire.budget_range === 'low' && school.type === 'public') {
+        score += 10;
+        reasons.push('Public university fits your budget');
+      }
+      
+      return {
+        school_name: school.name,
+        match_score: Math.min(100, score),
+        match_reasons: reasons.join('; ')
+      };
+    }).sort((a, b) => b.match_score - a.match_score);
+    
+    // Save results
+    const savePromises = results.map(result => {
+      return new Promise((resolve, reject) => {
+        dbHelpers.saveMatchingResults({
+          user_email,
+          school_name: result.school_name,
+          match_score: result.match_score,
+          match_reasons: result.match_reasons
+        }, (err, saved) => {
+          if (err) reject(err);
+          else resolve(saved);
+        });
+      });
+    });
+    
+    Promise.all(savePromises).then(() => {
+      res.json({ results: results.slice(0, 5) });
+    }).catch(err => {
+      console.error('Error saving matching results:', err);
+      res.json({ results: results.slice(0, 5) });
+    });
+  });
+});
+
+app.get('/api/matching/results/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  const limit = parseInt(req.query.limit) || 10;
+  
+  dbHelpers.getMatchingResults(email, limit, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// ========== VIDEO CALL INTEGRATION API ==========
+
+app.post('/api/video-call/bookings', (req, res) => {
+  const bookingData = req.body;
+  if (!bookingData.user_email || !bookingData.scheduled_time) {
+    res.status(400).json({ error: 'Missing required fields' });
+    return;
+  }
+  
+  const meetingId = `meeting_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const meetingUrl = bookingData.platform === 'zoom' 
+    ? `https://zoom.us/j/${meetingId}`
+    : `https://meet.google.com/${meetingId}`;
+  
+  bookingData.meeting_id = meetingId;
+  bookingData.meeting_url = meetingUrl;
+  bookingData.meeting_password = bookingData.meeting_password || Math.random().toString(36).substr(2, 8);
+  
+  dbHelpers.createVideoCallBooking(bookingData, (err, booking) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(booking);
+  });
+});
+
+app.get('/api/video-call/bookings/:email', (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  dbHelpers.getVideoCallBookings(email, (err, bookings) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(bookings);
+  });
+});
+
+app.put('/api/video-call/bookings/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const updates = req.body;
+  
+  dbHelpers.updateVideoCallBooking(id, updates, (err, booking) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(booking);
+  });
+});
+
+app.get('/api/video-call/upcoming', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  
+  dbHelpers.getUpcomingVideoCalls((err, bookings) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(bookings);
+  });
+});
+
 // Dynamic Sitemap
 app.get('/sitemap.xml', (req, res) => {
   const baseUrl = 'https://duhocannhien.vercel.app';

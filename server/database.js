@@ -385,6 +385,177 @@ function initializeDatabase() {
       if (err) console.error('Error creating community comments index:', err.message);
     });
 
+    // Create user_follows table for follow system
+    db.run(`CREATE TABLE IF NOT EXISTS user_follows (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      follower_email TEXT NOT NULL,
+      following_email TEXT NOT NULL,
+      created_at DATETIME DEFAULT (datetime('now')),
+      UNIQUE(follower_email, following_email),
+      CHECK(follower_email != following_email)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating user_follows table:', err.message);
+      } else {
+        console.log('✅ User follows table ready');
+      }
+    });
+
+    // Create user_profiles table
+    db.run(`CREATE TABLE IF NOT EXISTS user_profiles (
+      email TEXT PRIMARY KEY,
+      display_name TEXT,
+      bio TEXT,
+      avatar_url TEXT,
+      location TEXT,
+      interests TEXT,
+      social_links TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating user_profiles table:', err.message);
+      } else {
+        console.log('✅ User profiles table ready');
+      }
+    });
+
+    // Create community_reactions table (extended from likes with emoji support)
+    db.run(`CREATE TABLE IF NOT EXISTS community_reactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER,
+      comment_id INTEGER,
+      user_email TEXT NOT NULL,
+      reaction_type TEXT DEFAULT 'like',
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (comment_id) REFERENCES community_comments(id) ON DELETE CASCADE,
+      UNIQUE(post_id, comment_id, user_email, reaction_type)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating community_reactions table:', err.message);
+      } else {
+        console.log('✅ Community reactions table ready');
+      }
+    });
+
+    // Create community_mentions table
+    db.run(`CREATE TABLE IF NOT EXISTS community_mentions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id INTEGER,
+      comment_id INTEGER,
+      mentioned_email TEXT NOT NULL,
+      mentioned_by_email TEXT NOT NULL,
+      created_at DATETIME DEFAULT (datetime('now')),
+      read INTEGER DEFAULT 0,
+      FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (comment_id) REFERENCES community_comments(id) ON DELETE CASCADE
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating community_mentions table:', err.message);
+      } else {
+        console.log('✅ Community mentions table ready');
+      }
+    });
+
+    // Create indexes for social features
+    db.run(`CREATE INDEX IF NOT EXISTS idx_user_follows_follower ON user_follows(follower_email)`, (err) => {
+      if (err) console.error('Error creating user_follows index:', err.message);
+    });
+    
+    db.run(`CREATE INDEX IF NOT EXISTS idx_user_follows_following ON user_follows(following_email)`, (err) => {
+      if (err) console.error('Error creating user_follows following index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_community_reactions_post ON community_reactions(post_id)`, (err) => {
+      if (err) console.error('Error creating community_reactions index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_community_mentions_email ON community_mentions(mentioned_email)`, (err) => {
+      if (err) console.error('Error creating community_mentions index:', err.message);
+    });
+
+    // Create matching_questionnaires table for AI-Powered Matching
+    db.run(`CREATE TABLE IF NOT EXISTS matching_questionnaires (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      major TEXT,
+      budget_range TEXT,
+      location_preference TEXT,
+      language_level TEXT,
+      scholarship_priority INTEGER DEFAULT 0,
+      university_type TEXT,
+      duration_preference TEXT,
+      accommodation_preference TEXT,
+      career_goals TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating matching_questionnaires table:', err.message);
+      } else {
+        console.log('✅ Matching questionnaires table ready');
+      }
+    });
+
+    // Create matching_results table
+    db.run(`CREATE TABLE IF NOT EXISTS matching_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      school_name TEXT NOT NULL,
+      match_score REAL NOT NULL,
+      match_reasons TEXT,
+      created_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating matching_results table:', err.message);
+      } else {
+        console.log('✅ Matching results table ready');
+      }
+    });
+
+    // Create video_call_bookings table for Video Call Integration
+    db.run(`CREATE TABLE IF NOT EXISTS video_call_bookings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      user_name TEXT,
+      call_type TEXT DEFAULT 'consultation',
+      platform TEXT DEFAULT 'zoom',
+      meeting_url TEXT,
+      meeting_id TEXT,
+      meeting_password TEXT,
+      scheduled_time DATETIME NOT NULL,
+      duration INTEGER DEFAULT 30,
+      timezone TEXT DEFAULT 'Asia/Ho_Chi_Minh',
+      status TEXT DEFAULT 'scheduled',
+      notes TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating video_call_bookings table:', err.message);
+      } else {
+        console.log('✅ Video call bookings table ready');
+      }
+    });
+
+    // Create indexes for new tables
+    db.run(`CREATE INDEX IF NOT EXISTS idx_matching_questionnaires_email ON matching_questionnaires(user_email)`, (err) => {
+      if (err) console.error('Error creating matching_questionnaires index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_matching_results_email ON matching_results(user_email)`, (err) => {
+      if (err) console.error('Error creating matching_results index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_video_call_bookings_email ON video_call_bookings(user_email)`, (err) => {
+      if (err) console.error('Error creating video_call_bookings index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_video_call_bookings_time ON video_call_bookings(scheduled_time)`, (err) => {
+      if (err) console.error('Error creating video_call_bookings time index:', err.message);
+    });
+
     // Create rewards table
     db.run(`CREATE TABLE IF NOT EXISTS rewards (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1585,6 +1756,373 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
+
+  // Social Features: Follow system
+  followUser: (followerEmail, followingEmail, callback) => {
+    db.run(
+      `INSERT OR IGNORE INTO user_follows (follower_email, following_email) VALUES (?, ?)`,
+      [followerEmail, followingEmail],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { success: true, changes: this.changes });
+        }
+      }
+    );
+  },
+
+  unfollowUser: (followerEmail, followingEmail, callback) => {
+    db.run(
+      `DELETE FROM user_follows WHERE follower_email = ? AND following_email = ?`,
+      [followerEmail, followingEmail],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { success: true, changes: this.changes });
+        }
+      }
+    );
+  },
+
+  getFollowers: (userEmail, callback) => {
+    db.all(
+      `SELECT follower_email, created_at FROM user_follows WHERE following_email = ? ORDER BY created_at DESC`,
+      [userEmail],
+      callback
+    );
+  },
+
+  getFollowing: (userEmail, callback) => {
+    db.all(
+      `SELECT following_email, created_at FROM user_follows WHERE follower_email = ? ORDER BY created_at DESC`,
+      [userEmail],
+      callback
+    );
+  },
+
+  checkFollowStatus: (followerEmail, followingEmail, callback) => {
+    db.get(
+      `SELECT * FROM user_follows WHERE follower_email = ? AND following_email = ?`,
+      [followerEmail, followingEmail],
+      callback
+    );
+  },
+
+  getFollowCounts: (userEmail, callback) => {
+    db.get(
+      `SELECT 
+        (SELECT COUNT(*) FROM user_follows WHERE following_email = ?) as followers_count,
+        (SELECT COUNT(*) FROM user_follows WHERE follower_email = ?) as following_count`,
+      [userEmail, userEmail],
+      callback
+    );
+  },
+
+  // Social Features: User Profiles
+  upsertUserProfile: (profileData, callback) => {
+    const { email, display_name, bio, avatar_url, location, interests, social_links } = profileData;
+    db.run(
+      `INSERT INTO user_profiles (email, display_name, bio, avatar_url, location, interests, social_links, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+       ON CONFLICT(email) DO UPDATE SET
+         display_name = COALESCE(?, display_name),
+         bio = COALESCE(?, bio),
+         avatar_url = COALESCE(?, avatar_url),
+         location = COALESCE(?, location),
+         interests = COALESCE(?, interests),
+         social_links = COALESCE(?, social_links),
+         updated_at = datetime('now')`,
+      [email, display_name, bio, avatar_url, location, interests, social_links,
+       display_name, bio, avatar_url, location, interests, social_links],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM user_profiles WHERE email = ?', [email], callback);
+        }
+      }
+    );
+  },
+
+  getUserProfile: (email, callback) => {
+    db.get('SELECT * FROM user_profiles WHERE email = ?', [email], callback);
+  },
+
+  // Social Features: Reactions (extended from likes)
+  addReaction: (reactionData, callback) => {
+    const { post_id, comment_id, user_email, reaction_type } = reactionData;
+    db.run(
+      `INSERT OR REPLACE INTO community_reactions (post_id, comment_id, user_email, reaction_type)
+       VALUES (?, ?, ?, ?)`,
+      [post_id || null, comment_id || null, user_email, reaction_type || 'like'],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          // Update reaction counts
+          if (post_id) {
+            db.run(`UPDATE community_posts SET likes_count = (
+              SELECT COUNT(*) FROM community_reactions WHERE post_id = ? AND reaction_type = 'like'
+            ) WHERE id = ?`, [post_id, post_id]);
+          }
+          if (comment_id) {
+            db.run(`UPDATE community_comments SET likes_count = (
+              SELECT COUNT(*) FROM community_reactions WHERE comment_id = ? AND reaction_type = 'like'
+            ) WHERE id = ?`, [comment_id, comment_id]);
+          }
+          callback(null, { success: true, id: this.lastID });
+        }
+      }
+    );
+  },
+
+  removeReaction: (reactionData, callback) => {
+    const { post_id, comment_id, user_email, reaction_type } = reactionData;
+    db.run(
+      `DELETE FROM community_reactions 
+       WHERE post_id = ? AND comment_id = ? AND user_email = ? AND reaction_type = ?`,
+      [post_id || null, comment_id || null, user_email, reaction_type || 'like'],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          // Update reaction counts
+          if (post_id) {
+            db.run(`UPDATE community_posts SET likes_count = (
+              SELECT COUNT(*) FROM community_reactions WHERE post_id = ? AND reaction_type = 'like'
+            ) WHERE id = ?`, [post_id, post_id]);
+          }
+          if (comment_id) {
+            db.run(`UPDATE community_comments SET likes_count = (
+              SELECT COUNT(*) FROM community_reactions WHERE comment_id = ? AND reaction_type = 'like'
+            ) WHERE id = ?`, [comment_id, comment_id]);
+          }
+          callback(null, { success: true, changes: this.changes });
+        }
+      }
+    );
+  },
+
+  getReactions: (post_id, comment_id, callback) => {
+    const query = post_id 
+      ? `SELECT reaction_type, COUNT(*) as count FROM community_reactions WHERE post_id = ? GROUP BY reaction_type`
+      : `SELECT reaction_type, COUNT(*) as count FROM community_reactions WHERE comment_id = ? GROUP BY reaction_type`;
+    db.all(query, [post_id || comment_id], callback);
+  },
+
+  getUserReaction: (post_id, comment_id, user_email, callback) => {
+    db.get(
+      `SELECT * FROM community_reactions 
+       WHERE post_id = ? AND comment_id = ? AND user_email = ?`,
+      [post_id || null, comment_id || null, user_email],
+      callback
+    );
+  },
+
+  // Social Features: Mentions
+  addMention: (mentionData, callback) => {
+    const { post_id, comment_id, mentioned_email, mentioned_by_email } = mentionData;
+    db.run(
+      `INSERT INTO community_mentions (post_id, comment_id, mentioned_email, mentioned_by_email)
+       VALUES (?, ?, ?, ?)`,
+      [post_id || null, comment_id || null, mentioned_email, mentioned_by_email],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { success: true, id: this.lastID });
+        }
+      }
+    );
+  },
+
+  getMentions: (userEmail, callback) => {
+    db.all(
+      `SELECT m.*, 
+              p.title as post_title,
+              c.content as comment_content,
+              p.id as post_id
+       FROM community_mentions m
+       LEFT JOIN community_posts p ON m.post_id = p.id
+       LEFT JOIN community_comments c ON m.comment_id = c.id
+       WHERE m.mentioned_email = ?
+       ORDER BY m.created_at DESC
+       LIMIT 50`,
+      [userEmail],
+      callback
+    );
+  },
+
+  markMentionAsRead: (mentionId, callback) => {
+    db.run(
+      `UPDATE community_mentions SET read = 1 WHERE id = ?`,
+      [mentionId],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { success: true, changes: this.changes });
+        }
+      }
+    );
+  },
+
+  getUnreadMentionsCount: (userEmail, callback) => {
+    db.get(
+      `SELECT COUNT(*) as count FROM community_mentions WHERE mentioned_email = ? AND read = 0`,
+      [userEmail],
+      callback
+    );
+  },
+
+  // AI-Powered Matching: Questionnaires
+  upsertQuestionnaire: (questionnaireData, callback) => {
+    const { user_email, major, budget_range, location_preference, language_level, 
+            scholarship_priority, university_type, duration_preference, 
+            accommodation_preference, career_goals } = questionnaireData;
+    
+    db.run(
+      `INSERT INTO matching_questionnaires 
+       (user_email, major, budget_range, location_preference, language_level, 
+        scholarship_priority, university_type, duration_preference, 
+        accommodation_preference, career_goals, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+       ON CONFLICT(user_email) DO UPDATE SET
+         major = COALESCE(?, major),
+         budget_range = COALESCE(?, budget_range),
+         location_preference = COALESCE(?, location_preference),
+         language_level = COALESCE(?, language_level),
+         scholarship_priority = COALESCE(?, scholarship_priority),
+         university_type = COALESCE(?, university_type),
+         duration_preference = COALESCE(?, duration_preference),
+         accommodation_preference = COALESCE(?, accommodation_preference),
+         career_goals = COALESCE(?, career_goals),
+         updated_at = datetime('now')`,
+      [user_email, major, budget_range, location_preference, language_level,
+       scholarship_priority, university_type, duration_preference,
+       accommodation_preference, career_goals,
+       major, budget_range, location_preference, language_level,
+       scholarship_priority, university_type, duration_preference,
+       accommodation_preference, career_goals],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM matching_questionnaires WHERE user_email = ?', [user_email], callback);
+        }
+      }
+    );
+  },
+
+  getQuestionnaire: (userEmail, callback) => {
+    db.get('SELECT * FROM matching_questionnaires WHERE user_email = ?', [userEmail], callback);
+  },
+
+  saveMatchingResults: (results, callback) => {
+    const { user_email, school_name, match_score, match_reasons } = results;
+    db.run(
+      `INSERT INTO matching_results (user_email, school_name, match_score, match_reasons)
+       VALUES (?, ?, ?, ?)`,
+      [user_email, school_name, match_score, match_reasons],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { success: true, id: this.lastID });
+        }
+      }
+    );
+  },
+
+  getMatchingResults: (userEmail, limit = 10, callback) => {
+    db.all(
+      `SELECT * FROM matching_results 
+       WHERE user_email = ? 
+       ORDER BY match_score DESC, created_at DESC 
+       LIMIT ?`,
+      [userEmail, limit],
+      callback
+    );
+  },
+
+  // Video Call Integration: Bookings
+  createVideoCallBooking: (bookingData, callback) => {
+    const { user_email, user_name, call_type, platform, meeting_url, meeting_id,
+            meeting_password, scheduled_time, duration, timezone, notes } = bookingData;
+    
+    db.run(
+      `INSERT INTO video_call_bookings 
+       (user_email, user_name, call_type, platform, meeting_url, meeting_id,
+        meeting_password, scheduled_time, duration, timezone, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [user_email, user_name, call_type, platform, meeting_url, meeting_id,
+       meeting_password, scheduled_time, duration, timezone, notes],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM video_call_bookings WHERE id = ?', [this.lastID], callback);
+        }
+      }
+    );
+  },
+
+  getVideoCallBookings: (userEmail, callback) => {
+    db.all(
+      `SELECT * FROM video_call_bookings 
+       WHERE user_email = ? 
+       ORDER BY scheduled_time DESC`,
+      [userEmail],
+      callback
+    );
+  },
+
+  updateVideoCallBooking: (bookingId, updates, callback) => {
+    const allowedFields = ['status', 'meeting_url', 'meeting_id', 'meeting_password', 'notes', 'scheduled_time'];
+    const updatesList = [];
+    const values = [];
+    
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        updatesList.push(`${key} = ?`);
+        values.push(value);
+      }
+    }
+    
+    if (updatesList.length === 0) {
+      callback(new Error('No valid fields to update'), null);
+      return;
+    }
+    
+    updatesList.push('updated_at = datetime(\'now\')');
+    values.push(bookingId);
+    
+    db.run(
+      `UPDATE video_call_bookings SET ${updatesList.join(', ')} WHERE id = ?`,
+      values,
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM video_call_bookings WHERE id = ?', [bookingId], callback);
+        }
+      }
+    );
+  },
+
+  getUpcomingVideoCalls: (callback) => {
+    db.all(
+      `SELECT * FROM video_call_bookings 
+       WHERE status = 'scheduled' 
+       AND scheduled_time > datetime('now')
+       ORDER BY scheduled_time ASC
+       LIMIT 50`,
+      callback
+    );
+  }
+};
 
 module.exports = { db, dbHelpers, closeDatabase };
 
