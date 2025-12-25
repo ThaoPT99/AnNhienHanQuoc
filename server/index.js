@@ -2099,3 +2099,75 @@ app.get('/api/leaderboard/rank/:email', (req, res) => {
   });
 });
 
+// ==================== ADMIN USER MANAGEMENT API ====================
+// Get all users (admin only)
+app.get('/api/admin/users', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  dbHelpers.getAllUsers((err, users) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(users || []);
+  });
+});
+
+// Update user points (admin only)
+app.put('/api/admin/users/:email/points', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const user_email = decodeURIComponent(req.params.email);
+  const { points, level } = req.body;
+
+  if (points === undefined || level === undefined) {
+    res.status(400).json({ error: 'Points and level are required' });
+    return;
+  }
+
+  dbHelpers.updateUserPoints(user_email, parseInt(points), parseInt(level), (err, user) => {
+    if (err) {
+      console.error('Error updating user points:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.json(user);
+  });
+});
+
+// Delete user (admin only)
+app.delete('/api/admin/users/:email', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const user_email = decodeURIComponent(req.params.email);
+  dbHelpers.deleteUser(user_email, (err, result) => {
+    if (err) {
+      console.error('Error deleting user:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!result || !result.deleted) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.json({ success: true, message: 'User deleted successfully' });
+  });
+});
+
