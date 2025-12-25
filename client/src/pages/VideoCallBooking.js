@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import VideoCall from '../components/VideoCall';
 import './VideoCallBooking.css';
 
 const VideoCallBooking = () => {
@@ -223,6 +224,16 @@ const VideoCallBooking = () => {
           )}
         </div>
       </div>
+
+      {/* WebRTC Video Call Component */}
+      {activeCall && (
+        <VideoCall
+          roomId={activeCall.roomId}
+          userEmail={activeCall.userEmail}
+          userName={activeCall.userName}
+          onClose={() => setActiveCall(null)}
+        />
+      )}
     </div>
   );
 };

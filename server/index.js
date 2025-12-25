@@ -1992,7 +1992,25 @@ app.post('/api/video-call/bookings', async (req, res) => {
     const endTime = new Date(startTime.getTime() + duration * 60000);
     
     // Create meeting via API integration
-    const platform = bookingData.platform || 'zoom';
+    const platform = bookingData.platform || 'webrtc';
+    
+    // If WebRTC, just generate a room ID (no external API needed)
+    if (platform === 'webrtc') {
+      const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      bookingData.meeting_id = roomId;
+      bookingData.meeting_url = `${process.env.FRONTEND_URL || 'https://duhocannhien.vercel.app'}/video-call?room=${roomId}`;
+      bookingData.meeting_password = null;
+      
+      dbHelpers.createVideoCallBooking(bookingData, (err, booking) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        res.json(booking);
+      });
+      return;
+    }
+    
     const meetingData = {
       topic: `${bookingData.call_type || 'Consultation'} - ${bookingData.user_name || bookingData.user_email}`,
       summary: `${bookingData.call_type || 'Consultation'} - ${bookingData.user_name || bookingData.user_email}`,
