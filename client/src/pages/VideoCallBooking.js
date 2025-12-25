@@ -7,6 +7,9 @@ import './VideoCallBooking.css';
 const VideoCallBooking = () => {
   const [bookings, setBookings] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showCallFriendForm, setShowCallFriendForm] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
   const [activeCall, setActiveCall] = useState(null);
   const [formData, setFormData] = useState({
     user_email: '',
@@ -154,6 +157,18 @@ const VideoCallBooking = () => {
               }}
             >
               📹 Gọi ngay trên website
+            </button>
+            <button 
+              className="btn-call-friend"
+              onClick={() => {
+                if (!userEmail) {
+                  alert('Vui lòng nhập email để sử dụng tính năng này');
+                  return;
+                }
+                setShowCallFriendForm(!showCallFriendForm);
+              }}
+            >
+              👥 Gọi cho bạn
             </button>
             <button className="btn-new-booking" onClick={() => setShowForm(!showForm)}>
               {showForm ? '✖️ Hủy' : '+ Đặt lịch mới'}
