@@ -251,24 +251,41 @@ const VideoCallBooking = () => {
                     booking.platform === 'google-meet' ? 'Google Meet' : 'Khác'
                   }</p>
                   <p><strong>Thời lượng:</strong> {booking.duration} phút</p>
-                  {booking.platform === 'webrtc' ? (
+                  <div className="booking-actions">
+                    {booking.platform === 'webrtc' ? (
+                      <button
+                        className="meeting-link webrtc-btn"
+                        onClick={() => {
+                          setActiveCall({
+                            roomId: booking.meeting_id || `room_${booking.id}`,
+                            userEmail: booking.user_email,
+                            userName: booking.user_name || booking.user_email
+                          });
+                        }}
+                      >
+                        📹 Bắt đầu cuộc gọi trên website
+                      </button>
+                    ) : booking.meeting_url ? (
+                      <a href={booking.meeting_url} target="_blank" rel="noopener noreferrer" className="meeting-link">
+                        🔗 Tham gia cuộc gọi ({booking.platform === 'zoom' ? 'Zoom' : 'Google Meet'})
+                      </a>
+                    ) : null}
+                    {/* Always show WebRTC option as alternative */}
                     <button
-                      className="meeting-link webrtc-btn"
+                      className="meeting-link webrtc-alternative-btn"
                       onClick={() => {
+                        const roomId = booking.meeting_id || `room_${booking.id}_${Date.now()}`;
                         setActiveCall({
-                          roomId: booking.meeting_id || `room_${booking.id}`,
+                          roomId,
                           userEmail: booking.user_email,
                           userName: booking.user_name || booking.user_email
                         });
                       }}
+                      title="Gọi trực tiếp trên website thay vì dùng Zoom/Google Meet"
                     >
-                      📹 Bắt đầu cuộc gọi trên website
+                      📹 Gọi trên website
                     </button>
-                  ) : booking.meeting_url ? (
-                    <a href={booking.meeting_url} target="_blank" rel="noopener noreferrer" className="meeting-link">
-                      🔗 Tham gia cuộc gọi ({booking.platform === 'zoom' ? 'Zoom' : 'Google Meet'})
-                    </a>
-                  ) : null}
+                  </div>
                   {booking.notes && <p className="booking-notes">{booking.notes}</p>}
                 </div>
               </motion.div>
