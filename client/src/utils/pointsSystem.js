@@ -196,7 +196,7 @@ export const addPoints = (pointsToAdd, action = '') => {
 /**
  * Sync points to server for leaderboard
  */
-const syncPointsToServer = async (points, level) => {
+export const syncPointsToServer = async (points, level) => {
   const userEmail = localStorage.getItem('userEmail');
   if (!userEmail) return; // No email, skip sync
 
