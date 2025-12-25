@@ -10,10 +10,12 @@ import SocialProof from './components/SocialProof';
 import LiveChat from './components/LiveChat';
 import PWAInstall from './components/PWAInstall';
 import NotificationCenter from './components/NotificationCenter';
+import IncomingCall from './components/IncomingCall';
 import PageViewTracker from './components/PageViewTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 import SkipToContent from './components/SkipToContent';
+import { registerServiceWorker } from './utils/pushNotifications';
 import './App.css';
 
 // Lazy load pages for better performance
@@ -109,6 +111,18 @@ function App() {
             <LiveChat />
             <PWAInstall />
             <NotificationCenter />
+            
+            {/* Incoming Call Modal */}
+            {incomingCall && (
+              <IncomingCall
+                callerName={incomingCall.callerName}
+                callerEmail={incomingCall.callerEmail}
+                roomId={incomingCall.roomId}
+                roomLink={incomingCall.roomLink}
+                onAccept={handleAcceptCall}
+                onDecline={handleDeclineCall}
+              />
+            )}
           </div>
         </ErrorBoundary>
       </Router>

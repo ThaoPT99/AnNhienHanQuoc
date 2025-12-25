@@ -37,7 +37,7 @@ class WebRTCSignalingServer {
               ws.roomId = roomId;
               ws.userId = userId;
               
-              // Notify others in room
+              // Notify others in room about new user
               this.broadcastToRoom(roomId, ws, {
                 type: 'user-joined',
                 userId,
@@ -57,6 +57,31 @@ class WebRTCSignalingServer {
               }));
               
               console.log(`✅ User ${userId} joined room ${roomId}`);
+              break;
+              
+          case 'incoming-call':
+              // Notify specific user about incoming call
+              const targetUserId = data.targetUserId;
+              const callerName = data.callerName;
+              const callerEmail = data.callerEmail;
+              
+              // Find target user's connection
+              const targetRoom = this.rooms.get(roomId);
+              if (targetRoom) {
+                targetRoom.forEach(client => {
+                  if (client.userId === targetUserId && client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                      type: 'incoming-call',
+                      roomId: data.roomId,
+                      roomLink: data.roomLink,
+                      callerName,
+                      callerEmail,
+                      from: userId
+                    }));
+                    console.log(`📞 Incoming call notification sent to ${targetUserId} from ${userId}`);
+                  }
+                });
+              }
               break;
               
             case 'offer':
