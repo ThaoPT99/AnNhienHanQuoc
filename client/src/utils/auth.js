@@ -17,6 +17,9 @@ export const isLoggedIn = () => {
   return !!getAuthToken();
 };
 
+// Alias for isLoggedIn (for consistency)
+export const isAuthenticated = isLoggedIn;
+
 // Logout user
 export const logout = () => {
   localStorage.removeItem('authToken');

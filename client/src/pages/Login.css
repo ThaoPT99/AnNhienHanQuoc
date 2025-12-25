@@ -130,6 +130,44 @@
   margin: 5px 0;
 }
 
+.unverified-email-alert {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.unverified-email-alert p {
+  color: #856404;
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+.btn-resend {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: #ffc107;
+  color: #856404;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.btn-resend:hover:not(:disabled) {
+  background: #ffb300;
+  transform: translateY(-1px);
+}
+
+.btn-resend:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .login-card {

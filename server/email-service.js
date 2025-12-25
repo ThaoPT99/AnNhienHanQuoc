@@ -240,10 +240,41 @@ async function sendNotificationEmail({ recipientEmail, recipientName, subject, m
   }
 }
 
+// Generic sendEmail function
+async function sendEmail(to, subject, htmlContent, textContent) {
+  if (!transporter) {
+    if (!initializeEmailService()) {
+      console.warn('⚠️ Email service: Not configured. Skipping email to', to);
+      return { success: false, message: 'Email service not configured.' };
+    }
+  }
+
+  const emailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@duhocannhien.com';
+  const siteName = process.env.SITE_NAME || 'Du học An Nhiên';
+
+  const mailOptions = {
+    from: `"${siteName}" <${emailFrom}>`,
+    to: to,
+    subject: subject,
+    html: htmlContent,
+    text: textContent || htmlContent.replace(/<[^>]*>/g, '') // Strip HTML tags for text version
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Error sending email:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   initializeEmailService,
   isEmailConfigured,
   sendVideoCallInvite,
-  sendNotificationEmail
+  sendNotificationEmail,
+  sendEmail
 };
 

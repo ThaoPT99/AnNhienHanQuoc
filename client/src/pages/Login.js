@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import { showNotification } from '../components/NotificationCenter';
+import { isAuthenticated } from '../utils/auth';
 import './Login.css';
 
 const Login = () => {
@@ -15,12 +16,13 @@ const Login = () => {
     name: ''
   });
   const [loading, setLoading] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   // Check if already logged in
   useEffect(() => {
-    if (checkLoggedIn()) {
+    if (isAuthenticated()) {
       const redirectTo = searchParams.get('redirect') || '/community';
       navigate(redirectTo);
     }
@@ -41,26 +43,48 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        // Save token and email
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userEmail', data.user.email);
-        localStorage.setItem('userId', data.user.userId);
+        if (isLogin) {
+          // Login successful
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userEmail', data.user.email);
+          localStorage.setItem('userId', data.user.userId);
 
-        showNotification(
-          'Đăng nhập thành công!',
-          `Chào mừng ${data.user.email}`,
-          'success'
-        );
+          showNotification(
+            'Đăng nhập thành công!',
+            `Chào mừng ${data.user.email}`,
+            'success'
+          );
 
-        // Redirect to previous page or community
-        const redirectTo = searchParams.get('redirect') || '/community';
-        navigate(redirectTo);
+          // Redirect to previous page or community
+          const redirectTo = searchParams.get('redirect') || '/community';
+          navigate(redirectTo);
+        } else {
+          // Registration successful - email verification required
+          showNotification(
+            'Đăng ký thành công!',
+            data.message || 'Vui lòng kiểm tra email để xác thực tài khoản.',
+            'success'
+          );
+          setUnverifiedEmail(formData.email);
+          setIsLogin(true); // Switch to login form
+          setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password
+        }
       } else {
-        showNotification(
-          'Lỗi',
-          data.error || 'Có lỗi xảy ra',
-          'error'
-        );
+        // Handle unverified email error
+        if (res.status === 403 && data.email_verified === false) {
+          setUnverifiedEmail(formData.email);
+          showNotification(
+            'Email chưa được xác thực',
+            data.error || 'Vui lòng kiểm tra email và click vào link xác thực.',
+            'warning'
+          );
+        } else {
+          showNotification(
+            'Lỗi',
+            data.error || 'Có lỗi xảy ra',
+            'error'
+          );
+        }
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -79,6 +103,36 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear unverified email message when user types
+    if (unverifiedEmail) {
+      setUnverifiedEmail(null);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: unverifiedEmail })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showNotification('Thành công', data.message || 'Email xác thực đã được gửi lại!', 'success');
+      } else {
+        showNotification('Lỗi', data.error || 'Không thể gửi email. Vui lòng thử lại.', 'error');
+      }
+    } catch (error) {
+      console.error('Resend error:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -143,6 +197,21 @@ const Login = () => {
               {loading ? 'Đang xử lý...' : (isLogin ? 'Đăng nhập' : 'Đăng ký')}
             </button>
           </form>
+
+          {unverifiedEmail && (
+            <div className="unverified-email-alert">
+              <p>⚠️ Email <strong>{unverifiedEmail}</strong> chưa được xác thực.</p>
+              <p>Vui lòng kiểm tra email và click vào link xác thực.</p>
+              <button
+                type="button"
+                className="btn-resend"
+                onClick={handleResendVerification}
+                disabled={loading}
+              >
+                {loading ? 'Đang gửi...' : 'Gửi lại email xác thực'}
+              </button>
+            </div>
+          )}
 
           <div className="login-footer">
             <p>

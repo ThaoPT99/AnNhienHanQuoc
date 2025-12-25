@@ -27,6 +27,37 @@ const {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ==================== USER AUTHENTICATION SETUP ====================
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+// Middleware to verify user JWT token
+const verifyUserToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1]; // Expects "Bearer TOKEN"
+  if (!token) {
+    return res.status(401).json({ error: 'Token format is "Bearer <token>"' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('JWT verification error:', err.message);
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+    req.user = decoded; // Attach decoded user info (e.g., email) to request
+    req.userEmail = decoded.email; // For convenience
+    next();
+  });
+};
+
 // Middleware - CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
@@ -352,6 +383,294 @@ const verifyAdminToken = (req, res, next) => {
     res.status(401).json({ error: 'Invalid token format' });
   }
 };
+
+// ==================== USER AUTHENTICATION ENDPOINTS ====================
+// User Registration
+app.post('/api/auth/register', async (req, res) => {
+  const { email, password, name } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  // Check if user already exists
+  dbHelpers.getUserByEmail(email, async (err, existingUser) => {
+    if (err) {
+      console.error('Error checking existing user:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    bcrypt.hash(password, saltRounds, (err, passwordHash) => {
+      if (err) {
+        console.error('Error hashing password:', err);
+        return res.status(500).json({ error: 'Error creating account' });
+      }
+
+      // Generate verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+
+      // Create user
+      dbHelpers.createUser(email, passwordHash, verificationToken, async (err, userId) => {
+        if (err) {
+          console.error('Error creating user:', err);
+          return res.status(500).json({ error: 'Error creating account' });
+        }
+
+        // Update display name if provided
+        if (name) {
+          dbHelpers.updateUserDisplayName(email, name, (err) => {
+            if (err) console.error('Error updating display name:', err);
+          });
+        }
+
+        // Send verification email
+        const frontendUrl = process.env.FRONTEND_URL || 'https://duhocannhien.vercel.app';
+        const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
+
+        const emailResult = await emailService.sendEmail(
+          email,
+          'Xác thực email - Du học An Nhiên',
+          `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+              <h2 style="color: #667eea;">Xác thực email của bạn</h2>
+              <p>Xin chào ${name || email},</p>
+              <p>Cảm ơn bạn đã đăng ký tài khoản tại Du học An Nhiên!</p>
+              <p>Vui lòng click vào nút bên dưới để xác thực email của bạn:</p>
+              <p style="text-align: center; margin: 20px 0;">
+                <a href="${verificationLink}" style="background-color: #667eea; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                  Xác thực email
+                </a>
+              </p>
+              <p>Hoặc copy link này vào trình duyệt:</p>
+              <p><a href="${verificationLink}">${verificationLink}</a></p>
+              <p>Link này sẽ hết hạn sau 24 giờ.</p>
+              <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
+              <p>Trân trọng,<br/>Đội ngũ Du học An Nhiên</p>
+            </div>
+          `,
+          `Xác thực email của bạn\n\nVui lòng truy cập link sau để xác thực:\n${verificationLink}`
+        );
+
+        if (!emailResult.success) {
+          console.warn('Failed to send verification email:', emailResult.error);
+        }
+
+        res.status(201).json({
+          success: true,
+          message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
+          user: {
+            email,
+            email_verified: false
+          }
+        });
+      });
+    });
+  });
+});
+
+// User Login
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  // Get user from database
+  dbHelpers.getUserByEmail(email, (err, user) => {
+    if (err) {
+      console.error('Error getting user:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Verify password
+    bcrypt.compare(password, user.password_hash, (err, isMatch) => {
+      if (err) {
+        console.error('Error comparing password:', err);
+        return res.status(500).json({ error: 'Error verifying password' });
+      }
+
+      if (!isMatch) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // Check if email is verified
+      if (!user.email_verified) {
+        return res.status(403).json({ 
+          error: 'Email chưa được xác thực. Vui lòng kiểm tra email và click vào link xác thực.',
+          email_verified: false
+        });
+      }
+
+      // Update last login
+      dbHelpers.updateUserLastLogin(email, (err) => {
+        if (err) console.error('Error updating last login:', err);
+      });
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { email: user.email, userId: user.id },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+      );
+
+      res.json({
+        success: true,
+        token,
+        user: {
+          email: user.email,
+          display_name: user.display_name,
+          email_verified: user.email_verified,
+          userId: user.id
+        }
+      });
+    });
+  });
+});
+
+// Email Verification
+app.get('/api/auth/verify', (req, res) => {
+  const { token, email } = req.query;
+
+  if (!token || !email) {
+    return res.status(400).json({ error: 'Token and email are required' });
+  }
+
+  // Get user from database
+  dbHelpers.getUserByEmail(email, (err, user) => {
+    if (err) {
+      console.error('Error getting user:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if already verified
+    if (user.email_verified) {
+      return res.json({ 
+        success: true, 
+        message: 'Email đã được xác thực rồi.',
+        already_verified: true
+      });
+    }
+
+    // Verify token
+    if (user.verification_token !== token) {
+      return res.status(400).json({ error: 'Invalid or expired verification token' });
+    }
+
+    // Verify email
+    dbHelpers.verifyUserEmail(email, (err) => {
+      if (err) {
+        console.error('Error verifying email:', err);
+        return res.status(500).json({ error: 'Error verifying email' });
+      }
+
+      res.json({
+        success: true,
+        message: 'Email đã được xác thực thành công! Bạn có thể đăng nhập ngay.'
+      });
+    });
+  });
+});
+
+// Verify JWT Token (for frontend to check if token is still valid)
+app.get('/api/auth/verify-token', verifyUserToken, (req, res) => {
+  res.json({
+    valid: true,
+    user: {
+      email: req.user.email,
+      userId: req.user.userId
+    }
+  });
+});
+
+// Resend Verification Email
+app.post('/api/auth/resend-verification', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  // Get user from database
+  dbHelpers.getUserByEmail(email, async (err, user) => {
+    if (err) {
+      console.error('Error getting user:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.email_verified) {
+      return res.json({ 
+        success: true, 
+        message: 'Email đã được xác thực rồi.',
+        already_verified: true
+      });
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+
+    // Update verification token in database (we'll need to add this function)
+    // For now, we'll use the existing token
+    const frontendUrl = process.env.FRONTEND_URL || 'https://duhocannhien.vercel.app';
+    const verificationLink = `${frontendUrl}/verify-email?token=${user.verification_token || verificationToken}&email=${encodeURIComponent(email)}`;
+
+    const emailResult = await emailService.sendEmail(
+      email,
+      'Xác thực email - Du học An Nhiên',
+      `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #667eea;">Xác thực email của bạn</h2>
+          <p>Xin chào ${user.display_name || email},</p>
+          <p>Bạn đã yêu cầu gửi lại email xác thực.</p>
+          <p>Vui lòng click vào nút bên dưới để xác thực email của bạn:</p>
+          <p style="text-align: center; margin: 20px 0;">
+            <a href="${verificationLink}" style="background-color: #667eea; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+              Xác thực email
+            </a>
+          </p>
+          <p>Hoặc copy link này vào trình duyệt:</p>
+          <p><a href="${verificationLink}">${verificationLink}</a></p>
+          <p>Link này sẽ hết hạn sau 24 giờ.</p>
+          <p>Nếu bạn không yêu cầu email này, vui lòng bỏ qua.</p>
+          <p>Trân trọng,<br/>Đội ngũ Du học An Nhiên</p>
+        </div>
+      `,
+      `Xác thực email của bạn\n\nVui lòng truy cập link sau để xác thực:\n${verificationLink}`
+    );
+
+    if (!emailResult.success) {
+      console.warn('Failed to send verification email:', emailResult.error);
+      return res.status(500).json({ error: 'Không thể gửi email. Vui lòng thử lại sau.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn.'
+    });
+  });
+});
 
 // Routes
 // Get all contacts (for admin)

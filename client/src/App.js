@@ -55,6 +55,7 @@ const AIMatching = lazy(() => import('./pages/AIMatching'));
 const VideoCallBooking = lazy(() => import('./pages/VideoCallBooking'));
 const Friends = lazy(() => import('./pages/Friends'));
 const Login = lazy(() => import('./pages/Login'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 function App() {
   return (
@@ -103,6 +104,8 @@ function App() {
                 <Route path="/ai-matching" element={<AIMatching />} />
                 <Route path="/video-call" element={<VideoCallBooking />} />
                 <Route path="/friends" element={<Friends />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 </Routes>
               </Suspense>
             </main>
