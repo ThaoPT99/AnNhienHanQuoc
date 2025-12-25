@@ -1018,9 +1018,22 @@ const PostCard = ({ post, index, userEmail, onReaction, onView, formatTime, onDe
         <div className="post-author">
           <span className="author-avatar">{post.author_name?.[0]?.toUpperCase() || '👤'}</span>
           <div className="author-info">
-            <span className="author-name">{post.author_name || 'Người dùng'}</span>
+            <Link 
+              to={`/profile/${encodeURIComponent(post.author_email)}`}
+              className="author-link"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="author-name">{post.author_name || post.author_email?.split('@')[0] || 'Người dùng'}</span>
+            </Link>
             <span className="post-time">{formatTime(post.created_at)}</span>
           </div>
+          {userEmail && post.author_email && post.author_email !== userEmail && (
+            <FollowButton
+              followerEmail={userEmail}
+              followingEmail={post.author_email}
+              onFollowChange={onFollow}
+            />
+          )}
         </div>
         <span className="post-category">{post.category}</span>
       </div>
