@@ -1894,3 +1894,122 @@ app.listen(PORT, () => {
   }
 });
 
+// ==================== REWARDS API ====================
+
+// Get all active rewards
+app.get('/api/rewards', (req, res) => {
+  dbHelpers.getAllRewards((err, rewards) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rewards);
+  });
+});
+
+// Get reward by ID
+app.get('/api/rewards/:id', (req, res) => {
+  const rewardId = parseInt(req.params.id);
+  dbHelpers.getRewardById(rewardId, (err, reward) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!reward) {
+      res.status(404).json({ error: 'Reward not found' });
+      return;
+    }
+    res.json(reward);
+  });
+});
+
+// Redeem a reward
+app.post('/api/rewards/redeem', (req, res) => {
+  const { user_email, reward_id } = req.body;
+
+  if (!user_email || !reward_id) {
+    res.status(400).json({ error: 'user_email and reward_id are required' });
+    return;
+  }
+
+  // Get reward details
+  dbHelpers.getRewardById(reward_id, (err, reward) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!reward) {
+      res.status(404).json({ error: 'Reward not found' });
+      return;
+    }
+    if (!reward.is_active) {
+      res.status(400).json({ error: 'Reward is not available' });
+      return;
+    }
+
+    // Check if user has enough points (from localStorage on client side)
+    // We'll trust the client for now, but in production you might want to store points in DB
+    // For now, we'll just create the redemption record
+
+    // Generate redemption code
+    const redemptionCode = `${reward.type.toUpperCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    // Create redemption record
+    dbHelpers.createRedemption({
+      user_email,
+      reward_id,
+      points_used: reward.points_required,
+      redemption_code: redemptionCode
+    }, (err, redemption) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+
+      res.json({
+        success: true,
+        redemption,
+        reward,
+        message: 'Reward redeemed successfully! Check your email for details.'
+      });
+    });
+  });
+});
+
+// Get user's redemption history
+app.get('/api/rewards/redemptions/:email', (req, res) => {
+  const user_email = req.params.email;
+  dbHelpers.getUserRedemptions(user_email, (err, redemptions) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(redemptions);
+  });
+});
+
+// Update redemption status (admin only)
+app.put('/api/rewards/redemptions/:id/status', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const { status } = req.body;
+  const redemptionId = parseInt(req.params.id);
+
+  if (!status || !['pending', 'completed', 'cancelled'].includes(status)) {
+    res.status(400).json({ error: 'Invalid status. Must be: pending, completed, or cancelled' });
+    return;
+  }
+
+  dbHelpers.updateRedemptionStatus(redemptionId, status, (err, redemption) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ success: true, redemption });
+  });
+});
+

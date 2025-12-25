@@ -36,6 +36,7 @@ const Community = lazy(() => import('./pages/Community'));
 const ProgressTracker = lazy(() => import('./pages/ProgressTracker'));
 const ReferralProgram = lazy(() => import('./pages/ReferralProgram'));
 const Gamification = lazy(() => import('./pages/Gamification'));
+const Redemption = lazy(() => import('./pages/Redemption'));
 const AIRecommendation = lazy(() => import('./pages/AIRecommendation'));
 const VirtualTour = lazy(() => import('./pages/VirtualTour'));
 const LanguageLearning = lazy(() => import('./pages/LanguageLearning'));
@@ -77,6 +78,7 @@ function App() {
                 <Route path="/progress-tracker" element={<ProgressTracker />} />
                 <Route path="/referral" element={<ReferralProgram />} />
                 <Route path="/gamification" element={<Gamification />} />
+                <Route path="/redemption" element={<Redemption />} />
                 <Route path="/ai-recommendation" element={<AIRecommendation />} />
                 <Route path="/virtual-tour" element={<VirtualTour />} />
                 <Route path="/language-learning" element={<LanguageLearning />} />

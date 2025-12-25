@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import './Gamification.css';
 
 const Gamification = () => {
+  const navigate = useNavigate();
   const [points, setPoints] = useState(0);
   const [level, setLevel] = useState(1);
   const [badges, setBadges] = useState([]);
@@ -110,6 +112,12 @@ const Gamification = () => {
               {points % 500} / {pointsToNextLevel} điểm đến cấp tiếp theo
             </div>
           </div>
+          <button 
+            className="btn-redeem-points"
+            onClick={() => navigate('/redemption')}
+          >
+            💎 Đổi điểm thưởng
+          </button>
         </div>
 
         {/* Badges */}
