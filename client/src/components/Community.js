@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addPoints, showPointsNotification } from '../utils/pointsSystem';
 import { getRelativeTime } from '../utils/timezone';
+import ReactionsPicker from './ReactionsPicker';
+import { showNotification } from './NotificationCenter';
 import './Community.css';
 
 const Community = () => {
@@ -169,25 +171,44 @@ const Community = () => {
     return getRelativeTime(dateString);
   };
 
-  const handleLike = async (postId) => {
+  // Extract mentions from text (format: @email@domain.com)
+  const extractMentions = (text) => {
+    const mentionRegex = /@([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
+    const mentions = [];
+    let match;
+    while ((match = mentionRegex.exec(text)) !== null) {
+      mentions.push(match[1]);
+    }
+    return [...new Set(mentions)]; // Remove duplicates
+  };
+
+  const handleReaction = async (postId, commentId, reactionType, isAdding) => {
     if (!userEmail) {
       alert('Vui lòng nhập email để tham gia cộng đồng');
       return;
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/community/likes`, {
-        method: 'POST',
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      const endpoint = `${API_URL}/api/social/reactions`;
+      const method = isAdding ? 'POST' : 'DELETE';
+
+      const response = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ post_id: postId, user_email: userEmail })
+        body: JSON.stringify({
+          post_id: postId || null,
+          comment_id: commentId || null,
+          user_email: userEmail,
+          reaction_type: reactionType
+        })
       });
 
       if (response.ok) {
-        const result = await response.json();
         loadPosts(); // Reload posts
         
-        // Add points for liking (only when liking, not unliking)
-        if (result.liked) {
+        // Add points for reacting (only when adding, not removing)
+        if (isAdding) {
           const pointsResult = addPoints(5, 'community_like');
           if (pointsResult.badgeAwarded) {
             showPointsNotification(5, pointsResult.badgeAwarded);
@@ -197,7 +218,7 @@ const Community = () => {
         }
       }
     } catch (error) {
-      console.error('Error liking post:', error);
+      console.error('Error toggling reaction:', error);
     }
   };
 
@@ -275,6 +296,36 @@ const Community = () => {
       if (response.ok) {
         const newComment = await response.json();
         console.log('✅ Comment created:', newComment);
+        
+        // Extract and create mentions
+        const mentions = extractMentions(commentContent);
+        if (mentions.length > 0) {
+          const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+          for (const mentionedEmail of mentions) {
+            try {
+              await fetch(`${API_URL}/api/social/mentions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  post_id: postId,
+                  comment_id: newComment.id,
+                  mentioned_email: mentionedEmail,
+                  mentioned_by_email: userEmail
+                })
+              });
+              
+              // Show notification to mentioned user (if they're viewing)
+              showNotification(
+                `@${mentionedEmail.split('@')[0]}`,
+                `${userEmail.split('@')[0]} đã mention bạn trong một comment`,
+                'info',
+                '💬'
+              );
+            } catch (err) {
+              console.error('Error creating mention:', err);
+            }
+          }
+        }
         
         // Reload post with comments
         if (selectedPost && selectedPost.id === postId) {
@@ -609,7 +660,7 @@ const Community = () => {
                   post={post}
                   index={index}
                   userEmail={userEmail}
-                  onLike={handleLike}
+                  onReaction={handleReaction}
                   onView={handleViewPost}
                   onDelete={handleDeletePost}
                   onEdit={handleEditPost}
@@ -910,27 +961,46 @@ const EditPostForm = ({ post, onClose, onSubmit, categories }) => {
 };
 
 // Post Card Component
-const PostCard = ({ post, index, userEmail, onLike, onView, formatTime, onDelete, onEdit, onReload }) => {
-  const [liked, setLiked] = useState(false);
+const PostCard = ({ post, index, userEmail, onReaction, onView, formatTime, onDelete, onEdit, onReload }) => {
+  const [currentReaction, setCurrentReaction] = useState(null);
+  const [reactionsCount, setReactionsCount] = useState([]);
   const isMyPost = userEmail && post.author_email === userEmail;
 
   useEffect(() => {
     if (userEmail) {
-      checkLiked();
+      loadReactions();
     }
   }, [userEmail, post.id]);
 
-  const checkLiked = async () => {
+  const loadReactions = async () => {
     try {
       const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-      const response = await fetch(`${API_URL}/api/community/likes/check?post_id=${post.id}&user_email=${userEmail}`);
-      if (response.ok) {
-        const data = await response.json();
-        setLiked(data.liked);
+      
+      // Get reactions count
+      const countRes = await fetch(`${API_URL}/api/social/reactions/${post.id}`);
+      if (countRes.ok) {
+        const counts = await countRes.json();
+        setReactionsCount(counts);
+      }
+      
+      // Get user's reaction
+      const userRes = await fetch(`${API_URL}/api/social/reactions/user/${post.id}/null/${encodeURIComponent(userEmail)}`);
+      if (userRes.ok) {
+        const { reaction } = await userRes.json();
+        setCurrentReaction(reaction?.reaction_type || null);
       }
     } catch (error) {
-      console.error('Error checking like:', error);
+      console.error('Error loading reactions:', error);
     }
+  };
+
+  const handleReactionChange = (reactionType, isAdding) => {
+    setCurrentReaction(isAdding ? reactionType : null);
+    if (onReaction) {
+      onReaction(post.id, null, reactionType, isAdding);
+    }
+    // Reload reactions after a short delay
+    setTimeout(() => loadReactions(), 500);
   };
 
   const tags = post.tags ? (typeof post.tags === 'string' ? post.tags.split(',') : post.tags) : [];
@@ -967,16 +1037,16 @@ const PostCard = ({ post, index, userEmail, onLike, onView, formatTime, onDelete
 
       <div className="post-footer">
         <div className="post-actions-left">
-          <button
-            className={`post-action-btn ${liked ? 'liked' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onLike(post.id);
-              setLiked(!liked);
-            }}
-          >
-            👍 {post.likes_count || 0}
-          </button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <ReactionsPicker
+              postId={post.id}
+              commentId={null}
+              userEmail={userEmail}
+              onReactionChange={handleReactionChange}
+              currentReaction={currentReaction}
+              reactionsCount={reactionsCount}
+            />
+          </div>
           <button 
             className="post-action-btn" 
             onClick={(e) => {
@@ -1023,9 +1093,10 @@ const PostCard = ({ post, index, userEmail, onLike, onView, formatTime, onDelete
 };
 
 // Post Detail Modal Component
-const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTime }) => {
+const PostDetailModal = ({ post, userEmail, onClose, onReaction, onComment, formatTime }) => {
   const [commentContent, setCommentContent] = useState('');
-  const [liked, setLiked] = useState(false);
+  const [currentReaction, setCurrentReaction] = useState(null);
+  const [reactionsCount, setReactionsCount] = useState([]);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(true);
   const commentFormRef = useRef(null);
@@ -1067,10 +1138,41 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
     loadComments();
     
     if (userEmail) {
-      checkLiked();
+      loadReactions();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post.id]); // Load comments whenever post.id changes
+
+  const loadReactions = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      
+      // Get reactions count
+      const countRes = await fetch(`${API_URL}/api/social/reactions/${post.id}`);
+      if (countRes.ok) {
+        const counts = await countRes.json();
+        setReactionsCount(counts);
+      }
+      
+      // Get user's reaction
+      const userRes = await fetch(`${API_URL}/api/social/reactions/user/${post.id}/null/${encodeURIComponent(userEmail)}`);
+      if (userRes.ok) {
+        const { reaction } = await userRes.json();
+        setCurrentReaction(reaction?.reaction_type || null);
+      }
+    } catch (error) {
+      console.error('Error loading reactions:', error);
+    }
+  };
+
+  const handleReactionChange = (reactionType, isAdding) => {
+    setCurrentReaction(isAdding ? reactionType : null);
+    if (onReaction) {
+      onReaction(post.id, null, reactionType, isAdding);
+    }
+    // Reload reactions after a short delay
+    setTimeout(() => loadReactions(), 500);
+  };
 
   // Scroll to comment form
   const scrollToCommentForm = () => {
@@ -1083,19 +1185,6 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
           setTimeout(() => textarea.focus(), 300);
         }
       }
-    }
-  };
-
-  const checkLiked = async () => {
-    try {
-      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-      const response = await fetch(`${API_URL}/api/community/likes/check?post_id=${post.id}&user_email=${userEmail}`);
-      if (response.ok) {
-        const data = await response.json();
-        setLiked(data.liked);
-      }
-    } catch (error) {
-      console.error('Error checking like:', error);
     }
   };
 
@@ -1164,15 +1253,14 @@ const PostDetailModal = ({ post, userEmail, onClose, onLike, onComment, formatTi
           )}
 
           <div className="post-modal-actions">
-            <button
-              className={`post-action-btn ${liked ? 'liked' : ''}`}
-              onClick={() => {
-                onLike(post.id);
-                setLiked(!liked);
-              }}
-            >
-              👍 {post.likes_count || 0}
-            </button>
+            <ReactionsPicker
+              postId={post.id}
+              commentId={null}
+              userEmail={userEmail}
+              onReactionChange={handleReactionChange}
+              currentReaction={currentReaction}
+              reactionsCount={reactionsCount}
+            />
             <button 
               className="post-action-btn"
               onClick={scrollToCommentForm}
