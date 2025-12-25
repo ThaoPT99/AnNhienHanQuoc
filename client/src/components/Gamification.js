@@ -55,7 +55,12 @@ const Gamification = () => {
       }
     };
     
-    loadStats();
+    loadStats().then(() => {
+      // Wait a bit for sync to complete, then load leaderboard
+      setTimeout(() => {
+        loadLeaderboard();
+      }, 500);
+    });
     
     // Listen for points updates
     const handlePointsUpdate = (event) => {
@@ -74,9 +79,6 @@ const Gamification = () => {
     };
     
     window.addEventListener('pointsUpdated', handlePointsUpdate);
-    
-    // Load leaderboard from server
-    loadLeaderboard();
     
     return () => window.removeEventListener('pointsUpdated', handlePointsUpdate);
   }, [userEmail]);
