@@ -231,12 +231,38 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
 .leaderboard-section h3 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #333;
-  margin-bottom: 25px;
-  text-align: center;
+  margin: 0;
+}
+
+.btn-refresh {
+  background: #f8f9fa;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  background: #e9ecef;
+  transform: rotate(180deg);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .leaderboard-list {
