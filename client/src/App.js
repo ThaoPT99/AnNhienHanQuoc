@@ -54,6 +54,7 @@ const UserProfile = lazy(() => import('./pages/UserProfile'));
 const AIMatching = lazy(() => import('./pages/AIMatching'));
 const VideoCallBooking = lazy(() => import('./pages/VideoCallBooking'));
 const Friends = lazy(() => import('./pages/Friends'));
+const Login = lazy(() => import('./pages/Login'));
 
 function App() {
   return (

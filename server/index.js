@@ -1542,9 +1542,11 @@ app.get('/api/social/profile/:email', (req, res) => {
 });
 
 // Reactions
-app.post('/api/social/reactions', (req, res) => {
-  const { post_id, comment_id, user_email, reaction_type } = req.body;
-  if (!user_email || (!post_id && !comment_id)) {
+app.post('/api/social/reactions', verifyUserToken, (req, res) => {
+  const { post_id, comment_id, reaction_type } = req.body;
+  const user_email = req.userEmail; // Use authenticated user's email
+  
+  if (!post_id && !comment_id) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
   }
@@ -1558,9 +1560,11 @@ app.post('/api/social/reactions', (req, res) => {
   });
 });
 
-app.delete('/api/social/reactions', (req, res) => {
-  const { post_id, comment_id, user_email, reaction_type } = req.body;
-  if (!user_email || (!post_id && !comment_id)) {
+app.delete('/api/social/reactions', verifyUserToken, (req, res) => {
+  const { post_id, comment_id, reaction_type } = req.body;
+  const user_email = req.userEmail; // Use authenticated user's email
+  
+  if (!post_id && !comment_id) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
   }

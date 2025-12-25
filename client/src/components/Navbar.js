@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Search from './Search';
+import { isLoggedIn, getUserEmail, logout } from '../utils/auth';
 import './Navbar.css';
 
 const Navbar = () => {
