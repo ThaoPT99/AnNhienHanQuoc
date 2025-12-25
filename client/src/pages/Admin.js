@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { formatVietnamDateTime } from '../utils/timezone';
 import './Admin.css';
 
 const Admin = () => {
@@ -139,8 +140,7 @@ const Admin = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleString('vi-VN', {
+    return formatVietnamDateTime(dateString, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

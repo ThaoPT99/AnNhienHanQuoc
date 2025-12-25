@@ -267,7 +267,7 @@ function initializeDatabase() {
       device_type TEXT,
       browser TEXT,
       os TEXT,
-      visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      visited_at DATETIME DEFAULT (datetime('now'))
     )`, (err) => {
       if (err) {
         console.error('Error creating visits table:', err.message);
@@ -891,7 +891,8 @@ const dbHelpers = {
   logVisit: (visit, callback) => {
     const { ipAddress, userAgent, pagePath, referrer, country, city, deviceType, browser, os } = visit;
     db.run(
-      'INSERT INTO visits (ip_address, user_agent, page_path, referrer, country, city, device_type, browser, os) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      // Use datetime('now') to get UTC time instead of server local time
+      'INSERT INTO visits (ip_address, user_agent, page_path, referrer, country, city, device_type, browser, os, visited_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime("now"))',
       [ipAddress || null, userAgent || null, pagePath || null, referrer || null, country || null, city || null, deviceType || null, browser || null, os || null],
       function(err) {
         if (err) {
