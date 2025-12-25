@@ -1977,6 +1977,7 @@ app.get('/api/matching/results/:email', (req, res) => {
 // ========== VIDEO CALL INTEGRATION API ==========
 
 const videoCallIntegration = require('./video-call-integration');
+const emailService = require('./email-service');
 
 app.post('/api/video-call/bookings', async (req, res) => {
   const bookingData = req.body;
@@ -2071,7 +2072,7 @@ app.get('/api/video-call/config', (req, res) => {
 });
 
 // Send video call invitation
-app.post('/api/video-call/invite', (req, res) => {
+app.post('/api/video-call/invite', async (req, res) => {
   const { roomId, roomLink, callerEmail, callerName, recipientEmail, recipientName } = req.body;
   
   if (!roomId || !roomLink || !callerEmail || !recipientEmail) {
@@ -2079,8 +2080,6 @@ app.post('/api/video-call/invite', (req, res) => {
     return;
   }
   
-  // For now, we'll just log the invitation
-  // In production, you would send email/SMS here
   console.log('📞 Video Call Invitation:', {
     roomId,
     roomLink,
@@ -2089,16 +2088,49 @@ app.post('/api/video-call/invite', (req, res) => {
     timestamp: new Date().toISOString()
   });
   
-  // TODO: Integrate with email service (SendGrid, Mailgun, etc.)
-  // TODO: Integrate with SMS service (Twilio, etc.)
-  // For now, return success - the frontend will show the link to copy
-  
-  res.json({ 
-    success: true, 
-    message: 'Invitation logged. Email/SMS integration pending.',
-    roomLink,
-    roomId
-  });
+  // Send email notification
+  if (emailService.isEmailConfigured()) {
+    try {
+      await emailService.sendVideoCallInvite({
+        recipientEmail,
+        recipientName,
+        callerEmail,
+        callerName,
+        roomLink,
+        roomId
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Email invitation sent successfully',
+        roomLink,
+        roomId,
+        emailSent: true
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      // Still return success with link, but log the error
+      res.json({ 
+        success: true, 
+        message: 'Invitation created. Email sending failed, but you can share the link manually.',
+        roomLink,
+        roomId,
+        emailSent: false,
+        error: error.message
+      });
+    }
+  } else {
+    // Email not configured, just return the link
+    console.warn('⚠️ Email service not configured. Please set up email environment variables.');
+    res.json({ 
+      success: true, 
+      message: 'Invitation created. Email service not configured. Please share the link manually.',
+      roomLink,
+      roomId,
+      emailSent: false,
+      emailConfigured: false
+    });
+  }
 });
 
 app.get('/api/video-call/bookings/:email', (req, res) => {
