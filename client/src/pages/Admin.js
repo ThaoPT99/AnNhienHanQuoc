@@ -17,6 +17,8 @@ const Admin = () => {
   const [visitStats, setVisitStats] = useState([]);
   const [communityPosts, setCommunityPosts] = useState([]);
   const [eventList, setEventList] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [editingUser, setEditingUser] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState({
@@ -55,7 +57,7 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
@@ -66,7 +68,8 @@ const Admin = () => {
         axios.get(`${API_URL}/api/visits`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/visits/stats`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/community/posts/admin/all`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/events/list`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/events/list`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/users`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -80,6 +83,7 @@ const Admin = () => {
       setVisitStats(statsRes.data || []);
       setCommunityPosts(communityRes.data || []);
       setEventList(eventListRes.data || []);
+      setUsers(usersRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -135,6 +139,43 @@ const Admin = () => {
     } catch (err) {
       alert('Không thể cập nhật. Vui lòng thử lại.');
       console.error('Error updating status:', err);
+    }
+  };
+
+  const handleUpdateUserPoints = async (email, points, level) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await axios.put(`${API_URL}/api/admin/users/${encodeURIComponent(email)}/points`, 
+        { points, level },
+        { headers: { 'x-admin-token': token } }
+      );
+      setUsers(users.map(user => 
+        user.user_email === email ? { ...user, points, level } : user
+      ));
+      alert('✅ Đã cập nhật điểm thành công!');
+    } catch (err) {
+      alert('Không thể cập nhật điểm. Vui lòng thử lại.');
+      console.error('Error updating user points:', err);
+    }
+  };
+
+  const handleDeleteUser = async (email) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa người dùng ${email}?`)) return;
+
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/admin/users/${encodeURIComponent(email)}`, {
+        headers: { 'x-admin-token': token }
+      });
+      setUsers(users.filter(user => user.user_email !== email));
+      alert('✅ Đã xóa người dùng thành công!');
+    } catch (err) {
+      alert('Không thể xóa. Vui lòng thử lại.');
+      console.error('Error deleting user:', err);
     }
   };
 
@@ -283,6 +324,7 @@ const Admin = () => {
     { id: 'bookings', label: '📅 Đặt lịch', count: bookings.length, icon: '📆' },
     { id: 'visits', label: '👁️ Truy cập', count: visits.length, icon: '🌐' },
     { id: 'community', label: '💬 Cộng đồng', count: communityPosts.length, icon: '👥' },
+    { id: 'users', label: '👤 Người dùng', count: users.length, icon: '⭐' },
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
