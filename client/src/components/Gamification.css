@@ -297,6 +297,26 @@
   font-size: 1.1rem;
 }
 
+.rank-info {
+  font-size: 0.85rem;
+  color: #667eea;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.loading-leaderboard,
+.no-leaderboard {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.no-leaderboard .hint {
+  font-size: 0.9rem;
+  color: #999;
+  margin-top: 10px;
+}
+
 .your-rank {
   display: flex;
   align-items: center;
