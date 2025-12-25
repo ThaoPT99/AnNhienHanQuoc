@@ -557,6 +557,99 @@ const Admin = () => {
               </div>
             )}
 
+            {activeTab === 'users' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">👤 Quản lý người dùng ({users.length})</h2>
+                {users.length === 0 ? (
+                  <div className="no-data">Chưa có người dùng nào</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Hạng</th>
+                        <th>Email</th>
+                        <th>Tên</th>
+                        <th>Điểm</th>
+                        <th>Level</th>
+                        <th>Ngày tham gia</th>
+                        <th>Cập nhật lần cuối</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user, index) => (
+                        <tr key={user.user_email}>
+                          <td>
+                            <span style={{
+                              display: 'inline-block',
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '50%',
+                              background: user.rank <= 3 ? '#ffd700' : '#667eea',
+                              color: 'white',
+                              textAlign: 'center',
+                              lineHeight: '30px',
+                              fontWeight: 'bold',
+                              fontSize: '0.9rem'
+                            }}>
+                              {user.rank || index + 1}
+                            </span>
+                          </td>
+                          <td><a href={`mailto:${user.user_email}`}>{user.user_email}</a></td>
+                          <td>{user.user_name || user.display_name || '-'}</td>
+                          <td>
+                            <strong style={{ color: '#667eea', fontSize: '1.1rem' }}>
+                              {user.points || 0}
+                            </strong>
+                          </td>
+                          <td>
+                            <span style={{
+                              padding: '4px 8px',
+                              background: '#e8f5e9',
+                              borderRadius: '4px',
+                              fontWeight: '600',
+                              color: '#2e7d32'
+                            }}>
+                              Level {user.level || 1}
+                            </span>
+                          </td>
+                          <td>{formatDate(user.created_at)}</td>
+                          <td>{formatDate(user.last_updated)}</td>
+                          <td>
+                            <button
+                              onClick={() => {
+                                const newPoints = prompt(`Nhập điểm mới cho ${user.user_email}:`, user.points || 0);
+                                if (newPoints !== null) {
+                                  const pointsNum = parseInt(newPoints);
+                                  if (isNaN(pointsNum)) {
+                                    alert('Vui lòng nhập số hợp lệ!');
+                                    return;
+                                  }
+                                  const levelNum = Math.floor(pointsNum / 500) + 1;
+                                  handleUpdateUserPoints(user.user_email, pointsNum, levelNum);
+                                }
+                              }}
+                              className="edit-btn"
+                              title="Chỉnh sửa điểm"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.user_email)}
+                              className="delete-btn"
+                              title="Xóa người dùng"
+                            >
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
             {activeTab === 'bookings' && (
               <div className="data-table-wrapper">
                 <h2 className="section-title">Đặt lịch tư vấn ({bookings.length})</h2>
