@@ -1976,28 +1976,79 @@ app.get('/api/matching/results/:email', (req, res) => {
 
 // ========== VIDEO CALL INTEGRATION API ==========
 
-app.post('/api/video-call/bookings', (req, res) => {
+const videoCallIntegration = require('./video-call-integration');
+
+app.post('/api/video-call/bookings', async (req, res) => {
   const bookingData = req.body;
   if (!bookingData.user_email || !bookingData.scheduled_time) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
   }
   
-  const meetingId = `meeting_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const meetingUrl = bookingData.platform === 'zoom' 
-    ? `https://zoom.us/j/${meetingId}`
-    : `https://meet.google.com/${meetingId}`;
-  
-  bookingData.meeting_id = meetingId;
-  bookingData.meeting_url = meetingUrl;
-  bookingData.meeting_password = bookingData.meeting_password || Math.random().toString(36).substr(2, 8);
-  
-  dbHelpers.createVideoCallBooking(bookingData, (err, booking) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+  try {
+    // Calculate end time
+    const startTime = new Date(bookingData.scheduled_time);
+    const duration = bookingData.duration || 30;
+    const endTime = new Date(startTime.getTime() + duration * 60000);
+    
+    // Create meeting via API integration
+    const platform = bookingData.platform || 'zoom';
+    const meetingData = {
+      topic: `${bookingData.call_type || 'Consultation'} - ${bookingData.user_name || bookingData.user_email}`,
+      summary: `${bookingData.call_type || 'Consultation'} - ${bookingData.user_name || bookingData.user_email}`,
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
+      duration: duration,
+      timezone: bookingData.timezone || 'Asia/Ho_Chi_Minh',
+      password: bookingData.meeting_password,
+      description: bookingData.notes || '',
+      settings: {
+        host_video: true,
+        participant_video: true
+      }
+    };
+
+    let meetingInfo;
+    try {
+      meetingInfo = await videoCallIntegration.createMeeting(platform, meetingData);
+    } catch (apiError) {
+      console.warn('API integration failed, using fallback:', apiError.message);
+      // Fallback to mock meeting
+      meetingInfo = videoCallIntegration.createMockMeeting(platform, meetingData);
     }
-    res.json(booking);
+
+    // Merge meeting info into booking data
+    bookingData.meeting_id = meetingInfo.meeting_id;
+    bookingData.meeting_url = meetingInfo.meeting_url;
+    bookingData.meeting_password = meetingInfo.meeting_password || bookingData.meeting_password;
+    
+    dbHelpers.createVideoCallBooking(bookingData, (err, booking) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json(booking);
+    });
+  } catch (error) {
+    console.error('Error creating video call booking:', error);
+    res.status(500).json({ error: error.message || 'Failed to create video call booking' });
+  }
+});
+
+app.get('/api/video-call/config', (req, res) => {
+  res.json({
+    zoom: {
+      configured: videoCallIntegration.isConfigured('zoom'),
+      instructions: videoCallIntegration.isConfigured('zoom') 
+        ? 'Zoom API is configured' 
+        : 'Set ZOOM_API_KEY, ZOOM_API_SECRET, and optionally ZOOM_ACCOUNT_ID environment variables'
+    },
+    googleMeet: {
+      configured: videoCallIntegration.isConfigured('google-meet'),
+      instructions: videoCallIntegration.isConfigured('google-meet')
+        ? 'Google Meet API is configured'
+        : 'Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN environment variables'
+    }
   });
 });
 
