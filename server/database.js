@@ -766,7 +766,7 @@ const dbHelpers = {
     
     db.run(
       `UPDATE event_details 
-       SET title = ?, description = ?, date = ?, time = ?, location = ?, type = ?, status = ?, image = ?, agenda = ?, speakers = ?, capacity = ?, updated_at = datetime('now')
+       SET title = ?, description = ?, date = ?, time = ?, location = ?, type = ?, status = ?, image = ?, agenda = ?, speakers = ?, capacity = ?, updated_at = datetime(\'now\')
        WHERE id = ?`,
       [title, description, date, time, location, type, status, image, agendaJson, speakersJson, capacity, id],
       function(err) {
