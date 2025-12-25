@@ -399,12 +399,15 @@ function initializeDatabase() {
       is_active INTEGER DEFAULT 1,
       stock_quantity INTEGER,
       created_at DATETIME DEFAULT (datetime('now')),
-      updated_at DATETIME DEFAULT (datetime('now'))
+      updated_at DATETIME DEFAULT (datetime('now')),
+      UNIQUE(name, category, points_required)
     )`, (err) => {
       if (err) {
         console.error('Error creating rewards table:', err.message);
       } else {
         console.log('✅ Rewards table ready');
+        // Clean up duplicates after table creation
+        cleanupDuplicateRewards();
       }
     });
 
