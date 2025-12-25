@@ -51,6 +51,7 @@ const Navbar = () => {
     { path: '/progress-tracker', label: 'Theo dõi hồ sơ', icon: '📊' },
     { path: '/referral', label: 'Giới thiệu bạn bè', icon: '🎁' },
     { path: '/gamification', label: 'Điểm thưởng', icon: '🎮' },
+    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/ai-recommendation', label: 'AI Gợi ý trường', icon: '🤖' },
     { path: '/virtual-tour', label: 'Tour 360°', icon: '🏛️' },
     { path: '/language-learning', label: 'Học tiếng Hàn', icon: '📚' },

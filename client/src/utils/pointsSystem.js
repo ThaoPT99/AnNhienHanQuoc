@@ -101,6 +101,24 @@ const checkAndAwardBadge = (badgeId, currentBadges) => {
  * @param {string} action - Hành động gây ra (để tracking)
  * @returns {Object} - { newPoints, newLevel, levelUp, badgeAwarded }
  */
+/**
+ * Track activity for Dashboard
+ */
+export const trackActivity = (type, title, points = 0, icon = '📝') => {
+  const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
+  const newActivity = {
+    type,
+    title,
+    points,
+    icon,
+    timestamp: new Date().toISOString()
+  };
+  activities.unshift(newActivity); // Add to beginning
+  // Keep only last 100 activities
+  const limitedActivities = activities.slice(0, 100);
+  localStorage.setItem('userActivities', JSON.stringify(limitedActivities));
+};
+
 export const addPoints = (pointsToAdd, action = '') => {
   const currentPoints = getPoints();
   const currentLevel = getLevel();

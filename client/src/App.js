@@ -99,6 +99,7 @@ function App() {
             <SocialProof />
             <LiveChat />
             <PWAInstall />
+            <NotificationCenter />
           </div>
         </ErrorBoundary>
       </Router>

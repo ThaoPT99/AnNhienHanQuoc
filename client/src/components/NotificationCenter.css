@@ -1,0 +1,233 @@
+.notification-bell {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.notification-bell:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border: 2px solid white;
+}
+
+.notification-center {
+  position: fixed;
+  bottom: 180px;
+  right: 30px;
+  width: 400px;
+  max-height: 600px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notification-header {
+  padding: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.mark-all-read {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mark-all-read:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.close-notifications {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-notifications:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.notifications-list {
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.no-notifications {
+  padding: 60px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.notification-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.notification-item:hover {
+  background: #f8f9fa;
+}
+
+.notification-item.unread {
+  background: #f0f4ff;
+  border-left: 4px solid #667eea;
+}
+
+.notification-item.read {
+  opacity: 0.7;
+}
+
+.notification-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.notification-message {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.notification-time {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.unread-dot {
+  width: 10px;
+  height: 10px;
+  background: #667eea;
+  border-radius: 50%;
+}
+
+.delete-notification {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  padding: 5px;
+}
+
+.delete-notification:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Notification types */
+.notification-item.quest {
+  border-left-color: #ffc107;
+}
+
+.notification-item.milestone {
+  border-left-color: #28a745;
+}
+
+.notification-item.info {
+  border-left-color: #17a2b8;
+}
+
+.notification-item.warning {
+  border-left-color: #ff9800;
+}
+
+.notification-item.error {
+  border-left-color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .notification-center {
+    width: calc(100vw - 40px);
+    right: 20px;
+    left: 20px;
+    bottom: 180px;
+  }
+
+  .notification-bell {
+    right: 20px;
+    bottom: 80px;
+  }
+}
+
