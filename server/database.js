@@ -1385,29 +1385,24 @@ const dbHelpers = {
         if (err) {
           callback(err, null);
         } else {
-          db.get('SELECT * FROM user_points WHERE user_email = ?', [user_email], (err, user) => {
-            if (err) {
-              callback(err, null);
-            } else {
-              // Recalculate rank
-              db.get(
-                `SELECT 
-                  (SELECT COUNT(*) 
-                   FROM user_points up2 
-                   WHERE up2.points > ? 
-                   OR (up2.points = ? AND up2.created_at < (SELECT created_at FROM user_points WHERE user_email = ?))) + 1 as rank
-                 FROM user_points WHERE user_email = ?`,
-                [points, points, user_email, user_email],
-                (err, rankData) => {
-                  if (err) {
-                    callback(null, { ...user, rank: null });
-                  } else {
-                    callback(null, { ...user, rank: rankData?.rank || null });
-                  }
-                }
-              );
-            }
-          });
+          // Get updated user with rank
+          db.get(
+            `SELECT 
+              user_email,
+              user_name,
+              points,
+              level,
+              created_at,
+              last_updated,
+              (SELECT COUNT(*) 
+               FROM user_points up2 
+               WHERE up2.points > up1.points 
+               OR (up2.points = up1.points AND up2.created_at < up1.created_at)) + 1 as rank
+             FROM user_points up1
+             WHERE up1.user_email = ?`,
+            [user_email],
+            callback
+          );
         }
       }
     );
