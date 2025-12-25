@@ -101,20 +101,29 @@ const Gamification = () => {
     
     // Sync current points to server
     try {
-      await axios.post(`${API_URL}/api/leaderboard/sync`, {
+      setLoadingLeaderboard(true);
+      const syncResponse = await axios.post(`${API_URL}/api/leaderboard/sync`, {
         user_email: email,
         user_name: null,
         points,
         level
       });
       
-      // Reload leaderboard and rank
-      loadLeaderboard();
+      // Wait a bit to ensure database is updated
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      alert('✅ Đã tham gia bảng xếp hạng! Điểm của bạn đã được đồng bộ.');
+      // Reload leaderboard and rank
+      await loadLeaderboard();
+      
+      if (points > 0) {
+        alert(`✅ Đã tham gia bảng xếp hạng! Điểm của bạn (${points} điểm) đã được đồng bộ.`);
+      } else {
+        alert('✅ Đã tham gia bảng xếp hạng! Bắt đầu kiếm điểm để xuất hiện trên bảng xếp hạng nhé!');
+      }
     } catch (error) {
       console.error('Error syncing points:', error);
       alert('Đã lưu email nhưng có lỗi khi đồng bộ điểm. Vui lòng thử lại sau.');
+      setLoadingLeaderboard(false);
     }
   };
 
@@ -217,13 +226,29 @@ const Gamification = () => {
 
         {/* Leaderboard */}
         <div className="leaderboard-section">
-          <h3>📊 Bảng xếp hạng</h3>
+          <div className="leaderboard-header">
+            <h3>📊 Bảng xếp hạng</h3>
+            <button 
+              className="btn-refresh"
+              onClick={loadLeaderboard}
+              disabled={loadingLeaderboard}
+              title="Làm mới bảng xếp hạng"
+            >
+              🔄
+            </button>
+          </div>
           {loadingLeaderboard ? (
             <div className="loading-leaderboard">Đang tải...</div>
           ) : leaderboard.length === 0 ? (
             <div className="no-leaderboard">
               <p>Chưa có dữ liệu bảng xếp hạng.</p>
               <p className="hint">Nhập email để tham gia bảng xếp hạng!</p>
+              {userEmail && (
+                <p className="hint" style={{ marginTop: '10px', color: '#667eea' }}>
+                  Bạn đã có email: {userEmail}. Điểm hiện tại: {points}. 
+                  {points === 0 && ' Hãy kiếm điểm để xuất hiện trên bảng xếp hạng!'}
+                </p>
+              )}
             </div>
           ) : (
             <>

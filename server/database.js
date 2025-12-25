@@ -1206,9 +1206,10 @@ const dbHelpers = {
         COALESCE(user_name, SUBSTR(user_email, 1, INSTR(user_email, '@') - 1)) as display_name,
         points,
         level,
-        ROW_NUMBER() OVER (ORDER BY points DESC) as rank
+        ROW_NUMBER() OVER (ORDER BY points DESC, created_at ASC) as rank
        FROM user_points
-       ORDER BY points DESC
+       WHERE points >= 0
+       ORDER BY points DESC, created_at ASC
        LIMIT ?`,
       [limit],
       callback
