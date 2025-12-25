@@ -37,16 +37,23 @@ const Gamification = () => {
       // Auto-sync points to server if email exists
       if (savedEmail && pointsNum >= 0) {
         try {
-          await axios.post(`${API_URL}/api/leaderboard/sync`, {
+          console.log('🔄 Auto-syncing points:', { email: savedEmail, points: pointsNum, level: levelNum });
+          const syncResponse = await axios.post(`${API_URL}/api/leaderboard/sync`, {
             user_email: savedEmail,
             user_name: localStorage.getItem('userName') || null,
             points: pointsNum,
             level: levelNum
           });
-          console.log('✅ Points auto-synced to server');
+          console.log('✅ Points auto-synced to server:', syncResponse.data);
         } catch (error) {
-          console.error('Error auto-syncing points:', error);
+          console.error('❌ Error auto-syncing points:', error);
+          if (error.response) {
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+          }
         }
+      } else {
+        console.log('⏭️ Skipping auto-sync:', { hasEmail: !!savedEmail, points: pointsNum });
       }
       
       // Show email modal if no email and has points
@@ -87,20 +94,26 @@ const Gamification = () => {
     try {
       setLoadingLeaderboard(true);
       const response = await axios.get(`${API_URL}/api/leaderboard?limit=10`);
-      setLeaderboard(response.data);
+      console.log('📊 Leaderboard data received:', response.data);
+      setLeaderboard(response.data || []);
       
       // Load user rank if has email
       const email = localStorage.getItem('userEmail');
       if (email) {
         try {
-          const rankResponse = await axios.get(`${API_URL}/api/leaderboard/rank/${email}`);
+          const rankResponse = await axios.get(`${API_URL}/api/leaderboard/rank/${encodeURIComponent(email)}`);
+          console.log('📊 User rank received:', rankResponse.data);
           setUserRank(rankResponse.data);
         } catch (error) {
           console.error('Error loading user rank:', error);
         }
       }
     } catch (error) {
-      console.error('Error loading leaderboard:', error);
+      console.error('❌ Error loading leaderboard:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       // Fallback to empty array
       setLeaderboard([]);
     } finally {
@@ -270,44 +283,52 @@ const Gamification = () => {
                   <p className="hint" style={{ marginTop: '5px' }}>
                     Điểm hiện tại: <strong>{points} điểm</strong>
                   </p>
-                  {points === 0 ? (
+                  <button 
+                    className="btn-sync-manual"
+                    onClick={async () => {
+                      try {
+                        setLoadingLeaderboard(true);
+                        console.log('🔄 Manual sync:', { email: userEmail, points, level });
+                        await axios.post(`${API_URL}/api/leaderboard/sync`, {
+                          user_email: userEmail,
+                          user_name: localStorage.getItem('userName') || null,
+                          points,
+                          level
+                        });
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        await loadLeaderboard();
+                        alert('✅ Đã đồng bộ điểm thành công!');
+                      } catch (error) {
+                        console.error('❌ Error syncing:', error);
+                        if (error.response) {
+                          console.error('Response data:', error.response.data);
+                        }
+                        alert('❌ Có lỗi khi đồng bộ. Vui lòng thử lại.');
+                      } finally {
+                        setLoadingLeaderboard(false);
+                      }
+                    }}
+                    style={{ marginTop: '15px' }}
+                  >
+                    🔄 Đồng bộ điểm ngay
+                  </button>
+                  {points === 0 && (
                     <p className="hint" style={{ marginTop: '10px', color: '#ff6b6b' }}>
                       Hãy kiếm điểm để xuất hiện trên bảng xếp hạng!
                     </p>
-                  ) : (
-                    <>
-                      <p className="hint" style={{ marginTop: '10px', color: '#667eea' }}>
-                        Điểm của bạn đã được đồng bộ. Nếu chưa thấy, hãy click nút refresh (🔄) ở trên.
-                      </p>
-                      <button 
-                        className="btn-sync-manual"
-                        onClick={async () => {
-                          try {
-                            setLoadingLeaderboard(true);
-                            await axios.post(`${API_URL}/api/leaderboard/sync`, {
-                              user_email: userEmail,
-                              user_name: null,
-                              points,
-                              level
-                            });
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                            await loadLeaderboard();
-                            alert('✅ Đã đồng bộ điểm thành công!');
-                          } catch (error) {
-                            console.error('Error syncing:', error);
-                            alert('❌ Có lỗi khi đồng bộ. Vui lòng thử lại.');
-                          } finally {
-                            setLoadingLeaderboard(false);
-                          }
-                        }}
-                      >
-                        🔄 Đồng bộ điểm ngay
-                      </button>
-                    </>
                   )}
                 </>
               ) : (
-                <p className="hint">Nhập email để tham gia bảng xếp hạng!</p>
+                <>
+                  <p className="hint">Nhập email để tham gia bảng xếp hạng!</p>
+                  <button 
+                    className="btn-sync-manual"
+                    onClick={() => setShowEmailModal(true)}
+                    style={{ marginTop: '15px' }}
+                  >
+                    📧 Nhập email ngay
+                  </button>
+                </>
               )}
             </div>
           ) : (
