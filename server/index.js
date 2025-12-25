@@ -1147,11 +1147,12 @@ app.get('/api/community/posts/:id', (req, res) => {
 });
 
 // Create new post
-app.post('/api/community/posts', (req, res) => {
-  const { author_name, author_email, title, content, category, tags, type } = req.body;
+app.post('/api/community/posts', verifyUserToken, (req, res) => {
+  const { author_name, title, content, category, tags, type } = req.body;
+  const author_email = req.userEmail; // Use authenticated user's email
   
-  if (!author_name || !title || !content) {
-    res.status(400).json({ error: 'Author name, title and content are required' });
+  if (!title || !content) {
+    res.status(400).json({ error: 'Title and content are required' });
     return;
   }
   
@@ -1189,12 +1190,13 @@ app.post('/api/community/posts', (req, res) => {
 });
 
 // Add comment to post
-app.post('/api/community/posts/:id/comments', (req, res) => {
+app.post('/api/community/posts/:id/comments', verifyUserToken, (req, res) => {
   const postId = parseInt(req.params.id);
-  const { author_name, author_email, content } = req.body;
+  const { author_name, content } = req.body;
+  const author_email = req.userEmail; // Use authenticated user's email
   
-  if (!author_name || !content) {
-    res.status(400).json({ error: 'Author name and content are required' });
+  if (!content) {
+    res.status(400).json({ error: 'Content is required' });
     return;
   }
   
@@ -1224,11 +1226,12 @@ app.post('/api/community/posts/:id/comments', (req, res) => {
 });
 
 // Toggle like (post or comment)
-app.post('/api/community/likes', (req, res) => {
-  const { post_id, comment_id, user_email } = req.body;
+app.post('/api/community/likes', verifyUserToken, (req, res) => {
+  const { post_id, comment_id } = req.body;
+  const user_email = req.userEmail; // Use authenticated user's email
   
-  if (!user_email || (!post_id && !comment_id)) {
-    res.status(400).json({ error: 'User email and post_id or comment_id are required' });
+  if (!post_id && !comment_id) {
+    res.status(400).json({ error: 'post_id or comment_id is required' });
     return;
   }
   
@@ -1416,10 +1419,17 @@ app.get('/api/community/posts/admin/all', (req, res) => {
 // ========== SOCIAL FEATURES API ==========
 
 // Follow System
-app.post('/api/social/follow', (req, res) => {
-  const { follower_email, following_email } = req.body;
-  if (!follower_email || !following_email) {
-    res.status(400).json({ error: 'Missing follower_email or following_email' });
+app.post('/api/social/follow', verifyUserToken, (req, res) => {
+  const { following_email } = req.body;
+  const follower_email = req.userEmail; // Use authenticated user's email
+  
+  if (!following_email) {
+    res.status(400).json({ error: 'Missing following_email' });
+    return;
+  }
+
+  if (follower_email === following_email) {
+    res.status(400).json({ error: 'Cannot follow yourself' });
     return;
   }
   if (follower_email === following_email) {
@@ -1436,10 +1446,12 @@ app.post('/api/social/follow', (req, res) => {
   });
 });
 
-app.post('/api/social/unfollow', (req, res) => {
-  const { follower_email, following_email } = req.body;
-  if (!follower_email || !following_email) {
-    res.status(400).json({ error: 'Missing follower_email or following_email' });
+app.post('/api/social/unfollow', verifyUserToken, (req, res) => {
+  const { following_email } = req.body;
+  const follower_email = req.userEmail; // Use authenticated user's email
+  
+  if (!following_email) {
+    res.status(400).json({ error: 'Missing following_email' });
     return;
   }
   
@@ -2724,11 +2736,12 @@ app.get('/api/rewards/:id', (req, res) => {
 });
 
 // Redeem a reward
-app.post('/api/rewards/redeem', (req, res) => {
-  const { user_email, reward_id, service_data, review_data, visa_data } = req.body;
+app.post('/api/rewards/redeem', verifyUserToken, (req, res) => {
+  const { reward_id, service_data, review_data, visa_data } = req.body;
+  const user_email = req.userEmail; // Use authenticated user's email
 
-  if (!user_email || !reward_id) {
-    res.status(400).json({ error: 'user_email and reward_id are required' });
+  if (!reward_id) {
+    res.status(400).json({ error: 'reward_id is required' });
     return;
   }
 
