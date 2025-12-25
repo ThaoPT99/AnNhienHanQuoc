@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addPoints, showPointsNotification } from '../utils/pointsSystem';
 import { getRelativeTime } from '../utils/timezone';
 import ReactionsPicker from './ReactionsPicker';
 import FollowButton from './FollowButton';
 import { showNotification } from './NotificationCenter';
+import { isLoggedIn, getUserEmail } from '../utils/auth';
 import './Community.css';
 
 const Community = () => {
@@ -21,11 +23,13 @@ const Community = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [editingPost, setEditingPost] = useState(null);
   const [modalKey, setModalKey] = useState(0); // Key to force modal remount
+  const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState(() => {
-    return localStorage.getItem('resource_download_email') || '';
+    // Use auth email if logged in, otherwise use resource_download_email for backward compatibility
+    return getUserEmail() || localStorage.getItem('resource_download_email') || '';
   });
   const [emailSubmitted, setEmailSubmitted] = useState(() => {
-    return !!localStorage.getItem('resource_download_email');
+    return isLoggedIn() || !!localStorage.getItem('resource_download_email');
   });
 
   const categories = ['Tất cả', 'Học bổng', 'Cuộc sống', 'Học tiếng', 'Visa', 'Tuyển dụng'];
@@ -269,8 +273,15 @@ const Community = () => {
   };
 
   const handleComment = async (postId, commentContent) => {
+    if (!isLoggedIn()) {
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để bình luận', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/community')}`);
+      throw new Error('Login required');
+    }
+    
     if (!userEmail) {
-      alert('Vui lòng nhập email để tham gia cộng đồng');
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để bình luận', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/community')}`);
       throw new Error('Email required');
     }
 
@@ -360,8 +371,15 @@ const Community = () => {
   };
 
   const handleCreatePost = async (postData) => {
+    if (!isLoggedIn()) {
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để đăng bài', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/community')}`);
+      return;
+    }
+    
     if (!userEmail) {
-      alert('Vui lòng nhập email để tham gia cộng đồng');
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để đăng bài', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/community')}`);
       return;
     }
 
@@ -380,7 +398,11 @@ const Community = () => {
       
       const response = await fetch(`${API_URL}/api/community/posts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'x-user-token': localStorage.getItem('authToken')
+        },
         body: JSON.stringify(postPayload)
       });
 

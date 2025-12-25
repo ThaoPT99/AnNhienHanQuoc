@@ -2149,7 +2149,7 @@ app.post('/api/video-call/invite', async (req, res) => {
   }
 });
 
-app.get('/api/video-call/bookings/:email', (req, res) => {
+app.get('/api/video-call/bookings/:email', verifyUserToken, (req, res) => {
   const email = decodeURIComponent(req.params.email);
   dbHelpers.getVideoCallBookings(email, (err, bookings) => {
     if (err) {

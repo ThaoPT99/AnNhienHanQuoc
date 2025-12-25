@@ -7,6 +7,7 @@ import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -16,6 +17,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+
+  // Check if already logged in
+  useEffect(() => {
+    if (checkLoggedIn()) {
+      const redirectTo = searchParams.get('redirect') || '/community';
+      navigate(redirectTo);
+    }
+  }, [navigate, searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,8 +52,8 @@ const Login = () => {
           'success'
         );
 
-        // Redirect to dashboard or previous page
-        const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
+        // Redirect to previous page or community
+        const redirectTo = searchParams.get('redirect') || '/community';
         navigate(redirectTo);
       } else {
         showNotification(

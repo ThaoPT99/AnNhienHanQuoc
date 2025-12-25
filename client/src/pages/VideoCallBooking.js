@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import VideoCall from '../components/VideoCall';
+import { isLoggedIn, getUserEmail } from '../utils/auth';
+import { showNotification } from '../components/NotificationCenter';
 import './VideoCallBooking.css';
 
 const VideoCallBooking = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showCallFriendForm, setShowCallFriendForm] = useState(false);
@@ -24,9 +28,16 @@ const VideoCallBooking = () => {
   const [loading, setLoading] = useState(true);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-  const userEmail = localStorage.getItem('userEmail') || '';
+  const userEmail = getUserEmail() || '';
 
   useEffect(() => {
+    // Check if user is logged in
+    if (!isLoggedIn()) {
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để sử dụng tính năng Video Call', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/video-call')}`);
+      return;
+    }
+
     if (userEmail) {
       setFormData(prev => ({ ...prev, user_email: userEmail, user_name: localStorage.getItem('userName') || '' }));
       loadBookings();
@@ -37,7 +48,7 @@ const VideoCallBooking = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
     if (roomId) {
-      const userEmail = localStorage.getItem('userEmail') || '';
+      const userEmail = getUserEmail() || '';
       const userName = localStorage.getItem('userName') || userEmail;
       setActiveCall({
         roomId,
@@ -47,7 +58,7 @@ const VideoCallBooking = () => {
       // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [userEmail]);
+  }, [userEmail, navigate]);
 
   const loadFriends = async () => {
     if (!userEmail) return;
@@ -160,8 +171,15 @@ const VideoCallBooking = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isLoggedIn()) {
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để đặt lịch video call', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/video-call')}`);
+      return;
+    }
+    
     if (!userEmail) {
-      alert('Vui lòng nhập email để đặt lịch');
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để đặt lịch video call', 'info');
+      navigate(`/login?redirect=${encodeURIComponent('/video-call')}`);
       return;
     }
 

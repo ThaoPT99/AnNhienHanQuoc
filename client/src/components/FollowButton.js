@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { isLoggedIn } from '../utils/auth';
+import { showNotification } from './NotificationCenter';
 import './FollowButton.css';
 
 const FollowButton = ({ followerEmail, followingEmail, onFollowChange }) => {
+  const navigate = useNavigate();
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -33,8 +37,15 @@ const FollowButton = ({ followerEmail, followingEmail, onFollowChange }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    if (!isLoggedIn()) {
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để follow người khác', 'info');
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
     if (!followerEmail) {
-      alert('Vui lòng nhập email để follow');
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để follow người khác', 'info');
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
 
