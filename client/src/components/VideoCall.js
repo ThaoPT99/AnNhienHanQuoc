@@ -31,6 +31,10 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   };
 
   useEffect(() => {
+    // Generate room link
+    const link = `${window.location.origin}/video-call?room=${roomId}`;
+    setRoomLink(link);
+    
     initializeCall();
     return () => {
       cleanup();
@@ -156,10 +160,23 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
           case 'user-joined':
             console.log('👤 User joined:', data.userId);
+            setParticipants(prev => {
+              if (!prev.find(p => p.userId === data.userId)) {
+                return [...prev, { userId: data.userId, joinedAt: new Date() }];
+              }
+              return prev;
+            });
             break;
 
           case 'user-left':
             console.log('👋 User left:', data.userId);
+            setParticipants(prev => prev.filter(p => p.userId !== data.userId));
+            break;
+
+          case 'room-joined':
+            if (data.usersInRoom) {
+              setParticipants(data.usersInRoom.map(uid => ({ userId: uid, joinedAt: new Date() })));
+            }
             break;
         }
       };
@@ -267,9 +284,69 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         className="video-call-container"
       >
         <div className="video-call-header">
-          <h3>📹 Video Call - Room: {roomId}</h3>
+          <div className="header-left">
+            <h3>📹 Video Call</h3>
+            <button 
+              className="info-toggle-btn"
+              onClick={() => setShowRoomInfo(!showRoomInfo)}
+              title="Thông tin phòng"
+            >
+              {showRoomInfo ? '📋' : 'ℹ️'}
+            </button>
+          </div>
           <button className="close-btn" onClick={endCall}>×</button>
         </div>
+
+        {showRoomInfo && (
+          <div className="room-info-panel">
+            <div className="room-info-section">
+              <h4>🔗 Chia sẻ phòng với người khác</h4>
+              <div className="room-link-container">
+                <input 
+                  type="text" 
+                  value={roomLink} 
+                  readOnly 
+                  className="room-link-input"
+                />
+                <button 
+                  className="copy-btn"
+                  onClick={() => {
+                    navigator.clipboard.writeText(roomLink);
+                    alert('✅ Đã copy link! Gửi link này cho người bạn muốn gọi.');
+                  }}
+                >
+                  📋 Copy
+                </button>
+              </div>
+              <p className="room-id">Room ID: <code>{roomId}</code></p>
+            </div>
+            
+            <div className="participants-section">
+              <h4>👥 Người tham gia ({participants.length + 1})</h4>
+              <div className="participants-list">
+                <div className="participant-item you">
+                  <span className="participant-avatar">👤</span>
+                  <div className="participant-info">
+                    <span className="participant-name">{userName || userEmail || 'Bạn'}</span>
+                    <span className="participant-status you-badge">Bạn</span>
+                  </div>
+                </div>
+                {participants.map((p, idx) => (
+                  <div key={idx} className="participant-item">
+                    <span className="participant-avatar">👤</span>
+                    <div className="participant-info">
+                      <span className="participant-name">{p.userId}</span>
+                      <span className="participant-status">Đã tham gia</span>
+                    </div>
+                  </div>
+                ))}
+                {participants.length === 0 && (
+                  <p className="waiting-participant">Đang chờ người tham gia...</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="error-message">
