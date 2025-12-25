@@ -135,15 +135,17 @@ const Gamification = () => {
     // Sync current points to server
     try {
       setLoadingLeaderboard(true);
+      console.log('🔄 Syncing after email submit:', { email, points, level });
       const syncResponse = await axios.post(`${API_URL}/api/leaderboard/sync`, {
         user_email: email,
-        user_name: null,
+        user_name: localStorage.getItem('userName') || null,
         points,
         level
       });
+      console.log('✅ Sync response:', syncResponse.data);
       
       // Wait a bit to ensure database is updated
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       // Reload leaderboard and rank
       await loadLeaderboard();
@@ -154,8 +156,13 @@ const Gamification = () => {
         alert('✅ Đã tham gia bảng xếp hạng! Bắt đầu kiếm điểm để xuất hiện trên bảng xếp hạng nhé!');
       }
     } catch (error) {
-      console.error('Error syncing points:', error);
+      console.error('❌ Error syncing points:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
       alert('Đã lưu email nhưng có lỗi khi đồng bộ điểm. Vui lòng thử lại sau.');
+    } finally {
       setLoadingLeaderboard(false);
     }
   };
