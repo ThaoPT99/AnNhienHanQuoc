@@ -418,7 +418,7 @@ const dbHelpers = {
   // Update contact status
   updateContactStatus: (id, status, callback) => {
     db.run(
-      'UPDATE contacts SET status = ?, updated_at = datetime('now') WHERE id = ?',
+      'UPDATE contacts SET status = ?, updated_at = datetime(\'now\') WHERE id = ?',
       [status, id],
       function(err) {
         if (err) {
@@ -518,7 +518,7 @@ const dbHelpers = {
       return;
     }
     
-    updates.push('updated_at = datetime('now')');
+    updates.push('updated_at = datetime(\'now\')');
     values.push(id);
     
     db.run(
@@ -572,7 +572,7 @@ const dbHelpers = {
 
   unsubscribeNewsletter: (email, callback) => {
     db.run(
-      'UPDATE newsletter SET status = ?, unsubscribed_at = datetime('now') WHERE email = ?',
+      'UPDATE newsletter SET status = ?, unsubscribed_at = datetime(\'now\') WHERE email = ?',
       ['unsubscribed', email],
       function(err) {
         if (err) {
