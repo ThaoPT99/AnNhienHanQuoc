@@ -384,6 +384,107 @@ function initializeDatabase() {
     db.run(`CREATE INDEX IF NOT EXISTS idx_community_comments_post_id ON community_comments(post_id)`, (err) => {
       if (err) console.error('Error creating community comments index:', err.message);
     });
+
+    // Create rewards table
+    db.run(`CREATE TABLE IF NOT EXISTS rewards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      category TEXT NOT NULL,
+      points_required INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      value TEXT,
+      file_path TEXT,
+      access_code TEXT,
+      is_active INTEGER DEFAULT 1,
+      stock_quantity INTEGER,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating rewards table:', err.message);
+      } else {
+        console.log('✅ Rewards table ready');
+      }
+    });
+
+    // Create user_points table for leaderboard
+    db.run(`CREATE TABLE IF NOT EXISTS user_points (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL UNIQUE,
+      user_name TEXT,
+      points INTEGER DEFAULT 0,
+      level INTEGER DEFAULT 1,
+      last_updated DATETIME DEFAULT (datetime('now')),
+      created_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating user_points table:', err.message);
+      } else {
+        console.log('✅ User points table ready');
+      }
+    });
+
+    // Create redemptions table
+    db.run(`CREATE TABLE IF NOT EXISTS redemptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_email TEXT NOT NULL,
+      reward_id INTEGER NOT NULL,
+      points_used INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      redemption_code TEXT,
+      notes TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (reward_id) REFERENCES rewards(id)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating redemptions table:', err.message);
+      } else {
+        console.log('✅ Redemptions table ready');
+      }
+    });
+
+    // Create indexes for redemptions
+    db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_user_email ON redemptions(user_email)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_reward_id ON redemptions(reward_id)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_status ON redemptions(status)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    // Create indexes for user_points
+    db.run(`CREATE INDEX IF NOT EXISTS idx_user_points_email ON user_points(user_email)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_user_points_points ON user_points(points DESC)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    // Insert default rewards (Phase 1)
+    db.run(`INSERT OR IGNORE INTO rewards (name, description, category, points_required, type, value, is_active) VALUES
+      ('Voucher 50k học tiếng Hàn', 'Voucher giảm giá 50.000đ cho khóa học tiếng Hàn', 'voucher', 400, 'voucher', 'VOUCHER50K', 1),
+      ('Voucher 100k học tiếng Hàn', 'Voucher giảm giá 100.000đ cho khóa học tiếng Hàn', 'voucher', 600, 'voucher', 'VOUCHER100K', 1),
+      ('Voucher 200k học tiếng Hàn', 'Voucher giảm giá 200.000đ cho khóa học tiếng Hàn', 'voucher', 1000, 'voucher', 'VOUCHER200K', 1),
+      ('Ebook Hướng dẫn du học Hàn Quốc', 'Ebook chi tiết về quy trình du học Hàn Quốc', 'document', 300, 'document', null, 1),
+      ('Template hồ sơ du học', 'Bộ template đầy đủ cho hồ sơ du học', 'document', 500, 'document', null, 1),
+      ('Checklist chuẩn bị du học', 'Checklist chi tiết các bước chuẩn bị du học', 'document', 400, 'document', null, 1),
+      ('Access Group Facebook VIP', 'Tham gia group Facebook độc quyền với cựu du học sinh', 'access', 800, 'access', 'FB_GROUP_VIP', 1),
+      ('Access Webinar độc quyền', 'Tham gia các webinar độc quyền về du học Hàn Quốc', 'access', 1000, 'access', 'WEBINAR_VIP', 1),
+      ('Access Mentorship Program', 'Tham gia chương trình mentorship với cựu du học sinh', 'access', 2000, 'access', 'MENTORSHIP', 1)
+    `, (err) => {
+      if (err) {
+        console.error('Error inserting default rewards:', err.message);
+      } else {
+        console.log('✅ Default rewards inserted');
+      }
+    });
   });
 }
 
@@ -1265,107 +1366,6 @@ const closeDatabase = () => {
 process.on('SIGINT', () => {
   closeDatabase().then(() => {
     process.exit(0);
-  });
-
-  // Create rewards table
-  db.run(`CREATE TABLE IF NOT EXISTS rewards (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    category TEXT NOT NULL,
-    points_required INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    value TEXT,
-    file_path TEXT,
-    access_code TEXT,
-    is_active INTEGER DEFAULT 1,
-    stock_quantity INTEGER,
-    created_at DATETIME DEFAULT (datetime('now')),
-    updated_at DATETIME DEFAULT (datetime('now'))
-  )`, (err) => {
-    if (err) {
-      console.error('Error creating rewards table:', err.message);
-    } else {
-      console.log('✅ Rewards table ready');
-    }
-  });
-
-  // Create user_points table for leaderboard
-  db.run(`CREATE TABLE IF NOT EXISTS user_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_email TEXT NOT NULL UNIQUE,
-    user_name TEXT,
-    points INTEGER DEFAULT 0,
-    level INTEGER DEFAULT 1,
-    last_updated DATETIME DEFAULT (datetime('now')),
-    created_at DATETIME DEFAULT (datetime('now'))
-  )`, (err) => {
-    if (err) {
-      console.error('Error creating user_points table:', err.message);
-    } else {
-      console.log('✅ User points table ready');
-    }
-  });
-
-  // Create redemptions table
-  db.run(`CREATE TABLE IF NOT EXISTS redemptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_email TEXT NOT NULL,
-    reward_id INTEGER NOT NULL,
-    points_used INTEGER NOT NULL,
-    status TEXT DEFAULT 'pending',
-    redemption_code TEXT,
-    notes TEXT,
-    created_at DATETIME DEFAULT (datetime('now')),
-    updated_at DATETIME DEFAULT (datetime('now')),
-    FOREIGN KEY (reward_id) REFERENCES rewards(id)
-  )`, (err) => {
-    if (err) {
-      console.error('Error creating redemptions table:', err.message);
-    } else {
-      console.log('✅ Redemptions table ready');
-    }
-  });
-
-  // Create indexes for redemptions
-  db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_user_email ON redemptions(user_email)`, (err) => {
-    if (err) console.error('Error creating index:', err.message);
-  });
-
-  db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_reward_id ON redemptions(reward_id)`, (err) => {
-    if (err) console.error('Error creating index:', err.message);
-  });
-
-  db.run(`CREATE INDEX IF NOT EXISTS idx_redemptions_status ON redemptions(status)`, (err) => {
-    if (err) console.error('Error creating index:', err.message);
-  });
-
-  // Create indexes for user_points
-  db.run(`CREATE INDEX IF NOT EXISTS idx_user_points_email ON user_points(user_email)`, (err) => {
-    if (err) console.error('Error creating index:', err.message);
-  });
-
-  db.run(`CREATE INDEX IF NOT EXISTS idx_user_points_points ON user_points(points DESC)`, (err) => {
-    if (err) console.error('Error creating index:', err.message);
-  });
-
-  // Insert default rewards (Phase 1)
-  db.run(`INSERT OR IGNORE INTO rewards (name, description, category, points_required, type, value, is_active) VALUES
-    ('Voucher 50k học tiếng Hàn', 'Voucher giảm giá 50.000đ cho khóa học tiếng Hàn', 'voucher', 400, 'voucher', 'VOUCHER50K', 1),
-    ('Voucher 100k học tiếng Hàn', 'Voucher giảm giá 100.000đ cho khóa học tiếng Hàn', 'voucher', 600, 'voucher', 'VOUCHER100K', 1),
-    ('Voucher 200k học tiếng Hàn', 'Voucher giảm giá 200.000đ cho khóa học tiếng Hàn', 'voucher', 1000, 'voucher', 'VOUCHER200K', 1),
-    ('Ebook Hướng dẫn du học Hàn Quốc', 'Ebook chi tiết về quy trình du học Hàn Quốc', 'document', 300, 'document', null, 1),
-    ('Template hồ sơ du học', 'Bộ template đầy đủ cho hồ sơ du học', 'document', 500, 'document', null, 1),
-    ('Checklist chuẩn bị du học', 'Checklist chi tiết các bước chuẩn bị du học', 'document', 400, 'document', null, 1),
-    ('Access Group Facebook VIP', 'Tham gia group Facebook độc quyền với cựu du học sinh', 'access', 800, 'access', 'FB_GROUP_VIP', 1),
-    ('Access Webinar độc quyền', 'Tham gia các webinar độc quyền về du học Hàn Quốc', 'access', 1000, 'access', 'WEBINAR_VIP', 1),
-    ('Access Mentorship Program', 'Tham gia chương trình mentorship với cựu du học sinh', 'access', 2000, 'access', 'MENTORSHIP', 1)
-  `, (err) => {
-    if (err) {
-      console.error('Error inserting default rewards:', err.message);
-    } else {
-      console.log('✅ Default rewards inserted');
-    }
   });
 });
 
