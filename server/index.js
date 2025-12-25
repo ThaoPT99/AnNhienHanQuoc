@@ -1883,6 +1883,10 @@ app.listen(PORT, () => {
   console.log(`   - POST /api/events/register`);
   console.log(`   - POST /api/newsletter/subscribe`);
   console.log(`   - POST /api/resources/download`);
+  console.log(`   - GET /api/leaderboard`);
+  console.log(`   - POST /api/leaderboard/sync`);
+  console.log(`   - GET /api/rewards`);
+  console.log(`   - POST /api/rewards/redeem`);
   
   // Initialize Cloudinary check at runtime (not during build)
   // This prevents Railway from trying to resolve secrets during build phase
@@ -1892,6 +1896,26 @@ app.listen(PORT, () => {
   } else {
     console.log('ℹ️  Cloudinary not configured, using local storage');
   }
+
+  // Verify tables exist (for debugging)
+  setTimeout(() => {
+    const { db } = require('./database');
+    db.all("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('rewards', 'user_points', 'redemptions')", (err, rows) => {
+      if (err) {
+        console.error('Error checking tables:', err.message);
+      } else {
+        const tableNames = rows.map(r => r.name);
+        console.log('📊 Tables check:', {
+          rewards: tableNames.includes('rewards') ? '✅' : '❌',
+          user_points: tableNames.includes('user_points') ? '✅' : '❌',
+          redemptions: tableNames.includes('redemptions') ? '✅' : '❌'
+        });
+        if (!tableNames.includes('rewards') || !tableNames.includes('user_points') || !tableNames.includes('redemptions')) {
+          console.error('⚠️  Some tables are missing! Please restart server or run: node check-and-create-tables.js');
+        }
+      }
+    });
+  }, 2000);
 });
 
 // ==================== REWARDS API ====================
