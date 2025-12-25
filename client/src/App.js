@@ -9,6 +9,7 @@ import ExitIntentPopup from './components/ExitIntentPopup';
 import SocialProof from './components/SocialProof';
 import LiveChat from './components/LiveChat';
 import PWAInstall from './components/PWAInstall';
+import NotificationCenter from './components/NotificationCenter';
 import PageViewTracker from './components/PageViewTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
