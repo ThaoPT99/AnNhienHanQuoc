@@ -45,18 +45,22 @@ export const toVietnamTime = (date) => {
       const isSummer = monthNum >= 3 && monthNum <= 10;
       const netherlandsOffsetHours = isSummer ? 2 : 1; // UTC+2 (summer) or UTC+1 (winter)
       
-      // Parse the timestamp as if it's UTC
+      // The timestamp from database is in Hà Lan time (stored with CURRENT_TIMESTAMP)
+      // Example: "2025-12-25 06:48:00" means 06:48 Hà Lan time
+      // Hà Lan time (UTC+1) = 05:48 UTC = 12:48 Vietnam time (UTC+7)
+      //
+      // Strategy: Parse as UTC, then adjust
+      // 1. Parse as if it's UTC: "2025-12-25T06:48:00Z" = 06:48 UTC
+      // 2. But it's actually Hà Lan time, so real UTC = 06:48 - netherlandsOffset = 05:48 UTC
+      // 3. Vietnam time = 05:48 UTC + 7 = 12:48 Vietnam
+      // Net: Add (7 - netherlandsOffset) hours
       const utcDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
       
-      // Adjust: The timestamp is actually in Hà Lan time, not UTC
-      // So we need to subtract Hà Lan offset to get real UTC, then add Vietnam offset
-      // Real UTC = Hà Lan time - netherlandsOffset
-      // Vietnam time = Real UTC + 7
-      // Net: Vietnam time = Hà Lan time + (7 - netherlandsOffset)
-      const vietnamOffsetHours = 7 - netherlandsOffsetHours; // +6 (winter) or +5 (summer)
-      const adjustedDate = new Date(utcDate.getTime() - (netherlandsOffsetHours * 3600000) + (7 * 3600000));
+      // Calculate net offset: Vietnam (UTC+7) - Hà Lan (UTC+1 or +2)
+      const netOffsetHours = 7 - netherlandsOffsetHours; // +6 (winter) or +5 (summer)
+      const vietnamDate = new Date(utcDate.getTime() + (netOffsetHours * 3600000));
       
-      return adjustedDate;
+      return vietnamDate;
     }
   }
   
