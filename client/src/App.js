@@ -42,6 +42,7 @@ const VirtualTour = lazy(() => import('./pages/VirtualTour'));
 const LanguageLearning = lazy(() => import('./pages/LanguageLearning'));
 const ScholarshipMatcher = lazy(() => import('./pages/ScholarshipMatcher'));
 const CostComparison = lazy(() => import('./pages/CostComparison'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Admin = lazy(() => import('./pages/Admin'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
@@ -79,6 +80,7 @@ function App() {
                 <Route path="/referral" element={<ReferralProgram />} />
                 <Route path="/gamification" element={<Gamification />} />
                 <Route path="/redemption" element={<Redemption />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/ai-recommendation" element={<AIRecommendation />} />
                 <Route path="/virtual-tour" element={<VirtualTour />} />
                 <Route path="/language-learning" element={<LanguageLearning />} />
