@@ -146,6 +146,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   };
 
   const cleanup = () => {
+    // Leave room before closing
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'leave-room',
+        roomId: roomId
+      }));
+    }
+
     // Stop all tracks
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
