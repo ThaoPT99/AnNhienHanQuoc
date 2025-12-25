@@ -16,6 +16,26 @@ const Redemption = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [redemptionHistory, setRedemptionHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showVisaModal, setShowVisaModal] = useState(false);
+  const [selectedReward, setSelectedReward] = useState(null);
+  const [serviceForm, setServiceForm] = useState({
+    preferred_date: '',
+    preferred_time: '',
+    preferred_method: 'zoom',
+    notes: ''
+  });
+  const [reviewForm, setReviewForm] = useState({
+    document_url: '',
+    document_name: '',
+    user_notes: ''
+  });
+  const [visaForm, setVisaForm] = useState({
+    current_status: '',
+    questions: '',
+    documents_uploaded: ''
+  });
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
@@ -92,20 +112,56 @@ const Redemption = () => {
       setUserEmail(email);
     }
 
+    // For Phase 2 rewards (service), show form modal
+    if (reward.category === 'service' && reward.type === 'service') {
+      setSelectedReward(reward);
+      
+      // Determine which modal to show
+      if (reward.value && reward.value.includes('CONSULTATION')) {
+        setShowServiceModal(true);
+      } else if (reward.value && reward.value.includes('REVIEW')) {
+        setShowReviewModal(true);
+      } else if (reward.value && reward.value.includes('VISA')) {
+        setShowVisaModal(true);
+      } else {
+        // Fallback to service modal
+        setShowServiceModal(true);
+      }
+      return;
+    }
+
+    // For Phase 1 rewards, proceed directly
     if (!window.confirm(`Bạn có chắc muốn đổi "${reward.name}" với ${reward.points_required} điểm?`)) {
       return;
     }
 
+    await processRedemption(reward, email);
+  };
+
+  const processRedemption = async (reward, email, additionalData = {}) => {
     setRedeeming(reward.id);
 
     try {
-      const response = await axios.post(`${API_URL}/api/rewards/redeem`, {
+      const requestData = {
         user_email: email,
         reward_id: reward.id
-      });
+      };
+
+      // Add Phase 2 data if available
+      if (reward.category === 'service' && reward.type === 'service') {
+        if (reward.value && reward.value.includes('CONSULTATION')) {
+          requestData.service_data = additionalData.service_data || serviceForm;
+        } else if (reward.value && reward.value.includes('REVIEW')) {
+          requestData.review_data = additionalData.review_data || reviewForm;
+        } else if (reward.value && reward.value.includes('VISA')) {
+          requestData.visa_data = additionalData.visa_data || visaForm;
+        }
+      }
+
+      const response = await axios.post(`${API_URL}/api/rewards/redeem`, requestData);
 
       if (response.data.success) {
-        // Deduct points (we'll use negative points to subtract)
+        // Deduct points
         const currentPoints = getPoints();
         const newPoints = currentPoints - reward.points_required;
         localStorage.setItem('userPoints', newPoints.toString());
@@ -123,25 +179,65 @@ const Redemption = () => {
 
         setUserPoints(newPoints);
         
-        // Show success message with redemption code
-        alert(`✅ Đổi phần thưởng thành công!\n\nMã đổi thưởng: ${response.data.redemption.redemption_code}\n\nVui lòng lưu mã này và liên hệ với chúng tôi để nhận phần thưởng.`);
+        // Show success message
+        alert(response.data.message || `✅ Đổi phần thưởng thành công!\n\nMã đổi thưởng: ${response.data.redemption.redemption_code}\n\nVui lòng lưu mã này và liên hệ với chúng tôi để nhận phần thưởng.`);
+        
+        // Close modals
+        setShowServiceModal(false);
+        setShowReviewModal(false);
+        setShowVisaModal(false);
+        setSelectedReward(null);
+        
+        // Reset forms
+        setServiceForm({ preferred_date: '', preferred_time: '', preferred_method: 'zoom', notes: '' });
+        setReviewForm({ document_url: '', document_name: '', user_notes: '' });
+        setVisaForm({ current_status: '', questions: '', documents_uploaded: '' });
         
         // Reload redemption history
         loadRedemptionHistory(email);
       }
     } catch (error) {
       console.error('Error redeeming reward:', error);
-      alert('Có lỗi xảy ra khi đổi phần thưởng. Vui lòng thử lại.');
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(`❌ ${error.response.data.error}`);
+      } else {
+        alert('Có lỗi xảy ra khi đổi phần thưởng. Vui lòng thử lại.');
+      }
     } finally {
       setRedeeming(null);
     }
+  };
+
+  const handleServiceSubmit = () => {
+    if (!serviceForm.preferred_date || !serviceForm.preferred_time) {
+      alert('Vui lòng điền đầy đủ thông tin ngày và giờ mong muốn.');
+      return;
+    }
+    processRedemption(selectedReward, userEmail, { service_data: serviceForm });
+  };
+
+  const handleReviewSubmit = () => {
+    if (!reviewForm.document_url && !reviewForm.document_name) {
+      alert('Vui lòng cung cấp link hoặc tên file hồ sơ.');
+      return;
+    }
+    processRedemption(selectedReward, userEmail, { review_data: reviewForm });
+  };
+
+  const handleVisaSubmit = () => {
+    if (!visaForm.questions && !visaForm.current_status) {
+      alert('Vui lòng điền ít nhất một trong các thông tin: câu hỏi hoặc tình trạng hiện tại.');
+      return;
+    }
+    processRedemption(selectedReward, userEmail, { visa_data: visaForm });
   };
 
   const categories = [
     { id: 'all', name: 'Tất cả', icon: '🎁' },
     { id: 'voucher', name: 'Voucher', icon: '💰' },
     { id: 'document', name: 'Tài liệu', icon: '📚' },
-    { id: 'access', name: 'Quyền truy cập', icon: '🔓' }
+    { id: 'access', name: 'Quyền truy cập', icon: '🔓' },
+    { id: 'service', name: 'Dịch vụ', icon: '🎯' }
   ];
 
   const getCategoryIcon = (category) => {
@@ -316,6 +412,178 @@ const Redemption = () => {
               </div>
             )}
             <button className="btn-close" onClick={() => setShowHistory(false)}>Đóng</button>
+          </div>
+        </div>
+      )}
+
+      {/* Service Redemption Modal (Phase 2) */}
+      {showServiceModal && selectedReward && (
+        <div className="modal-overlay" onClick={() => setShowServiceModal(false)}>
+          <div className="modal-content service-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>📅 Đăng ký dịch vụ: {selectedReward.name}</h3>
+            <p className="modal-description">
+              Vui lòng điền thông tin để chúng tôi có thể sắp xếp dịch vụ cho bạn.
+            </p>
+            <div className="form-group">
+              <label>Ngày mong muốn *</label>
+              <input
+                type="date"
+                value={serviceForm.preferred_date}
+                onChange={(e) => setServiceForm({ ...serviceForm, preferred_date: e.target.value })}
+                min={new Date().toISOString().split('T')[0]}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Giờ mong muốn *</label>
+              <input
+                type="time"
+                value={serviceForm.preferred_time}
+                onChange={(e) => setServiceForm({ ...serviceForm, preferred_time: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Phương thức tư vấn</label>
+              <select
+                value={serviceForm.preferred_method}
+                onChange={(e) => setServiceForm({ ...serviceForm, preferred_method: e.target.value })}
+              >
+                <option value="zoom">📹 Zoom</option>
+                <option value="phone">📞 Điện thoại</option>
+                <option value="office">🏢 Văn phòng</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Ghi chú thêm (tùy chọn)</label>
+              <textarea
+                value={serviceForm.notes}
+                onChange={(e) => setServiceForm({ ...serviceForm, notes: e.target.value })}
+                placeholder="Ví dụ: Tôi muốn tư vấn về trường Yonsei..."
+                rows={3}
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowServiceModal(false)}>
+                Hủy
+              </button>
+              <button
+                className="btn-submit"
+                onClick={handleServiceSubmit}
+                disabled={redeeming === selectedReward.id}
+              >
+                {redeeming === selectedReward.id ? 'Đang xử lý...' : `Đổi ${selectedReward.points_required} điểm`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Review Modal (Phase 2) */}
+      {showReviewModal && selectedReward && (
+        <div className="modal-overlay" onClick={() => setShowReviewModal(false)}>
+          <div className="modal-content review-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>📄 Gửi hồ sơ để review: {selectedReward.name}</h3>
+            <p className="modal-description">
+              Vui lòng cung cấp link hoặc tên file hồ sơ của bạn. Chúng tôi sẽ review và phản hồi sớm nhất.
+            </p>
+            <div className="form-group">
+              <label>Link hồ sơ (Google Drive, Dropbox, v.v.)</label>
+              <input
+                type="url"
+                value={reviewForm.document_url}
+                onChange={(e) => setReviewForm({ ...reviewForm, document_url: e.target.value })}
+                placeholder="https://drive.google.com/..."
+              />
+            </div>
+            <div className="form-group">
+              <label>Hoặc tên file hồ sơ</label>
+              <input
+                type="text"
+                value={reviewForm.document_name}
+                onChange={(e) => setReviewForm({ ...reviewForm, document_name: e.target.value })}
+                placeholder="Ví dụ: Ho_so_du_hoc_2024.pdf"
+              />
+            </div>
+            <div className="form-group">
+              <label>Ghi chú thêm (tùy chọn)</label>
+              <textarea
+                value={reviewForm.user_notes}
+                onChange={(e) => setReviewForm({ ...reviewForm, user_notes: e.target.value })}
+                placeholder="Ví dụ: Tôi muốn review phần personal statement..."
+                rows={3}
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowReviewModal(false)}>
+                Hủy
+              </button>
+              <button
+                className="btn-submit"
+                onClick={handleReviewSubmit}
+                disabled={redeeming === selectedReward.id}
+              >
+                {redeeming === selectedReward.id ? 'Đang xử lý...' : `Đổi ${selectedReward.points_required} điểm`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visa Support Modal (Phase 2) */}
+      {showVisaModal && selectedReward && (
+        <div className="modal-overlay" onClick={() => setShowVisaModal(false)}>
+          <div className="modal-content visa-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>🛂 Yêu cầu hỗ trợ visa: {selectedReward.name}</h3>
+            <p className="modal-description">
+              Vui lòng điền thông tin về tình trạng visa của bạn. Chúng tôi sẽ hỗ trợ bạn sớm nhất.
+            </p>
+            <div className="form-group">
+              <label>Tình trạng visa hiện tại</label>
+              <select
+                value={visaForm.current_status}
+                onChange={(e) => setVisaForm({ ...visaForm, current_status: e.target.value })}
+              >
+                <option value="">Chọn tình trạng...</option>
+                <option value="chua_xin">Chưa xin visa</option>
+                <option value="dang_chuan_bi">Đang chuẩn bị hồ sơ</option>
+                <option value="da_nop">Đã nộp hồ sơ</option>
+                <option value="dang_cho">Đang chờ kết quả</option>
+                <option value="bi_tu_choi">Bị từ chối</option>
+                <option value="da_co">Đã có visa</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Câu hỏi hoặc vấn đề cần hỗ trợ *</label>
+              <textarea
+                value={visaForm.questions}
+                onChange={(e) => setVisaForm({ ...visaForm, questions: e.target.value })}
+                placeholder="Ví dụ: Tôi cần hỗ trợ điền form visa D-2..."
+                rows={4}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Link tài liệu đã chuẩn bị (nếu có)</label>
+              <input
+                type="text"
+                value={visaForm.documents_uploaded}
+                onChange={(e) => setVisaForm({ ...visaForm, documents_uploaded: e.target.value })}
+                placeholder="Link Google Drive, Dropbox..."
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowVisaModal(false)}>
+                Hủy
+              </button>
+              <button
+                className="btn-submit"
+                onClick={handleVisaSubmit}
+                disabled={redeeming === selectedReward.id}
+              >
+                {redeeming === selectedReward.id ? 'Đang xử lý...' : `Đổi ${selectedReward.points_required} điểm`}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -467,6 +467,87 @@ function initializeDatabase() {
       if (err) console.error('Error creating index:', err.message);
     });
 
+    // Create service_redemptions table for Phase 2 (dịch vụ)
+    db.run(`CREATE TABLE IF NOT EXISTS service_redemptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      redemption_id INTEGER NOT NULL,
+      user_email TEXT NOT NULL,
+      service_type TEXT NOT NULL,
+      preferred_date TEXT,
+      preferred_time TEXT,
+      preferred_method TEXT DEFAULT 'zoom',
+      notes TEXT,
+      status TEXT DEFAULT 'pending',
+      admin_notes TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (redemption_id) REFERENCES redemptions(id)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating service_redemptions table:', err.message);
+      } else {
+        console.log('✅ Service redemptions table ready');
+      }
+    });
+
+    // Create document_reviews table for Phase 2 (review hồ sơ)
+    db.run(`CREATE TABLE IF NOT EXISTS document_reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      redemption_id INTEGER NOT NULL,
+      user_email TEXT NOT NULL,
+      review_type TEXT NOT NULL,
+      document_url TEXT,
+      document_name TEXT,
+      user_notes TEXT,
+      admin_review TEXT,
+      admin_feedback TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (redemption_id) REFERENCES redemptions(id)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating document_reviews table:', err.message);
+      } else {
+        console.log('✅ Document reviews table ready');
+      }
+    });
+
+    // Create visa_support table for Phase 2 (hỗ trợ visa)
+    db.run(`CREATE TABLE IF NOT EXISTS visa_support (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      redemption_id INTEGER NOT NULL,
+      user_email TEXT NOT NULL,
+      support_type TEXT NOT NULL,
+      current_status TEXT,
+      questions TEXT,
+      documents_uploaded TEXT,
+      admin_response TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (redemption_id) REFERENCES redemptions(id)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating visa_support table:', err.message);
+      } else {
+        console.log('✅ Visa support table ready');
+      }
+    });
+
+    // Create indexes for Phase 2 tables
+    db.run(`CREATE INDEX IF NOT EXISTS idx_service_redemptions_redemption_id ON service_redemptions(redemption_id)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_document_reviews_redemption_id ON document_reviews(redemption_id)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_visa_support_redemption_id ON visa_support(redemption_id)`, (err) => {
+      if (err) console.error('Error creating index:', err.message);
+    });
+
     // Insert default rewards (Phase 1)
     db.run(`INSERT OR IGNORE INTO rewards (name, description, category, points_required, type, value, is_active) VALUES
       ('Voucher 50k học tiếng Hàn', 'Voucher giảm giá 50.000đ cho khóa học tiếng Hàn', 'voucher', 400, 'voucher', 'VOUCHER50K', 1),
@@ -483,6 +564,25 @@ function initializeDatabase() {
         console.error('Error inserting default rewards:', err.message);
       } else {
         console.log('✅ Default rewards inserted');
+      }
+    });
+
+    // Insert Phase 2 rewards (Dịch vụ, Review hồ sơ, Hỗ trợ visa)
+    db.run(`INSERT OR IGNORE INTO rewards (name, description, category, points_required, type, value, is_active) VALUES
+      ('Tư vấn 1-1 (30 phút)', 'Buổi tư vấn trực tiếp 1-1 với chuyên gia du học (30 phút)', 'service', 1000, 'service', 'CONSULTATION_30', 1),
+      ('Tư vấn 1-1 (60 phút)', 'Buổi tư vấn trực tiếp 1-1 với chuyên gia du học (60 phút)', 'service', 2000, 'service', 'CONSULTATION_60', 1),
+      ('Gói tư vấn 3 buổi', 'Gói tư vấn 3 buổi với chuyên gia du học', 'service', 3000, 'service', 'CONSULTATION_PACKAGE', 1),
+      ('Review hồ sơ cơ bản', 'Review và đánh giá hồ sơ du học cơ bản', 'service', 500, 'service', 'REVIEW_BASIC', 1),
+      ('Review hồ sơ chi tiết', 'Review hồ sơ chi tiết + gợi ý cải thiện', 'service', 1000, 'service', 'REVIEW_DETAILED', 1),
+      ('Review hồ sơ + chỉnh sửa', 'Review hồ sơ + chỉnh sửa và tối ưu hóa', 'service', 1500, 'service', 'REVIEW_EDIT', 1),
+      ('Checklist chuẩn bị visa', 'Checklist chi tiết các bước chuẩn bị visa', 'service', 800, 'service', 'VISA_CHECKLIST', 1),
+      ('Hướng dẫn xin visa', 'Hướng dẫn chi tiết quy trình xin visa du học Hàn Quốc', 'service', 1500, 'service', 'VISA_GUIDE', 1),
+      ('Hỗ trợ điền form visa', 'Hỗ trợ điền form và chuẩn bị hồ sơ visa', 'service', 2500, 'service', 'VISA_FORM_SUPPORT', 1)
+    `, (err) => {
+      if (err) {
+        console.error('Error inserting Phase 2 rewards:', err.message);
+      } else {
+        console.log('✅ Phase 2 rewards inserted');
       }
     });
   });
@@ -1308,6 +1408,26 @@ const dbHelpers = {
 
   getUserPoints: (user_email, callback) => {
     db.get('SELECT * FROM user_points WHERE user_email = ?', [user_email], callback);
+  },
+
+  syncUserPoints: (user_email, user_name, points, level, callback) => {
+    db.run(
+      `INSERT INTO user_points (user_email, user_name, points, level, last_updated)
+       VALUES (?, ?, ?, ?, datetime('now'))
+       ON CONFLICT(user_email) DO UPDATE SET
+         points = ?,
+         level = ?,
+         last_updated = datetime('now'),
+         user_name = COALESCE(?, user_name)`,
+      [user_email, user_name || null, points, level, points, level, user_name || null],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM user_points WHERE user_email = ?', [user_email], callback);
+        }
+      }
+    );
   },
 
   getLeaderboard: (limit = 10, callback) => {

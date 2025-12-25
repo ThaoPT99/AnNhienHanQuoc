@@ -1949,7 +1949,7 @@ app.get('/api/rewards/:id', (req, res) => {
 
 // Redeem a reward
 app.post('/api/rewards/redeem', (req, res) => {
-  const { user_email, reward_id } = req.body;
+  const { user_email, reward_id, service_data, review_data, visa_data } = req.body;
 
   if (!user_email || !reward_id) {
     res.status(400).json({ error: 'user_email and reward_id are required' });
@@ -1971,30 +1971,144 @@ app.post('/api/rewards/redeem', (req, res) => {
       return;
     }
 
-    // Check if user has enough points (from localStorage on client side)
-    // We'll trust the client for now, but in production you might want to store points in DB
-    // For now, we'll just create the redemption record
-
-    // Generate redemption code
-    const redemptionCode = `${reward.type.toUpperCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-
-    // Create redemption record
-    dbHelpers.createRedemption({
-      user_email,
-      reward_id,
-      points_used: reward.points_required,
-      redemption_code: redemptionCode
-    }, (err, redemption) => {
+    // Check if user has enough points
+    dbHelpers.getUserPoints(user_email, (err, userPoints) => {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
       }
+      const currentPoints = userPoints ? userPoints.points : 0;
+      if (currentPoints < reward.points_required) {
+        res.status(400).json({ error: 'Not enough points to redeem this reward' });
+        return;
+      }
 
-      res.json({
-        success: true,
-        redemption,
-        reward,
-        message: 'Reward redeemed successfully! Check your email for details.'
+      // Generate redemption code
+      const redemptionCode = `${reward.type.toUpperCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+      // Create redemption record
+      dbHelpers.createRedemption({
+        user_email,
+        reward_id,
+        points_used: reward.points_required,
+        redemption_code: redemptionCode
+      }, (err, redemption) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+
+        // Handle Phase 2 rewards
+        if (reward.category === 'service' && reward.type === 'service') {
+          // Determine service type based on reward value
+          let serviceType = 'consultation';
+          if (reward.value && reward.value.includes('REVIEW')) {
+            serviceType = 'review';
+          } else if (reward.value && reward.value.includes('VISA')) {
+            serviceType = 'visa';
+          }
+
+          if (serviceType === 'consultation' && service_data) {
+            // Create service redemption
+            dbHelpers.createServiceRedemption({
+              redemption_id: redemption.id,
+              user_email,
+              service_type: reward.value,
+              preferred_date: service_data.preferred_date,
+              preferred_time: service_data.preferred_time,
+              preferred_method: service_data.preferred_method || 'zoom',
+              notes: service_data.notes
+            }, (err, serviceRedemption) => {
+              if (err) {
+                console.error('Error creating service redemption:', err);
+              }
+              // Deduct points
+              const newPoints = currentPoints - reward.points_required;
+              const newLevel = Math.floor(newPoints / 500) + 1;
+              dbHelpers.syncUserPoints(user_email, null, newPoints, newLevel, (err) => {
+                if (err) console.error('Error deducting points:', err);
+                res.json({
+                  success: true,
+                  redemption,
+                  reward,
+                  service_redemption: serviceRedemption,
+                  message: 'Dịch vụ đã được đăng ký thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.'
+                });
+              });
+            });
+            return;
+          } else if (serviceType === 'review' && review_data) {
+            // Create document review
+            dbHelpers.createDocumentReview({
+              redemption_id: redemption.id,
+              user_email,
+              review_type: reward.value,
+              document_url: review_data.document_url,
+              document_name: review_data.document_name,
+              user_notes: review_data.user_notes
+            }, (err, documentReview) => {
+              if (err) {
+                console.error('Error creating document review:', err);
+              }
+              // Deduct points
+              const newPoints = currentPoints - reward.points_required;
+              const newLevel = Math.floor(newPoints / 500) + 1;
+              dbHelpers.syncUserPoints(user_email, null, newPoints, newLevel, (err) => {
+                if (err) console.error('Error deducting points:', err);
+                res.json({
+                  success: true,
+                  redemption,
+                  reward,
+                  document_review: documentReview,
+                  message: 'Hồ sơ đã được gửi review! Chúng tôi sẽ xem xét và phản hồi sớm nhất.'
+                });
+              });
+            });
+            return;
+          } else if (serviceType === 'visa' && visa_data) {
+            // Create visa support
+            dbHelpers.createVisaSupport({
+              redemption_id: redemption.id,
+              user_email,
+              support_type: reward.value,
+              current_status: visa_data.current_status,
+              questions: visa_data.questions,
+              documents_uploaded: visa_data.documents_uploaded
+            }, (err, visaSupport) => {
+              if (err) {
+                console.error('Error creating visa support:', err);
+              }
+              // Deduct points
+              const newPoints = currentPoints - reward.points_required;
+              const newLevel = Math.floor(newPoints / 500) + 1;
+              dbHelpers.syncUserPoints(user_email, null, newPoints, newLevel, (err) => {
+                if (err) console.error('Error deducting points:', err);
+                res.json({
+                  success: true,
+                  redemption,
+                  reward,
+                  visa_support: visaSupport,
+                  message: 'Yêu cầu hỗ trợ visa đã được gửi! Chúng tôi sẽ liên hệ với bạn sớm nhất.'
+                });
+              });
+            });
+            return;
+          }
+        }
+
+        // For Phase 1 rewards (voucher, document, access)
+        // Deduct points
+        const newPoints = currentPoints - reward.points_required;
+        const newLevel = Math.floor(newPoints / 500) + 1;
+        dbHelpers.syncUserPoints(user_email, null, newPoints, newLevel, (err) => {
+          if (err) console.error('Error deducting points:', err);
+          res.json({
+            success: true,
+            redemption,
+            reward,
+            message: 'Reward redeemed successfully! Check your email for details.'
+          });
+        });
       });
     });
   });
