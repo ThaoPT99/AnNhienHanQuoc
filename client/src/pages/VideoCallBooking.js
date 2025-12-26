@@ -39,6 +39,7 @@ const VideoCallBooking = () => {
     if (roomId) {
       const email = getUserEmail() || 'guest@example.com';
       const userName = localStorage.getItem('userName') || email.split('@')[0] || 'Guest';
+      setLoading(false); // Stop loading immediately
       setActiveCall({
         roomId,
         userEmail: email,
@@ -54,6 +55,7 @@ const VideoCallBooking = () => {
     const email = getUserEmail();
     
     if (!token || !email) {
+      setLoading(false);
       showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để sử dụng tính năng Video Call', 'info');
       navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
@@ -66,6 +68,8 @@ const VideoCallBooking = () => {
     if (token && email) {
       loadBookings();
       loadFriends();
+    } else {
+      setLoading(false);
     }
   }, [navigate]);
 
