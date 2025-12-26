@@ -8,6 +8,8 @@
 
 ## Bước 2: Lấy Credentials
 
+### Cách 1: Qua Twilio Console (Nếu Console hoạt động)
+
 1. **Đăng nhập vào Twilio Console**: https://console.twilio.com/
 
 2. **Vào Network Traversal Service**:
@@ -20,6 +22,24 @@
      - **Password**: Một chuỗi dài
 
    ⚠️ **Copy cả 2 giá trị này!**
+
+### Cách 2: Qua API (Khuyến nghị - Khi Console bị lỗi)
+
+1. **Lấy Account SID và Auth Token** từ Twilio Console Dashboard:
+   - Vào: https://console.twilio.com/
+   - Dashboard sẽ hiển thị **Account SID** và **Auth Token**
+
+2. **Chạy script tự động**:
+   ```bash
+   cd server
+   TWILIO_ACCOUNT_SID=your_account_sid TWILIO_AUTH_TOKEN=your_auth_token node get-twilio-turn-credentials.js
+   ```
+
+3. **Script sẽ tự động lấy credentials và hiển thị** username/password để bạn copy vào code.
+
+### Cách 3: Dùng Twilio API trực tiếp (Nếu muốn tự động hóa)
+
+Bạn có thể tạo endpoint trên server để lấy credentials tự động. Xem file `SETUP-TWILIO-TURN.md` để biết thêm.
 
 ## Bước 3: Cập nhật Code
 
