@@ -1,7 +1,16 @@
 .community-facebook-page {
   min-height: 100vh;
   background: #f0f2f5;
-  padding-top: 0; /* No navbar on Community page */
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Remove any default margin/padding from main-content when on Community page */
+#main-content .community-facebook-page {
+  margin: 0;
+  padding: 0;
 }
 
 /* Facebook-style Header Menu */
@@ -13,6 +22,8 @@
   border-bottom: 1px solid #e4e6eb;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   height: 56px;
+  margin: 0;
+  padding: 0;
 }
 
 .community-header-fb-container {
@@ -188,7 +199,7 @@
 .community-facebook-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px 20px 20px 20px;
   display: grid;
   grid-template-columns: 300px 1fr 300px;
   gap: 20px;
