@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import SEO from '../components/SEO';
-import { showNotification } from '../components/NotificationCenter';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { showNotification } from './NotificationCenter';
 import { isAuthenticated } from '../utils/auth';
-import './Login.css';
+import './AuthModal.css';
 
-const Login = () => {
+const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,13 +17,21 @@ const Login = () => {
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
+  // Reset form when modal opens/closes or mode changes
+  useEffect(() => {
+    if (isOpen) {
+      setIsLogin(initialMode === 'login');
+      setFormData({ email: '', password: '', name: '' });
+    }
+  }, [isOpen, initialMode]);
+
   // Check if already logged in
   useEffect(() => {
-    if (isAuthenticated()) {
-      const redirectTo = searchParams.get('redirect') || '/community';
-      navigate(redirectTo);
+    if (isOpen && isAuthenticated()) {
+      onClose();
+      navigate('/community');
     }
-  }, [navigate, searchParams]);
+  }, [isOpen, onClose, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,9 +60,9 @@ const Login = () => {
             'success'
           );
 
-          // Redirect to previous page or community
-          const redirectTo = searchParams.get('redirect') || '/community';
-          navigate(redirectTo);
+          onClose();
+          // Reload page to update navbar state
+          window.location.reload();
         } else {
           // Registration successful
           showNotification(
@@ -106,25 +112,38 @@ const Login = () => {
     });
   };
 
-  return (
-    <div className="login-page">
-      <SEO
-        title={isLogin ? 'Đăng nhập - Du học An Nhiên' : 'Đăng ký - Du học An Nhiên'}
-        description={isLogin ? 'Đăng nhập vào tài khoản của bạn' : 'Tạo tài khoản mới'}
-      />
+  if (!isOpen) return null;
 
-      <div className="login-container">
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="auth-modal-overlay"
+        onClick={onClose}
+      >
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="login-card"
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="auth-modal-content"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="login-header">
-            <h1>{isLogin ? '🔐 Đăng nhập' : '✨ Đăng ký'}</h1>
+          <button
+            className="auth-modal-close"
+            onClick={onClose}
+            aria-label="Đóng"
+          >
+            ✕
+          </button>
+
+          <div className="auth-modal-header">
+            <h2>{isLogin ? '🔐 Đăng nhập' : '✨ Đăng ký'}</h2>
             <p>{isLogin ? 'Chào mừng bạn trở lại!' : 'Tạo tài khoản mới để bắt đầu'}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="auth-modal-form">
             {!isLogin && (
               <div className="form-group">
                 <label>Tên của bạn</label>
@@ -169,7 +188,7 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="login-footer">
+          <div className="auth-modal-footer">
             <p>
               {isLogin ? 'Chưa có tài khoản? ' : 'Đã có tài khoản? '}
               <button
@@ -184,16 +203,11 @@ const Login = () => {
               </button>
             </p>
           </div>
-
-          <div className="login-info">
-            <p>🔒 Tài khoản của bạn được bảo vệ bằng mật khẩu</p>
-            <p>✅ Không ai có thể giả mạo danh tính của bạn</p>
-          </div>
         </motion.div>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
-export default Login;
+export default AuthModal;
 
