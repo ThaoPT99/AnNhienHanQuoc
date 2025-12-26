@@ -159,7 +159,9 @@ const VideoCallBooking = () => {
     // Only load bookings if user is authenticated
     const token = getAuthToken();
     if (!token) {
-      setBookings([]);
+      // Redirect to login if no token
+      showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để xem lịch đặt', 'info');
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       setLoading(false);
       return;
     }
@@ -178,15 +180,14 @@ const VideoCallBooking = () => {
         const data = await res.json();
         setBookings(data);
       } else if (res.status === 401 || res.status === 403) {
-        // Token expired or invalid - clear and show empty
-        console.log('Authentication failed, showing empty bookings');
-        setBookings([]);
+        // Token expired or invalid - redirect to login
+        showNotification('Phiên đăng nhập đã hết hạn', 'Vui lòng đăng nhập lại', 'warning');
+        navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       } else {
         console.error('Error loading bookings:', res.status, res.statusText);
       }
     } catch (error) {
       console.error('Error loading bookings:', error);
-      setBookings([]);
     } finally {
       setLoading(false);
     }
