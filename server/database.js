@@ -514,6 +514,29 @@ function initializeDatabase() {
       }
     });
 
+    // Create users table for authentication
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      display_name TEXT,
+      email_verified INTEGER DEFAULT 0,
+      verification_token TEXT,
+      last_login DATETIME,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating users table:', err.message);
+      } else {
+        console.log('✅ Users table ready');
+        // Create index for users
+        db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`, (err) => {
+          if (err) console.error('Error creating users email index:', err.message);
+        });
+      }
+    });
+
     // Create video_call_bookings table for Video Call Integration
     db.run(`CREATE TABLE IF NOT EXISTS video_call_bookings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
