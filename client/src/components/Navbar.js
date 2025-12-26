@@ -13,13 +13,11 @@ const Navbar = () => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const moreMenuRef = useRef(null);
-  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
