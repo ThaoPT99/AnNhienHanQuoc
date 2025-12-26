@@ -428,8 +428,23 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     if (existingUser) {
-      console.log('❌ Email already registered:', email);
-      return res.status(400).json({ error: 'Email already registered' });
+      console.log('❌ Email already registered:', email, 'Verified:', existingUser.email_verified);
+      
+      // If email is not verified, allow resending verification
+      if (!existingUser.email_verified) {
+        return res.status(400).json({ 
+          error: 'Email already registered but not verified',
+          email_verified: false,
+          can_resend: true,
+          message: 'Email này đã được đăng ký nhưng chưa được xác thực. Vui lòng kiểm tra email hoặc yêu cầu gửi lại email xác thực.'
+        });
+      }
+      
+      return res.status(400).json({ 
+        error: 'Email already registered',
+        email_verified: true,
+        message: 'Email này đã được đăng ký. Vui lòng đăng nhập thay vì đăng ký mới.'
+      });
     }
 
     console.log('✅ Email available, proceeding with registration');

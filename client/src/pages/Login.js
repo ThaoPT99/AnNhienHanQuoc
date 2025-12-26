@@ -81,11 +81,31 @@ const Login = () => {
             'warning'
           );
         } else {
-          showNotification(
-            'Lỗi',
-            data.error || 'Có lỗi xảy ra',
-            'error'
-          );
+          // Handle email already registered but not verified
+          if (res.status === 400 && data.can_resend && !data.email_verified) {
+            setUnverifiedEmail(formData.email);
+            showNotification(
+              'Email chưa được xác thực',
+              data.message || 'Email này đã được đăng ký nhưng chưa được xác thực. Vui lòng kiểm tra email hoặc yêu cầu gửi lại email xác thực.',
+              'warning'
+            );
+            setIsLogin(true); // Switch to login form
+          } else if (res.status === 400 && data.email_verified) {
+            // Email already registered and verified - suggest login
+            showNotification(
+              'Email đã được đăng ký',
+              data.message || 'Email này đã được đăng ký. Vui lòng đăng nhập thay vì đăng ký mới.',
+              'info'
+            );
+            setIsLogin(true); // Switch to login form
+            setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password
+          } else {
+            showNotification(
+              'Lỗi',
+              data.error || data.message || 'Có lỗi xảy ra',
+              'error'
+            );
+          }
         }
       }
     } catch (error) {
