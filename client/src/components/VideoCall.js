@@ -605,8 +605,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                           }
                         } else {
                           addDebugLog(`❌ Max retry attempts reached for ${userId}`, 'error');
-                          addDebugLog(`💡 Gợi ý: Kiểm tra firewall, NAT, hoặc thử lại sau vài phút`, 'info');
-                          setError(`Không thể kết nối với ${userId}. Có thể do firewall hoặc NAT. Vui lòng thử lại sau.`);
+                          addDebugLog(`💡 Nguyên nhân: Không có TURN (relay) candidates - TURN servers không hoạt động`, 'warn');
+                          addDebugLog(`💡 Giải pháp:`, 'info');
+                          addDebugLog(`   1. Kiểm tra firewall/network có block TURN traffic không`, 'info');
+                          addDebugLog(`   2. Thử kết nối từ network khác (mobile data, VPN)`, 'info');
+                          addDebugLog(`   3. Setup TURN server riêng (xem TURN-SERVER-SOLUTION.md)`, 'info');
+                          addDebugLog(`   4. Sử dụng dịch vụ TURN có phí (Twilio, Metered.ca)`, 'info');
+                          setError(`Không thể kết nối với ${userId}. Nguyên nhân: TURN servers không hoạt động (relay=0). Vui lòng xem TURN-SERVER-SOLUTION.md để setup TURN server riêng.`);
                         }
                       } else if (state === 'disconnected') {
                         addDebugLog(`⚠️ ICE connection disconnected with ${userId}`, 'warn');
