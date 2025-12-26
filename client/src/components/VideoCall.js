@@ -15,6 +15,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [participants, setParticipants] = useState([]);
   const [showRoomInfo, setShowRoomInfo] = useState(false); // Hide by default on mobile
   const [roomLink, setRoomLink] = useState('');
+  const [showDebugLogs, setShowDebugLogs] = useState(false);
+  const [debugLogs, setDebugLogs] = useState([]);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -23,6 +25,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const remoteStreamsRef = useRef(new Map()); // Map<userId, MediaStream>
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
+
+  // Helper function to add debug log
+  const addDebugLog = (message, type = 'info') => {
+    const timestamp = new Date().toLocaleTimeString('vi-VN');
+    const logEntry = { timestamp, message, type };
+    setDebugLogs(prev => [...prev.slice(-49), logEntry]); // Keep last 50 logs
+    console.log(message);
+  };
 
   // WebRTC Configuration (using free STUN servers)
   const rtcConfiguration = {
@@ -125,6 +135,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       const mediaTimeout = setTimeout(() => {
         if (!localStreamRef.current) {
           setError('Đang chờ quyền truy cập camera/microphone quá lâu. Vui lòng cho phép và tải lại trang.');
+          addDebugLog('⚠️ Timeout waiting for camera/microphone permission', 'warn');
         }
       }, 10000);
 
@@ -141,7 +152,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       };
 
       // Get user media (camera and microphone)
-      console.log('🎥 Requesting camera and microphone access...');
+      addDebugLog('🎥 Requesting camera and microphone access...', 'info');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
         audio: {
@@ -151,8 +162,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         }
       });
 
-      console.log('✅ Camera and microphone accessed successfully');
-      console.log('📹 Stream tracks:', stream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+      addDebugLog('✅ Camera and microphone accessed successfully', 'success');
+      addDebugLog(`📹 Stream tracks: ${stream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`).join(', ')}`, 'info');
       
       clearTimeout(mediaTimeout);
       localStreamRef.current = stream;
@@ -173,9 +184,11 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             console.log('✅ Local video playing');
           }).catch(err => {
             console.error('❌ Error playing local video:', err);
+            addDebugLog(`❌ Error playing local video: ${err.message}`, 'error');
           });
         } else {
           console.error('❌ Local video ref is null!');
+          addDebugLog('❌ Local video ref is null!', 'error');
         }
       }, 100);
 
@@ -216,12 +229,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
       // Handle connection state changes
       pc.onconnectionstatechange = () => {
-        console.log('🔗 Peer connection state:', pc.connectionState);
+        console.log('Connection state:', pc.connectionState);
         setConnectionStatus(pc.connectionState);
         if (pc.connectionState === 'connected') {
           setIsConnected(true);
+          addDebugLog(`✅ Connection established: ${pc.connectionState}`, 'success');
         } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
           setIsConnected(false);
+          addDebugLog(`⚠️ Connection ${pc.connectionState}`, 'warn');
         }
       };
 
@@ -230,6 +245,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
     } catch (err) {
       console.error('Error accessing media devices:', err);
+      addDebugLog(`❌ Error accessing media: ${err.message}`, 'error');
       let errorMessage = 'Không thể truy cập camera/microphone.';
       
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -258,7 +274,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       const wsHost = API_URL.replace(/^https?:\/\//, '').replace(/^wss?:\/\//, '');
       const wsUrl = `${wsProtocol}//${wsHost}/webrtc-signaling`;
       
-      console.log('🔌 Connecting to signaling server:', wsUrl);
+      addDebugLog(`🔌 Connecting to signaling server: ${wsUrl}`, 'info');
       
       const ws = new WebSocket(wsUrl);
       socketRef.current = ws;
@@ -266,11 +282,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       // Handle connection errors
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+        addDebugLog('❌ WebSocket connection error', 'error');
         setError('Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet.');
       };
 
       ws.onopen = () => {
-        console.log('✅ Connected to signaling server');
+        addDebugLog('✅ Connected to signaling server', 'success');
         setConnectionStatus('connecting');
         
         // Use consistent userId (prefer email, fallback to generated ID stored in ref)
@@ -285,17 +302,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
           roomId: roomId,
           userId: socketRef.current.userId
         }));
-        console.log('📤 Sent join-room with userId:', socketRef.current.userId);
+        addDebugLog(`📤 Sent join-room with userId: ${socketRef.current.userId}`, 'info');
       };
 
       ws.onmessage = async (event) => {
         const data = JSON.parse(event.data);
-        console.log('📨 Received signaling message:', data.type);
+        addDebugLog(`📨 Received signaling message: ${data.type}`, 'info');
 
         switch (data.type) {
           case 'room-joined':
-            console.log('✅ Joined room, existing users:', data.usersInRoom);
-            console.log('👤 My userId from server:', data.userId);
+            addDebugLog(`✅ Joined room, existing users: ${data.usersInRoom?.length || 0}`, 'success');
+            addDebugLog(`👤 My userId from server: ${data.userId}`, 'info');
             setConnectionStatus('connected');
             
             // Store our userId from server
@@ -307,28 +324,27 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             const allParticipants = data.usersInRoom 
               ? [...data.usersInRoom.map(uid => ({ userId: uid, joinedAt: new Date() }))]
               : [];
-            console.log('👥 Setting participants from room-joined:', allParticipants.map(p => p.userId));
-            console.log('👥 Total participants count (including myself):', allParticipants.length + 1);
+            addDebugLog(`👥 Setting participants: ${allParticipants.map(p => p.userId).join(', ')}`, 'info');
             setParticipants(allParticipants);
             
             // Only create offer if there are other users in room
             // Create separate peer connection and offer for each existing user
             if (data.usersInRoom && data.usersInRoom.length > 0) {
-              console.log('👥 Other users in room, creating offers for each...');
+              addDebugLog(`👥 Other users in room, creating offers for each...`, 'info');
               
               // Wait for local stream to be ready before creating offers
               const waitForStreamAndCreateOffers = async () => {
                 // Wait up to 5 seconds for local stream
                 for (let i = 0; i < 50; i++) {
                   if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
-                    console.log('✅ Local stream ready, creating offers...');
+                    addDebugLog('✅ Local stream ready, creating offers...', 'success');
                     break;
                   }
                   await new Promise(resolve => setTimeout(resolve, 100));
                 }
                 
                 if (!localStreamRef.current || localStreamRef.current.getTracks().length === 0) {
-                  console.error('❌ Local stream not ready after waiting, cannot create offers');
+                  addDebugLog('❌ Local stream not ready after waiting, cannot create offers', 'error');
                   setError('Không thể truy cập camera/microphone. Vui lòng cho phép và tải lại trang.');
                   return;
                 }
@@ -342,26 +358,27 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     // Add local stream tracks
                     localStreamRef.current.getTracks().forEach(track => {
                       userPc.addTrack(track, localStreamRef.current);
-                      console.log('➕ Added track to peer connection:', track.kind);
+                      addDebugLog(`➕ Added ${track.kind} track to peer connection for ${userId}`, 'info');
                     });
                     
                     // Handle connection state changes
                     userPc.onconnectionstatechange = () => {
-                      console.log(`🔌 Connection state with ${userId}:`, userPc.connectionState);
+                      addDebugLog(`🔌 Connection state with ${userId}: ${userPc.connectionState}`, 'info');
                       if (userPc.connectionState === 'connected') {
                         setIsConnected(true);
                         setConnectionStatus('connected');
                       } else if (userPc.connectionState === 'disconnected' || userPc.connectionState === 'failed') {
                         setConnectionStatus(userPc.connectionState);
+                        addDebugLog(`⚠️ Connection ${userPc.connectionState} with ${userId}`, 'warn');
                       }
                     };
                     
                     // Handle remote stream from this user
                     userPc.ontrack = (event) => {
-                      console.log('📹 Received remote track from', userId, ':', event.track.kind, 'enabled:', event.track.enabled);
+                      addDebugLog(`📹 Received remote track from ${userId}: ${event.track.kind}`, 'success');
                       const remoteStream = event.streams[0];
                       if (remoteStream) {
-                        console.log('📹 Remote stream tracks from', userId, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+                        addDebugLog(`📹 Remote stream tracks from ${userId}: ${remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`).join(', ')}`, 'info');
                         remoteStreamsRef.current.set(userId, remoteStream);
                         setRemoteStreams(new Map(remoteStreamsRef.current));
                         setRemoteStream(remoteStream); // For backward compatibility
@@ -372,7 +389,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     // Handle ICE candidates
                     userPc.onicecandidate = (event) => {
                       if (event.candidate) {
-                        console.log('🧊 ICE candidate for', userId);
+                        addDebugLog(`🧊 ICE candidate for ${userId}`, 'info');
                         ws.send(JSON.stringify({
                           type: 'ice-candidate',
                           roomId: roomId,
@@ -380,13 +397,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                           to: userId
                         }));
                       } else {
-                        console.log('✅ ICE gathering complete for', userId);
+                        addDebugLog(`✅ ICE gathering complete for ${userId}`, 'success');
                       }
                     };
                     
                     // Handle ICE connection state
                     userPc.oniceconnectionstatechange = () => {
-                      console.log(`🧊 ICE connection state with ${userId}:`, userPc.iceConnectionState);
+                      addDebugLog(`🧊 ICE connection state with ${userId}: ${userPc.iceConnectionState}`, 'info');
                     };
                     
                     // Create and send offer
@@ -395,35 +412,35 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                       offerToReceiveVideo: true
                     });
                     await userPc.setLocalDescription(offer);
-                    console.log('✅ Local description set (offer) for', userId);
+                    addDebugLog(`✅ Local description set (offer) for ${userId}`, 'success');
                     ws.send(JSON.stringify({
                       type: 'offer',
                       roomId: roomId,
                       offer: offer,
                       to: userId
                     }));
-                    console.log('📤 Sent offer to', userId);
+                    addDebugLog(`📤 Sent offer to ${userId}`, 'info');
                   } catch (error) {
+                    addDebugLog(`❌ Error creating offer for ${userId}: ${error.message}`, 'error');
                     console.error('❌ Error creating offer for', userId, ':', error);
-                    setError(`Lỗi khi tạo kết nối với ${userId}: ${error.message}`);
                   }
                 }
               };
               
               waitForStreamAndCreateOffers();
             } else {
-              console.log('👤 First user in room, waiting for others...');
+              addDebugLog('👤 First user in room, waiting for others...', 'info');
             }
             break;
 
           case 'offer':
             // Received offer from another peer - create separate peer connection for this user
-            console.log('📥 Received offer from:', data.from);
+            addDebugLog(`📥 Received offer from: ${data.from}`, 'info');
             try {
               // Check if we already have a peer connection for this user
               let userPc = peerConnectionsRef.current.get(data.from);
               if (!userPc) {
-                console.log('🔗 Creating new peer connection for:', data.from);
+                addDebugLog(`🔗 Creating new peer connection for: ${data.from}`, 'info');
                 userPc = new RTCPeerConnection(rtcConfiguration);
                 peerConnectionsRef.current.set(data.from, userPc);
                 
@@ -431,17 +448,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
                   localStreamRef.current.getTracks().forEach(track => {
                     userPc.addTrack(track, localStreamRef.current);
-                    console.log('➕ Added track to peer connection:', track.kind);
+                    addDebugLog(`➕ Added ${track.kind} track to peer connection`, 'info');
                   });
                 } else {
-                  console.warn('⚠️ Local stream not ready when receiving offer from', data.from);
+                  addDebugLog(`⚠️ Local stream not ready when receiving offer from ${data.from}`, 'warn');
                   // Wait a bit and try again
                   setTimeout(async () => {
                     if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
                       localStreamRef.current.getTracks().forEach(track => {
                         if (!userPc.getSenders().some(s => s.track === track)) {
                           userPc.addTrack(track, localStreamRef.current);
-                          console.log('➕ Added track to peer connection (delayed):', track.kind);
+                          addDebugLog(`➕ Added ${track.kind} track (delayed)`, 'info');
                         }
                       });
                     }
@@ -450,21 +467,22 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 
                 // Handle connection state changes
                 userPc.onconnectionstatechange = () => {
-                  console.log(`🔌 Connection state with ${data.from}:`, userPc.connectionState);
+                  addDebugLog(`🔌 Connection state with ${data.from}: ${userPc.connectionState}`, 'info');
                   if (userPc.connectionState === 'connected') {
                     setIsConnected(true);
                     setConnectionStatus('connected');
                   } else if (userPc.connectionState === 'disconnected' || userPc.connectionState === 'failed') {
                     setConnectionStatus(userPc.connectionState);
+                    addDebugLog(`⚠️ Connection ${userPc.connectionState} with ${data.from}`, 'warn');
                   }
                 };
                 
                 // Handle remote stream from this user
                 userPc.ontrack = (event) => {
-                  console.log('📹 Received remote track from', data.from, ':', event.track.kind, 'enabled:', event.track.enabled);
+                  addDebugLog(`📹 Received remote track from ${data.from}: ${event.track.kind}`, 'success');
                   const remoteStream = event.streams[0];
                   if (remoteStream) {
-                    console.log('📹 Remote stream tracks from', data.from, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+                    addDebugLog(`📹 Remote stream tracks from ${data.from}: ${remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`).join(', ')}`, 'info');
                     // Store in Map
                     remoteStreamsRef.current.set(data.from, remoteStream);
                     // Update state
@@ -478,7 +496,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 // Handle ICE candidates
                 userPc.onicecandidate = (event) => {
                   if (event.candidate) {
-                    console.log('🧊 ICE candidate for', data.from);
+                    addDebugLog(`🧊 ICE candidate for ${data.from}`, 'info');
                     ws.send(JSON.stringify({
                       type: 'ice-candidate',
                       roomId: roomId,
@@ -486,25 +504,25 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                       to: data.from
                     }));
                   } else {
-                    console.log('✅ ICE gathering complete for', data.from);
+                    addDebugLog(`✅ ICE gathering complete for ${data.from}`, 'success');
                   }
                 };
                 
                 // Handle ICE connection state
                 userPc.oniceconnectionstatechange = () => {
-                  console.log(`🧊 ICE connection state with ${data.from}:`, userPc.iceConnectionState);
+                  addDebugLog(`🧊 ICE connection state with ${data.from}: ${userPc.iceConnectionState}`, 'info');
                 };
               }
               
               await userPc.setRemoteDescription(new RTCSessionDescription(data.offer));
-              console.log('✅ Remote description set (offer) for', data.from);
+              addDebugLog(`✅ Remote description set (offer) for ${data.from}`, 'success');
               
               const answer = await userPc.createAnswer({
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true
               });
               await userPc.setLocalDescription(answer);
-              console.log('✅ Local description set (answer) for', data.from);
+              addDebugLog(`✅ Local description set (answer) for ${data.from}`, 'success');
               
               ws.send(JSON.stringify({
                 type: 'answer',
@@ -512,8 +530,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 answer: answer,
                 to: data.from
               }));
-              console.log('📤 Sent answer to:', data.from);
+              addDebugLog(`📤 Sent answer to: ${data.from}`, 'info');
             } catch (error) {
+              addDebugLog(`❌ Error handling offer: ${error.message}`, 'error');
               console.error('❌ Error handling offer:', error);
               setError(`Lỗi khi xử lý offer từ ${data.from}: ${error.message}`);
             }
@@ -521,40 +540,41 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
           case 'answer':
             // Received answer from another peer - use the peer connection for this user
-            console.log('📥 Received answer from:', data.from);
+            addDebugLog(`📥 Received answer from: ${data.from}`, 'info');
             try {
               const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
               if (!userPc) {
-                console.error('❌ No peer connection found for', data.from);
+                addDebugLog(`❌ No peer connection found for ${data.from}`, 'error');
                 return;
               }
               
-              console.log('📊 Current signaling state for', data.from, ':', userPc.signalingState);
+              addDebugLog(`📊 Current signaling state for ${data.from}: ${userPc.signalingState}`, 'info');
               
               if (userPc.signalingState === 'have-local-offer') {
                 await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                console.log('✅ Remote description set (answer) for', data.from);
+                addDebugLog(`✅ Remote description set (answer) for ${data.from}`, 'success');
                 setIsCallActive(true);
               } else if (userPc.signalingState === 'stable') {
-                console.log('⚠️ Signaling state is stable for', data.from, ', answer may be duplicate or late');
+                addDebugLog(`⚠️ Signaling state is stable for ${data.from}, answer may be duplicate or late`, 'warn');
                 // Try to set anyway in case it's a renegotiation
                 try {
                   await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                  console.log('✅ Remote description set (answer) for', data.from, 'despite stable state');
+                  addDebugLog(`✅ Remote description set (answer) for ${data.from} despite stable state`, 'success');
                 } catch (err) {
-                  console.warn('⚠️ Could not set remote description (stable state):', err.message);
+                  addDebugLog(`⚠️ Could not set remote description (stable state): ${err.message}`, 'warn');
                 }
               } else {
-                console.log('⚠️ Unexpected signaling state for', data.from, ':', userPc.signalingState);
+                addDebugLog(`⚠️ Unexpected signaling state for ${data.from}: ${userPc.signalingState}`, 'warn');
                 // Try to set anyway
                 try {
                   await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                  console.log('✅ Remote description set (answer) for', data.from);
+                  addDebugLog(`✅ Remote description set (answer) for ${data.from}`, 'success');
                 } catch (err) {
-                  console.error('❌ Error setting remote description:', err);
+                  addDebugLog(`❌ Error setting remote description: ${err.message}`, 'error');
                 }
               }
             } catch (error) {
+              addDebugLog(`❌ Error handling answer: ${error.message}`, 'error');
               console.error('❌ Error handling answer:', error);
               setError(`Lỗi khi xử lý answer từ ${data.from}: ${error.message}`);
             }
@@ -567,68 +587,66 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
                 // Wait for remote description if not set yet
                 if (!userPc.remoteDescription) {
-                  console.log('⏳ Waiting for remote description before adding ICE candidate for', data.from);
+                  addDebugLog(`⏳ Waiting for remote description before adding ICE candidate for ${data.from}`, 'info');
                   // Store candidate and add later
                   setTimeout(async () => {
                     try {
                       await userPc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                      console.log('✅ ICE candidate added (delayed) for', data.from);
+                      addDebugLog(`✅ ICE candidate added (delayed) for ${data.from}`, 'success');
                     } catch (err) {
-                      console.error('❌ Error adding delayed ICE candidate for', data.from, ':', err);
+                      addDebugLog(`❌ Error adding delayed ICE candidate for ${data.from}: ${err.message}`, 'error');
                     }
                   }, 500);
                 } else {
                   await userPc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                  console.log('✅ ICE candidate added for', data.from);
+                  addDebugLog(`✅ ICE candidate added for ${data.from}`, 'success');
                 }
               } catch (error) {
+                addDebugLog(`❌ Error adding ICE candidate for ${data.from}: ${error.message}`, 'error');
                 console.error('❌ Error adding ICE candidate for', data.from, ':', error);
                 const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
                 if (userPc.remoteDescription) {
-                  console.warn('⚠️ Remote description exists but failed to add candidate for', data.from);
+                  addDebugLog(`⚠️ Remote description exists but failed to add candidate for ${data.from}`, 'warn');
                 }
               }
             }
             break;
 
           case 'user-joined':
-            console.log('👤 User joined:', data.userId);
+            addDebugLog(`👤 User joined: ${data.userId}`, 'info');
             setParticipants(prev => {
               // Check if user already exists
               const exists = prev.find(p => p.userId === data.userId);
               if (exists) {
-                console.log('⚠️ User already in participants list:', data.userId);
-                console.log('👥 Current participants:', prev.map(p => p.userId));
+                addDebugLog(`⚠️ User already in participants list: ${data.userId}`, 'warn');
                 return prev;
               }
               const updated = [...prev, { userId: data.userId, joinedAt: new Date() }];
-              console.log('✅ Updated participants list after user-joined:', updated.map(p => p.userId));
-              console.log('👥 Total participants count (including myself):', updated.length + 1);
+              addDebugLog(`✅ Updated participants list: ${updated.map(p => p.userId).join(', ')}`, 'success');
               return updated;
             });
             
             // NOTE: When a new user joins, they will create offer themselves (in room-joined handler)
             // We (existing user) should NOT create offer here, just wait for their offer and respond with answer
-            console.log('👤 New user joined, waiting for their offer...');
+            addDebugLog('👤 New user joined, waiting for their offer...', 'info');
             break;
 
           case 'participants-updated':
             // Server sent updated participants list - sync with server
-            console.log('🔄 Participants updated from server:', data.participants);
+            addDebugLog(`🔄 Participants updated from server: ${data.participants?.length || 0}`, 'info');
             const currentUserId = socketRef.current?.userId || userEmail || `user_${Date.now()}`;
             const otherParticipants = data.participants
               .filter(uid => uid !== currentUserId)
               .map(uid => ({ userId: uid, joinedAt: new Date() }));
-            console.log('👥 Setting participants from server (excluding myself):', otherParticipants.map(p => p.userId));
-            console.log('👥 Total participants count (including myself):', otherParticipants.length + 1);
+            addDebugLog(`👥 Setting participants from server (excluding myself): ${otherParticipants.map(p => p.userId).join(', ')}`, 'info');
             setParticipants(otherParticipants);
             break;
 
           case 'user-left':
-            console.log('👋 User left:', data.userId);
+            addDebugLog(`👋 User left: ${data.userId}`, 'info');
             setParticipants(prev => {
               const updated = prev.filter(p => p.userId !== data.userId);
-              console.log('✅ Updated participants after user left:', updated.map(p => p.userId));
+              addDebugLog(`✅ Updated participants after user left: ${updated.map(p => p.userId).join(', ')}`, 'info');
               return updated;
             });
             // Clean up peer connection and remote stream for this user
@@ -636,7 +654,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             if (leftUserPc) {
               leftUserPc.close();
               peerConnectionsRef.current.delete(data.userId);
-              console.log('🔌 Closed peer connection for', data.userId);
+              addDebugLog(`🔌 Closed peer connection for ${data.userId}`, 'info');
             }
             remoteStreamsRef.current.delete(data.userId);
             setRemoteStreams(new Map(remoteStreamsRef.current));
@@ -650,6 +668,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+        addDebugLog('❌ WebSocket error occurred', 'error');
         setError('Lỗi kết nối signaling server. Đang thử lại...');
         // Retry connection after 3 seconds
         setTimeout(() => {
@@ -660,25 +679,15 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       };
 
       ws.onclose = () => {
-        console.log('🔌 Signaling connection closed');
+        addDebugLog('🔌 WebSocket connection closed', 'warn');
         setConnectionStatus('disconnected');
         setIsConnected(false);
       };
 
-      // Handle ICE candidates
-      pc.onicecandidate = (event) => {
-        if (event.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'ice-candidate',
-            roomId: roomId,
-            candidate: event.candidate
-          }));
-        }
-      };
-
     } catch (err) {
-      console.error('Error setting up signaling:', err);
-      setError('Lỗi khi thiết lập kết nối. Vui lòng thử lại.');
+      console.error('Error starting signaling:', err);
+      addDebugLog(`❌ Error starting signaling: ${err.message}`, 'error');
+      setError('Không thể kết nối đến signaling server.');
     }
   };
 
@@ -768,6 +777,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             >
               {showRoomInfo ? '📋' : 'ℹ️'}
             </button>
+            <button 
+              className="info-toggle-btn"
+              onClick={() => setShowDebugLogs(!showDebugLogs)}
+              title="Debug Logs"
+              style={{ marginLeft: '10px', background: showDebugLogs ? '#667eea' : 'rgba(255, 255, 255, 0.2)' }}
+            >
+              🐛
+            </button>
           </div>
           <button className="close-btn" onClick={endCall}>×</button>
         </div>
@@ -775,25 +792,25 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         {showRoomInfo && (
           <div className={`room-info-panel ${showRoomInfo ? 'show' : ''}`}>
             <div className="room-info-section">
-              <h4>🔗 Chia sẻ phòng với người khác</h4>
+              <h4>Chia sẻ phòng với người khác</h4>
               <div className="room-link-container">
-                <input 
-                  type="text" 
-                  value={roomLink} 
-                  readOnly 
+                <input
+                  type="text"
+                  value={roomLink}
+                  readOnly
                   className="room-link-input"
                 />
-                <button 
+                <button
                   className="copy-btn"
                   onClick={() => {
                     navigator.clipboard.writeText(roomLink);
-                    alert('✅ Đã copy link! Gửi link này cho người bạn muốn gọi.');
+                    alert('Đã copy link!');
                   }}
                 >
-                  📋 Copy
+                  Copy
                 </button>
               </div>
-              <p className="room-id">Room ID: <code>{roomId}</code></p>
+              <p className="room-id">Room ID: {roomId}</p>
             </div>
             
             <div className="participants-section">
@@ -826,6 +843,67 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         {error && (
           <div className="error-message">
             ⚠️ {error}
+          </div>
+        )}
+
+        {/* Debug Logs Panel */}
+        {showDebugLogs && (
+          <div className="debug-logs-panel">
+            <div className="debug-logs-header">
+              <h4>🐛 Debug Logs ({debugLogs.length})</h4>
+              <button 
+                onClick={() => setDebugLogs([])}
+                style={{ 
+                  padding: '5px 10px', 
+                  background: '#ff4444', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                Xóa
+              </button>
+            </div>
+            <div className="debug-logs-content">
+              {debugLogs.length === 0 ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                  Chưa có logs. Các logs sẽ hiển thị ở đây...
+                </div>
+              ) : (
+                debugLogs.map((log, index) => (
+                  <div 
+                    key={index} 
+                    className={`debug-log-item ${log.type}`}
+                    style={{
+                      padding: '8px 12px',
+                      marginBottom: '4px',
+                      borderRadius: '4px',
+                      fontSize: '0.85rem',
+                      fontFamily: 'monospace',
+                      background: log.type === 'error' ? 'rgba(255, 68, 68, 0.1)' :
+                                  log.type === 'success' ? 'rgba(76, 175, 80, 0.1)' :
+                                  log.type === 'warn' ? 'rgba(255, 152, 0, 0.1)' :
+                                  'rgba(255, 255, 255, 0.05)',
+                      color: log.type === 'error' ? '#ff4444' :
+                             log.type === 'success' ? '#4caf50' :
+                             log.type === 'warn' ? '#ff9800' :
+                             '#fff',
+                      borderLeft: `3px solid ${
+                        log.type === 'error' ? '#ff4444' :
+                        log.type === 'success' ? '#4caf50' :
+                        log.type === 'warn' ? '#ff9800' :
+                        '#667eea'
+                      }`
+                    }}
+                  >
+                    <span style={{ color: '#999', marginRight: '8px' }}>{log.timestamp}</span>
+                    {log.message}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 
@@ -931,4 +1009,3 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 };
 
 export default VideoCall;
-
