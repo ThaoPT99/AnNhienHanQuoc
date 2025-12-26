@@ -60,11 +60,21 @@ const Login = () => {
           navigate(redirectTo);
         } else {
           // Registration successful - email verification required
-          showNotification(
-            'Đăng ký thành công!',
-            data.message || 'Vui lòng kiểm tra email để xác thực tài khoản.',
-            'success'
-          );
+          if (data.email_sent === false && data.can_resend) {
+            // Email not sent but can resend
+            showNotification(
+              'Đăng ký thành công!',
+              data.message || 'Tài khoản đã được tạo. Bạn có thể yêu cầu gửi lại email xác thực.',
+              'warning'
+            );
+          } else {
+            // Email sent successfully
+            showNotification(
+              'Đăng ký thành công!',
+              data.message || 'Vui lòng kiểm tra email để xác thực tài khoản.',
+              'success'
+            );
+          }
           setUnverifiedEmail(formData.email);
           setIsLogin(true); // Switch to login form
           setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password

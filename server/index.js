@@ -502,18 +502,33 @@ app.post('/api/auth/register', async (req, res) => {
           `Xác thực email của bạn\n\nVui lòng truy cập link sau để xác thực:\n${verificationLink}`
         );
 
+        // Registration successful regardless of email status
         if (!emailResult.success) {
-          console.warn('Failed to send verification email:', emailResult.error);
+          console.warn('⚠️ Failed to send verification email:', emailResult.error);
+          console.warn('⚠️ User account created successfully. Email can be resent later.');
+          
+          res.status(201).json({
+            success: true,
+            message: 'Đăng ký thành công! Tuy nhiên, email xác thực chưa được gửi. Bạn có thể yêu cầu gửi lại email xác thực sau.',
+            email_sent: false,
+            can_resend: true,
+            user: {
+              email,
+              email_verified: false
+            }
+          });
+        } else {
+          console.log('✅ Verification email sent successfully');
+          res.status(201).json({
+            success: true,
+            message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
+            email_sent: true,
+            user: {
+              email,
+              email_verified: false
+            }
+          });
         }
-
-        res.status(201).json({
-          success: true,
-          message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
-          user: {
-            email,
-            email_verified: false
-          }
-        });
       });
     });
   });
