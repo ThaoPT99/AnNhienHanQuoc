@@ -404,6 +404,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     // Handle ICE connection state
                     userPc.oniceconnectionstatechange = () => {
                       addDebugLog(`🧊 ICE connection state with ${userId}: ${userPc.iceConnectionState}`, 'info');
+                      if (userPc.iceConnectionState === 'connected' || userPc.iceConnectionState === 'completed') {
+                        setIsConnected(true);
+                        setConnectionStatus('connected');
+                        addDebugLog(`✅ ICE connection established with ${userId}`, 'success');
+                      } else if (userPc.iceConnectionState === 'disconnected' || userPc.iceConnectionState === 'failed') {
+                        addDebugLog(`⚠️ ICE connection ${userPc.iceConnectionState} with ${userId}`, 'warn');
+                        setConnectionStatus(userPc.iceConnectionState);
+                      }
                     };
                     
                     // Create and send offer
@@ -511,6 +519,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 // Handle ICE connection state
                 userPc.oniceconnectionstatechange = () => {
                   addDebugLog(`🧊 ICE connection state with ${data.from}: ${userPc.iceConnectionState}`, 'info');
+                  if (userPc.iceConnectionState === 'connected' || userPc.iceConnectionState === 'completed') {
+                    setIsConnected(true);
+                    setConnectionStatus('connected');
+                    addDebugLog(`✅ ICE connection established with ${data.from}`, 'success');
+                  } else if (userPc.iceConnectionState === 'disconnected' || userPc.iceConnectionState === 'failed') {
+                    addDebugLog(`⚠️ ICE connection ${userPc.iceConnectionState} with ${data.from}`, 'warn');
+                    setConnectionStatus(userPc.iceConnectionState);
+                  }
                 };
               }
               
@@ -549,17 +565,31 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               }
               
               addDebugLog(`📊 Current signaling state for ${data.from}: ${userPc.signalingState}`, 'info');
+              addDebugLog(`📊 Current connection state for ${data.from}: ${userPc.connectionState}`, 'info');
+              addDebugLog(`📊 Current ICE connection state for ${data.from}: ${userPc.iceConnectionState}`, 'info');
               
               if (userPc.signalingState === 'have-local-offer') {
                 await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
                 addDebugLog(`✅ Remote description set (answer) for ${data.from}`, 'success');
                 setIsCallActive(true);
+                
+                // Check connection state after setting answer
+                setTimeout(() => {
+                  addDebugLog(`📊 Connection state after answer: ${userPc.connectionState}`, 'info');
+                  addDebugLog(`📊 ICE connection state after answer: ${userPc.iceConnectionState}`, 'info');
+                  if (userPc.connectionState === 'connected' || userPc.iceConnectionState === 'connected') {
+                    setIsConnected(true);
+                    setConnectionStatus('connected');
+                    addDebugLog(`✅ Connection established with ${data.from}`, 'success');
+                  }
+                }, 500);
               } else if (userPc.signalingState === 'stable') {
                 addDebugLog(`⚠️ Signaling state is stable for ${data.from}, answer may be duplicate or late`, 'warn');
                 // Try to set anyway in case it's a renegotiation
                 try {
                   await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
                   addDebugLog(`✅ Remote description set (answer) for ${data.from} despite stable state`, 'success');
+                  setIsCallActive(true);
                 } catch (err) {
                   addDebugLog(`⚠️ Could not set remote description (stable state): ${err.message}`, 'warn');
                 }
@@ -569,6 +599,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 try {
                   await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
                   addDebugLog(`✅ Remote description set (answer) for ${data.from}`, 'success');
+                  setIsCallActive(true);
                 } catch (err) {
                   addDebugLog(`❌ Error setting remote description: ${err.message}`, 'error');
                 }
