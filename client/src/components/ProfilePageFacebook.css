@@ -92,10 +92,6 @@
   z-index: 1;
 }
 
-.profile-header-container {
-  padding-bottom: 84px; /* Add space for profile picture overlap */
-}
-
 .profile-picture {
   width: 168px;
   height: 168px;
