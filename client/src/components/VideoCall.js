@@ -106,15 +106,28 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
       // Handle remote stream
       pc.ontrack = (event) => {
+        console.log('📹 Received remote track:', event.track.kind, 'enabled:', event.track.enabled);
         const remoteStream = event.streams[0];
-        setRemoteStream(remoteStream);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-          // Important for mobile: set playsInline and autoplay
-          remoteVideoRef.current.setAttribute('playsinline', 'true');
-          remoteVideoRef.current.setAttribute('autoplay', 'true');
+        if (remoteStream) {
+          console.log('📹 Remote stream tracks:', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+          setRemoteStream(remoteStream);
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            // Important for mobile: set playsInline and autoplay
+            remoteVideoRef.current.setAttribute('playsinline', 'true');
+            remoteVideoRef.current.setAttribute('autoplay', 'true');
+            remoteVideoRef.current.muted = false; // Enable audio
+            console.log('✅ Remote video element updated with stream');
+            
+            // Play the video
+            remoteVideoRef.current.play().then(() => {
+              console.log('✅ Remote video playing');
+            }).catch(err => {
+              console.error('❌ Error playing remote video:', err);
+            });
+          }
+          setIsCallActive(true);
         }
-        setIsCallActive(true);
       };
 
       // Handle connection state changes
