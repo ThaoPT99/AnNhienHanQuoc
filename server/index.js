@@ -1501,8 +1501,9 @@ app.get('/api/visits/stats', (req, res) => {
 // Community API endpoints
 // Get all posts
 app.get('/api/community/posts', (req, res) => {
-  const { category, type, limit, offset, sort } = req.query;
+  const { category, type, limit, offset, sort, author_email } = req.query;
   dbHelpers.getAllPosts({ 
+    author_email: author_email ? decodeURIComponent(author_email) : null,
     category, 
     type, 
     limit: limit ? parseInt(limit) : null,

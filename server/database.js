@@ -1377,6 +1377,11 @@ const dbHelpers = {
     let query = 'SELECT * FROM community_posts WHERE 1=1';
     const params = [];
     
+    if (filters?.author_email) {
+      query += ' AND author_email = ?';
+      params.push(filters.author_email);
+    }
+    
     if (filters?.category && filters.category !== 'Tất cả') {
       query += ' AND category = ?';
       params.push(filters.category);
