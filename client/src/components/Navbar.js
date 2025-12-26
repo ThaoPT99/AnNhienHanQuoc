@@ -67,8 +67,6 @@ const Navbar = () => {
     { path: '/about', label: 'Về chúng tôi', icon: '👥' },
     { path: '/services', label: 'Dịch vụ', icon: '🎯' },
     { path: '/blog', label: 'Blog', icon: '📚' },
-    { path: '/dashboard', label: 'Dashboard', icon: '📊', highlight: true },
-    { path: '/friends', label: 'Bạn bè', icon: '👥', highlight: true },
     { path: '/contact', label: 'Liên hệ', icon: '💬' }
   ];
 
@@ -87,7 +85,6 @@ const Navbar = () => {
     { path: '/referral', label: 'Giới thiệu bạn bè', icon: '🎁' },
     { path: '/gamification', label: 'Điểm thưởng', icon: '🎮' },
     { path: '/ai-matching', label: 'AI Matching', icon: '🤖' },
-    { path: '/video-call', label: 'Video Call', icon: '📹' },
     { path: '/ai-recommendation', label: 'AI Gợi ý trường', icon: '🤖' },
     { path: '/virtual-tour', label: 'Tour 360°', icon: '🏛️' },
     { path: '/language-learning', label: 'Học tiếng Hàn', icon: '📚' },
@@ -350,7 +347,7 @@ const Navbar = () => {
                       <span className="dropdown-text">Hồ sơ</span>
                     </Link>
                     <Link
-                      to="/dashboard"
+                      to="/community"
                       className="dropdown-item"
                       onClick={() => {
                         setIsUserMenuOpen(false);
@@ -358,20 +355,8 @@ const Navbar = () => {
                       }}
                       role="menuitem"
                     >
-                      <span className="dropdown-icon">📊</span>
-                      <span className="dropdown-text">Dashboard</span>
-                    </Link>
-                    <Link
-                      to="/friends"
-                      className="dropdown-item"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <span className="dropdown-icon">👥</span>
-                      <span className="dropdown-text">Bạn bè</span>
+                      <span className="dropdown-icon">💬</span>
+                      <span className="dropdown-text">Cộng đồng</span>
                     </Link>
                     <button
                       className="dropdown-item logout-item"
