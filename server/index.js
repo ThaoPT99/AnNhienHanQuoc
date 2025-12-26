@@ -564,12 +564,19 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      // Check if email is verified
-      if (!user.email_verified) {
+      // Check if email is verified (can be disabled via env var for testing)
+      const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION !== 'false';
+      
+      if (!user.email_verified && requireEmailVerification) {
+        console.log('⚠️ Login blocked: Email not verified for', email);
         return res.status(403).json({ 
           error: 'Email chưa được xác thực. Vui lòng kiểm tra email và click vào link xác thực.',
           email_verified: false
         });
+      }
+      
+      if (!user.email_verified) {
+        console.log('⚠️ Login allowed without email verification (REQUIRE_EMAIL_VERIFICATION=false)');
       }
 
       // Update last login
