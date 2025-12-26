@@ -383,32 +383,20 @@
     font-size: 20px;
   }
   
-  .community-facebook-container {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 12px;
-    padding-top: 68px;
-  }
-
   .left-sidebar,
   .right-sidebar {
-    position: static;
-    height: auto;
-    overflow: visible;
-    padding-right: 0;
-  }
-
-  .left-sidebar {
-    order: 2;
-  }
-
-  .main-feed {
-    order: 1;
-  }
-
-  .right-sidebar {
-    order: 3;
     display: none;
+  }
+  
+  .community-facebook-container {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 76px;
+    max-width: 100%;
+  }
+  
+  .main-feed {
+    max-width: 100%;
   }
 }
 
