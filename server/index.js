@@ -93,7 +93,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-token', 'x-user-token', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Content-Type'],
   maxAge: 86400 // 24 hours
 }));
@@ -105,7 +105,7 @@ app.options('*', (req, res) => {
   if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
     res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, X-Requested-With, Accept');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, x-user-token, X-Requested-With, Accept');
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Max-Age', '86400');
     console.log('✅ Preflight allowed for:', origin);
@@ -115,7 +115,7 @@ app.options('*', (req, res) => {
     console.log('⚠️ Preflight: Allowing anyway for debugging');
     res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, X-Requested-With, Accept');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token, x-user-token, X-Requested-With, Accept');
     res.header('Access-Control-Allow-Credentials', 'true');
     res.sendStatus(200);
   }
