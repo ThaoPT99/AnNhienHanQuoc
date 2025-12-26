@@ -103,26 +103,27 @@ const MessengerChat = () => {
             // Save to localStorage
             saveMessagesToStorage(senderEmail, updatedChat.messages);
             
-            // Update selectedChat if this is the active chat
-            setSelectedChat(prevSelected => {
-              if (prevSelected?.userEmail === senderEmail) {
-                return updatedChat;
-              }
-              return prevSelected;
-            });
-            
-            // If no chat is selected or chat is minimized, select this chat
-            setSelectedChat(prevSelected => {
-              if (!prevSelected || prevSelected.userEmail !== senderEmail) {
-                setIsMinimized(false);
-                return updatedChat;
-              }
-              return updatedChat;
-            });
-            
-            return prev.map(chat => 
+            const updatedChats = prev.map(chat => 
               chat.userEmail === senderEmail ? updatedChat : chat
             );
+            
+            // Update selectedChat after state update completes
+            setTimeout(() => {
+              setSelectedChat(prevSelected => {
+                // If this chat is already selected, update it
+                if (prevSelected?.userEmail === senderEmail) {
+                  return updatedChat;
+                }
+                // If no chat selected or different chat selected, select this one
+                if (!prevSelected || prevSelected.userEmail !== senderEmail) {
+                  setIsMinimized(false);
+                  return updatedChat;
+                }
+                return prevSelected;
+              });
+            }, 0);
+            
+            return updatedChats;
           });
         } else if (data.type === 'incoming-call') {
           // Handle incoming video call (existing logic)
