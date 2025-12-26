@@ -37,6 +37,16 @@ class WebRTCSignalingServer {
               ws.roomId = roomId;
               ws.userId = userId;
               
+              // Get list of existing users BEFORE adding new user
+              const usersInRoom = Array.from(this.rooms.get(roomId))
+                .filter(client => client !== ws && client.readyState === WebSocket.OPEN)
+                .map(client => client.userId);
+              
+              // Add new user to room
+              this.rooms.get(roomId).add(ws);
+              ws.roomId = roomId;
+              ws.userId = userId;
+              
               // Notify others in room about new user
               this.broadcastToRoom(roomId, ws, {
                 type: 'user-joined',
@@ -44,11 +54,7 @@ class WebRTCSignalingServer {
                 roomId
               });
               
-              // Send list of existing users
-              const usersInRoom = Array.from(this.rooms.get(roomId))
-                .filter(client => client !== ws && client.readyState === WebSocket.OPEN)
-                .map(client => client.userId);
-              
+              // Send list of existing users to new user
               ws.send(JSON.stringify({
                 type: 'room-joined',
                 roomId,
@@ -56,7 +62,18 @@ class WebRTCSignalingServer {
                 usersInRoom
               }));
               
-              console.log(`✅ User ${userId} joined room ${roomId}`);
+              // Also broadcast updated participants list to all users in room
+              const allUsersInRoom = Array.from(this.rooms.get(roomId))
+                .filter(client => client.readyState === WebSocket.OPEN)
+                .map(client => client.userId);
+              
+              this.broadcastToRoom(roomId, null, {
+                type: 'participants-updated',
+                roomId,
+                participants: allUsersInRoom
+              });
+              
+              console.log(`✅ User ${userId} joined room ${roomId}. Total users: ${allUsersInRoom.length}`);
               break;
               
           case 'incoming-call':
