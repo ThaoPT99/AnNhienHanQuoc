@@ -17,20 +17,21 @@
 .community-header-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 6px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 40px;
 }
 
 .community-logo-link {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   color: #1c1e21;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   transition: opacity 0.2s;
 }
 
@@ -39,23 +40,23 @@
 }
 
 .community-logo-icon {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .community-logo-text {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .community-exit-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 6px 12px;
   background: #e4e6eb;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: #1c1e21;
   transition: background 0.2s;
@@ -66,22 +67,32 @@
 }
 
 .community-exit-btn span:first-child {
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
 @media (max-width: 768px) {
   .community-header-container {
-    padding: 10px 12px;
+    padding: 5px 12px;
+    min-height: 36px;
   }
   
   .community-logo-text {
     display: none;
   }
   
+  .community-logo-icon {
+    font-size: 1.1rem;
+  }
+  
   .community-exit-btn {
-    padding: 6px 12px;
-    font-size: 0.85rem;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+  
+  .community-exit-btn span:first-child {
+    font-size: 0.9rem;
   }
 }
 
@@ -98,8 +109,8 @@
 /* Left Sidebar */
 .left-sidebar {
   position: sticky;
-  top: 60px; /* Account for community header */
-  height: calc(100vh - 60px);
+  top: 52px; /* Account for community header (reduced) */
+  height: calc(100vh - 52px);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -132,8 +143,8 @@
 /* Right Sidebar */
 .right-sidebar {
   position: sticky;
-  top: 60px; /* Account for community header */
-  height: calc(100vh - 60px);
+  top: 52px; /* Account for community header (reduced) */
+  height: calc(100vh - 52px);
   overflow-y: auto;
   overflow-x: hidden;
 }
