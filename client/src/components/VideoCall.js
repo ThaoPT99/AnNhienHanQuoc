@@ -627,15 +627,15 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         <div className="video-call-content">
           {/* Remote video (other person) */}
           <div className="remote-video-container">
-            {remoteStream ? (
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                webkit-playsinline="true"
-                className="remote-video"
-              />
-            ) : (
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              webkit-playsinline="true"
+              className="remote-video"
+              style={{ display: remoteStream ? 'block' : 'none' }}
+            />
+            {!remoteStream && (
               <div className="waiting-for-peer">
                 <div className="waiting-spinner"></div>
                 <p>Đang chờ người tham gia...</p>
@@ -646,16 +646,16 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
           {/* Local video (self) */}
           <div className="local-video-container">
-            {localStream ? (
-              <video
-                ref={localVideoRef}
-                autoPlay
-                playsInline
-                webkit-playsinline="true"
-                muted
-                className="local-video"
-              />
-            ) : (
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              webkit-playsinline="true"
+              muted
+              className="local-video"
+              style={{ display: localStream ? 'block' : 'none' }}
+            />
+            {!localStream && (
               <div className="no-video">
                 <span>📷</span>
                 <p>Đang tải camera...</p>
