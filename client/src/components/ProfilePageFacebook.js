@@ -498,6 +498,14 @@ const ProfilePageFacebook = () => {
             </div>
           )}
 
+          {activeTab === 'photos' && (
+            <div className="photos-tab">
+              <div className="no-posts">
+                <p>Tính năng Ảnh đang phát triển</p>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'dashboard' && isOwnProfile && (
             <div className="dashboard-tab">
               <h2>Dashboard của tôi</h2>
