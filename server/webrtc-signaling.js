@@ -41,8 +41,17 @@ class WebRTCSignalingServer {
             case 'chat-message':
               // Forward chat message to recipient
               const { from: msgFrom, to: msgTo, message: msgText, timestamp: msgTimestamp } = data;
+              
+              // Ensure sender is registered
+              if (!userId) {
+                userId = msgFrom || `user_${Date.now()}`;
+                ws.userId = userId;
+                this.userConnections.set(userId, ws);
+              }
+              
               console.log(`💬 Server: Received chat message from ${msgFrom} to ${msgTo}`);
-              console.log(`💬 Server: Available users: ${Array.from(this.userConnections.keys()).join(', ')}`);
+              console.log(`💬 Server: Total registered users: ${this.userConnections.size}`);
+              console.log(`💬 Server: Available users: ${Array.from(this.userConnections.keys()).slice(0, 10).join(', ')}...`);
               
               const recipientWs = this.userConnections.get(msgTo);
               
@@ -57,8 +66,16 @@ class WebRTCSignalingServer {
                 recipientWs.send(JSON.stringify(forwardMsg));
                 console.log(`✅ Server: Message forwarded from ${msgFrom} to ${msgTo}`);
               } else {
-                console.log(`⚠️ Server: User ${msgTo} is not online (connection not found or closed)`);
+                console.log(`⚠️ Server: User ${msgTo} is not online`);
+                console.log(`   - Connection exists: ${!!recipientWs}`);
+                console.log(`   - Connection open: ${recipientWs?.readyState === WebSocket.OPEN}`);
                 // Message will be saved in localStorage and shown when user comes online
+                // Send confirmation to sender that message was queued
+                ws.send(JSON.stringify({
+                  type: 'message-queued',
+                  to: msgTo,
+                  message: 'User is offline. Message will be delivered when they come online.'
+                }));
               }
               break;
               

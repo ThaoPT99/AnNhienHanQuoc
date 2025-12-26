@@ -41,12 +41,23 @@ const MessengerChat = () => {
     websocket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('💬 MessengerChat: Received WebSocket data:', data.type);
         
-        if (data.type === 'chat-message') {
+        if (data.type === 'messaging-registered') {
+          console.log('✅ MessengerChat: Successfully registered for messaging');
+        } else if (data.type === 'chat-message') {
           // Received a chat message
           console.log('💬 MessengerChat: Received message:', data);
           const { from, to, message, timestamp } = data;
-          const senderEmail = from === userEmail ? to : from;
+          
+          // Determine sender (the one who sent TO me)
+          const senderEmail = from;
+          
+          // Verify this message is for me
+          if (to !== userEmail) {
+            console.log(`⚠️ MessengerChat: Message not for me. To: ${to}, My email: ${userEmail}`);
+            return;
+          }
           
           // Find or create chat
           setActiveChats(prev => {
@@ -70,7 +81,7 @@ const MessengerChat = () => {
               ...chatExists,
               messages: [...(chatExists.messages || []), {
                 text: message,
-                sender: from === userEmail ? 'me' : 'other',
+                sender: 'other', // This is a received message
                 timestamp: timestamp || new Date().toISOString()
               }]
             };
@@ -314,7 +325,12 @@ const MessengerChat = () => {
       // Save to localStorage
       saveMessagesToStorage(selectedChat.userEmail, updatedChat.messages);
       
-      // Send via WebSocket
+      // Send via WebSocket (ensure user is registered first)
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        showNotification('Lỗi', 'WebSocket chưa kết nối. Vui lòng thử lại.', 'error');
+        return;
+      }
+      
       const chatMsg = {
         type: 'chat-message',
         from: userEmail,
