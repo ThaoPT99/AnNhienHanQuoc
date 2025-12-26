@@ -79,28 +79,51 @@ const MessengerChat = () => {
               prev = [...prev, newChat];
             }
             
+            // Check if message already exists (prevent duplicates)
+            const messageTimestamp = timestamp || new Date().toISOString();
+            const messageExists = (chatExists.messages || []).some(
+              msg => msg.text === message && msg.timestamp === messageTimestamp
+            );
+            
+            if (messageExists) {
+              console.log('⚠️ MessengerChat: Duplicate message detected, skipping');
+              return prev;
+            }
+            
             // Add message to chat
             const updatedChat = {
               ...chatExists,
               messages: [...(chatExists.messages || []), {
                 text: message,
                 sender: 'other', // This is a received message
-                timestamp: timestamp || new Date().toISOString()
+                timestamp: messageTimestamp
               }]
             };
             
             // Save to localStorage
             saveMessagesToStorage(senderEmail, updatedChat.messages);
             
+            // Update selectedChat if this is the active chat
+            setSelectedChat(prevSelected => {
+              if (prevSelected?.userEmail === senderEmail) {
+                return updatedChat;
+              }
+              return prevSelected;
+            });
+            
+            // If no chat is selected or chat is minimized, select this chat
+            setSelectedChat(prevSelected => {
+              if (!prevSelected || prevSelected.userEmail !== senderEmail) {
+                setIsMinimized(false);
+                return updatedChat;
+              }
+              return updatedChat;
+            });
+            
             return prev.map(chat => 
               chat.userEmail === senderEmail ? updatedChat : chat
             );
           });
-          
-          // Auto-select chat if minimized
-          if (isMinimized) {
-            setIsMinimized(false);
-          }
         } else if (data.type === 'incoming-call') {
           // Handle incoming video call (existing logic)
           const { callerEmail, callerName, roomId } = data;
@@ -213,7 +236,13 @@ const MessengerChat = () => {
   const saveMessagesToStorage = (friendEmail, messages) => {
     try {
       const key = `chat_messages_${userEmail}_${friendEmail}`;
-      localStorage.setItem(key, JSON.stringify(messages));
+      // Remove duplicates before saving
+      const uniqueMessages = messages.filter((msg, index, self) =>
+        index === self.findIndex(m => 
+          m.text === msg.text && m.timestamp === msg.timestamp && m.sender === msg.sender
+        )
+      );
+      localStorage.setItem(key, JSON.stringify(uniqueMessages));
     } catch (error) {
       console.error('Error saving messages:', error);
     }
@@ -224,7 +253,15 @@ const MessengerChat = () => {
     try {
       const key = `chat_messages_${userEmail}_${friendEmail}`;
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      
+      const messages = JSON.parse(saved);
+      // Remove duplicates
+      return messages.filter((msg, index, self) =>
+        index === self.findIndex(m => 
+          m.text === msg.text && m.timestamp === msg.timestamp && m.sender === msg.sender
+        )
+      );
     } catch (error) {
       console.error('Error loading messages:', error);
       return [];
