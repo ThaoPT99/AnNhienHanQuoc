@@ -300,46 +300,52 @@ const ProfilePageFacebook = () => {
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="profile-content-wrapper">
-        {/* Sidebar */}
-        <aside className="profile-sidebar">
-          <div className="sidebar-card">
+      {/* Content Section - Facebook Style 2 Column Layout */}
+      <div className="profile-content-wrapper-fb">
+        {/* Sidebar - Left */}
+        <aside className="profile-sidebar-fb">
+          <div className="sidebar-card-fb">
             <h3>Giới thiệu</h3>
+            {profile?.bio && (
+              <p className="sidebar-bio">{profile.bio}</p>
+            )}
             {profile?.location && (
-              <div className="info-item">
-                <span className="info-icon">📍</span>
+              <div className="info-item-fb">
+                <span className="info-icon-fb">📍</span>
                 <span>{profile.location}</span>
               </div>
             )}
             {profile?.interests && (
-              <div className="info-item">
-                <span className="info-icon">❤️</span>
+              <div className="info-item-fb">
+                <span className="info-icon-fb">❤️</span>
                 <span>Sở thích: {profile.interests}</span>
               </div>
             )}
             {isOwnProfile && stats.points > 0 && (
-              <div className="info-item">
-                <span className="info-icon">⭐</span>
+              <div className="info-item-fb">
+                <span className="info-icon-fb">⭐</span>
                 <span>Điểm: {stats.points.toLocaleString()}</span>
               </div>
             )}
             {isOwnProfile && stats.level > 0 && (
-              <div className="info-item">
-                <span className="info-icon">🏆</span>
+              <div className="info-item-fb">
+                <span className="info-icon-fb">🏆</span>
                 <span>Level: {stats.level}</span>
               </div>
+            )}
+            {(!profile?.bio && !profile?.location && !profile?.interests && !isOwnProfile) && (
+              <p className="no-info-text">Chưa có thông tin</p>
             )}
           </div>
 
           {isOwnProfile && stats.badges.length > 0 && (
-            <div className="sidebar-card">
+            <div className="sidebar-card-fb">
               <h3>Badges</h3>
-              <div className="badges-list">
+              <div className="badges-list-fb">
                 {stats.badges.map((badge, i) => (
-                  <div key={i} className="badge-item">
-                    <span className="badge-icon">{badge.icon || '🏆'}</span>
-                    <span className="badge-name">{badge.name}</span>
+                  <div key={i} className="badge-item-fb">
+                    <span className="badge-icon-fb">{badge.icon || '🏆'}</span>
+                    <span className="badge-name-fb">{badge.name}</span>
                   </div>
                 ))}
               </div>
@@ -347,8 +353,8 @@ const ProfilePageFacebook = () => {
           )}
         </aside>
 
-        {/* Main Content */}
-        <main className="profile-main-content">
+        {/* Main Content - Right */}
+        <main className="profile-main-content-fb">
           {activeTab === 'posts' && (
             <div className="posts-tab">
               {isOwnProfile && (
