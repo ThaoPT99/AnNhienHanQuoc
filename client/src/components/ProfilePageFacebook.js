@@ -230,11 +230,14 @@ const ProfilePageFacebook = () => {
                   ✏️ Chỉnh sửa trang cá nhân
                 </button>
                 <Link to="/community" className="btn-view-activity">
-                  Trang chủ
+                  🏠 Trang chủ
                 </Link>
               </>
             ) : (
               <>
+                <Link to="/community" className="btn-view-activity" style={{ marginRight: '8px' }}>
+                  🏠 Trang chủ
+                </Link>
                 <button
                   className={`btn-follow-fb ${isFollowing ? 'following' : ''}`}
                   onClick={handleFollow}
