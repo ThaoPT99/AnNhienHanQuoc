@@ -478,7 +478,7 @@ function initializeDatabase() {
     // Create matching_questionnaires table for AI-Powered Matching
     db.run(`CREATE TABLE IF NOT EXISTS matching_questionnaires (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_email TEXT NOT NULL,
+      user_email TEXT NOT NULL UNIQUE,
       major TEXT,
       budget_range TEXT,
       location_preference TEXT,
@@ -495,6 +495,10 @@ function initializeDatabase() {
         console.error('Error creating matching_questionnaires table:', err.message);
       } else {
         console.log('✅ Matching questionnaires table ready');
+        // Add UNIQUE constraint if table already exists without it
+        db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_matching_questionnaires_email_unique ON matching_questionnaires(user_email)`, (err) => {
+          if (err) console.error('Error creating unique index:', err.message);
+        });
       }
     });
 
