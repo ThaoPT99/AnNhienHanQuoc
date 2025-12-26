@@ -48,6 +48,32 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     };
   }, [roomId]);
 
+  // Update local video element when stream changes
+  useEffect(() => {
+    if (localStream && localVideoRef.current) {
+      console.log('📹 Updating local video element with stream');
+      localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().then(() => {
+        console.log('✅ Local video playing (from useEffect)');
+      }).catch(err => {
+        console.error('❌ Error playing local video (from useEffect):', err);
+      });
+    }
+  }, [localStream]);
+
+  // Update remote video element when stream changes
+  useEffect(() => {
+    if (remoteStream && remoteVideoRef.current) {
+      console.log('📹 Updating remote video element with stream');
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().then(() => {
+        console.log('✅ Remote video playing (from useEffect)');
+      }).catch(err => {
+        console.error('❌ Error playing remote video (from useEffect):', err);
+      });
+    }
+  }, [remoteStream]);
+
   const initializeCall = async () => {
     try {
       // Check if mediaDevices is available
