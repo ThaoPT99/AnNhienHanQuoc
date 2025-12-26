@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addPoints, showPointsNotification } from '../utils/pointsSystem';
 import { getRelativeTime } from '../utils/timezone';

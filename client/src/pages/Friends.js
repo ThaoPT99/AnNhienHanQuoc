@@ -50,7 +50,7 @@ const Friends = () => {
   };
 
   const handleUnfollow = async (friendEmail) => {
-    if (!confirm(`Bạn có chắc muốn unfollow ${friendEmail}?`)) return;
+    if (!window.confirm(`Bạn có chắc muốn unfollow ${friendEmail}?`)) return;
 
     try {
       const res = await fetch(`${API_URL}/api/social/unfollow`, {
@@ -246,4 +246,6 @@ const Friends = () => {
 };
 
 export default Friends;
+
+
 

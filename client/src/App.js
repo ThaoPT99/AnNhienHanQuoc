@@ -118,17 +118,7 @@ function App() {
             <PWAInstall />
             <NotificationCenter />
             
-            {/* Incoming Call Modal */}
-            {incomingCall && (
-              <IncomingCall
-                callerName={incomingCall.callerName}
-                callerEmail={incomingCall.callerEmail}
-                roomId={incomingCall.roomId}
-                roomLink={incomingCall.roomLink}
-                onAccept={handleAcceptCall}
-                onDecline={handleDeclineCall}
-              />
-            )}
+            {/* Incoming Call Modal - handled by IncomingCall component internally via WebSocket */}
           </div>
         </ErrorBoundary>
       </Router>

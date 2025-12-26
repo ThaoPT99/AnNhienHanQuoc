@@ -100,8 +100,10 @@ export function showIncomingCallNotification(callerName, callerEmail, roomLink, 
   }
   
   // Fallback: Use browser alert if notifications not available
-  if (confirm(`${title}\n\n${body}\n\nBạn có muốn tham gia cuộc gọi không?`)) {
+  if (window.confirm(`${title}\n\n${body}\n\nBạn có muốn tham gia cuộc gọi không?`)) {
     window.location.href = roomLink;
   }
 }
+
+
 
