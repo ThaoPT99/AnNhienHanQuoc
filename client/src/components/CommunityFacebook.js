@@ -49,9 +49,14 @@ const CommunityFacebook = () => {
       if (res.ok) {
         const profile = await res.json();
         setUserProfile(profile);
+      } else if (res.status === 404) {
+        // Profile doesn't exist yet, create empty one
+        setUserProfile({ email: userEmail });
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+      // Set empty profile on error
+      setUserProfile({ email: userEmail });
     }
   };
 

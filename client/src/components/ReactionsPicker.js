@@ -110,7 +110,7 @@ const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, curre
             onMouseLeave={() => setShowPicker(false)}
           >
             {REACTION_TYPES.map((reaction) => {
-              const reactionData = reactionsCount?.find(r => r.reaction_type === reaction.type);
+              const reactionData = (Array.isArray(reactionsCount) ? reactionsCount : [])?.find(r => r.reaction_type === reaction.type);
               const count = reactionData?.count || 0;
               const isActive = currentReaction === reaction.type;
 

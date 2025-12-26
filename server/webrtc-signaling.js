@@ -40,20 +40,24 @@ class WebRTCSignalingServer {
               
             case 'chat-message':
               // Forward chat message to recipient
-              const { from, to, message, timestamp } = data;
-              const recipientWs = this.userConnections.get(to);
+              const { from: msgFrom, to: msgTo, message: msgText, timestamp: msgTimestamp } = data;
+              console.log(`💬 Server: Received chat message from ${msgFrom} to ${msgTo}`);
+              console.log(`💬 Server: Available users: ${Array.from(this.userConnections.keys()).join(', ')}`);
+              
+              const recipientWs = this.userConnections.get(msgTo);
               
               if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
-                recipientWs.send(JSON.stringify({
+                const forwardMsg = {
                   type: 'chat-message',
-                  from: from,
-                  to: to,
-                  message: message,
-                  timestamp: timestamp || new Date().toISOString()
-                }));
-                console.log(`💬 Message sent from ${from} to ${to}`);
+                  from: msgFrom,
+                  to: msgTo,
+                  message: msgText,
+                  timestamp: msgTimestamp || new Date().toISOString()
+                };
+                recipientWs.send(JSON.stringify(forwardMsg));
+                console.log(`✅ Server: Message forwarded from ${msgFrom} to ${msgTo}`);
               } else {
-                console.log(`⚠️ User ${to} is not online, message will be stored in localStorage on client side`);
+                console.log(`⚠️ Server: User ${msgTo} is not online (connection not found or closed)`);
                 // Message will be saved in localStorage and shown when user comes online
               }
               break;

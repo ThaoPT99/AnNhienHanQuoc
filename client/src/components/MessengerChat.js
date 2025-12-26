@@ -29,10 +29,12 @@ const MessengerChat = () => {
     websocket.onopen = () => {
       console.log('💬 MessengerChat: WebSocket connected');
       // Register user for messaging
-      websocket.send(JSON.stringify({
+      const registerMsg = {
         type: 'register-messaging',
         userId: userEmail
-      }));
+      };
+      console.log('💬 MessengerChat: Registering for messaging:', registerMsg);
+      websocket.send(JSON.stringify(registerMsg));
       setWs(websocket);
     };
 
@@ -42,6 +44,7 @@ const MessengerChat = () => {
         
         if (data.type === 'chat-message') {
           // Received a chat message
+          console.log('💬 MessengerChat: Received message:', data);
           const { from, to, message, timestamp } = data;
           const senderEmail = from === userEmail ? to : from;
           
@@ -312,13 +315,15 @@ const MessengerChat = () => {
       saveMessagesToStorage(selectedChat.userEmail, updatedChat.messages);
       
       // Send via WebSocket
-      ws.send(JSON.stringify({
+      const chatMsg = {
         type: 'chat-message',
         from: userEmail,
         to: selectedChat.userEmail,
         message: message.text,
         timestamp: message.timestamp
-      }));
+      };
+      console.log('💬 MessengerChat: Sending message:', chatMsg);
+      ws.send(JSON.stringify(chatMsg));
       
       setSelectedChat(updatedChat);
       return prev.map(chat =>

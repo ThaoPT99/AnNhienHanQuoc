@@ -15,6 +15,7 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
   const [currentReaction, setCurrentReaction] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
   const [comments, setComments] = useState([]);
+  const [reactionsCount, setReactionsCount] = useState([]);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const authorName = post.author_name || post.author_email?.split('@')[0] || 'Unknown';
@@ -31,14 +32,33 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
   const loadPostReaction = async () => {
     if (!userEmail) return;
     try {
-      const res = await fetch(
-        `${API_URL}/api/social/reactions?post_id=${post.id}&user_email=${encodeURIComponent(userEmail)}`
+      // Get user's reaction
+      const userRes = await fetch(
+        `${API_URL}/api/social/reactions/user/${post.id}/null/${encodeURIComponent(userEmail)}`
       );
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.length > 0) {
-          setCurrentReaction(data[0].reaction_type);
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        if (userData?.reaction) {
+          setCurrentReaction(userData.reaction.reaction_type);
           setIsLiked(true);
+        }
+      }
+      
+      // Get reactions count
+      const countRes = await fetch(
+        `${API_URL}/api/social/reactions/${post.id}`
+      );
+      if (countRes.ok) {
+        const countData = await countRes.json();
+        // CountData should be an array of reactions with counts
+        if (Array.isArray(countData)) {
+          setReactionsCount(countData);
+          const likesCount = countData
+            .filter(r => r.reaction_type === 'like')
+            .reduce((sum, r) => sum + (parseInt(r.count) || 0), 0);
+          setPostLikes(likesCount);
+        } else {
+          setReactionsCount([]);
         }
       }
     } catch (error) {
@@ -170,7 +190,7 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
           userEmail={userEmail}
           onReactionChange={handleReactionChange}
           currentReaction={currentReaction}
-          reactionsCount={postLikes}
+          reactionsCount={reactionsCount}
         />
         <button
           className="post-action-button"
