@@ -31,15 +31,21 @@ const VideoCallBooking = () => {
   const userEmail = getUserEmail() || '';
 
   useEffect(() => {
-    // Check if user is logged in
-    if (!isLoggedIn()) {
+    // Check if user is logged in - must have both email and token
+    const token = getAuthToken();
+    const email = getUserEmail();
+    
+    if (!token || !email) {
       showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để sử dụng tính năng Video Call', 'info');
-      navigate(`/login?redirect=${encodeURIComponent('/video-call')}`);
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
       return;
     }
 
-    if (userEmail) {
-      setFormData(prev => ({ ...prev, user_email: userEmail, user_name: localStorage.getItem('userName') || '' }));
+    // Set form data
+    setFormData(prev => ({ ...prev, user_email: email, user_name: localStorage.getItem('userName') || '' }));
+    
+    // Only load data if we have valid token
+    if (token && email) {
       loadBookings();
       loadFriends();
     }
@@ -48,17 +54,16 @@ const VideoCallBooking = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
     if (roomId) {
-      const userEmail = getUserEmail() || '';
-      const userName = localStorage.getItem('userName') || userEmail;
+      const userName = localStorage.getItem('userName') || email;
       setActiveCall({
         roomId,
-        userEmail,
+        userEmail: email,
         userName
       });
       // Clean URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [userEmail, navigate]);
+  }, [navigate]);
 
   const loadFriends = async () => {
     if (!userEmail) return;
@@ -151,13 +156,16 @@ const VideoCallBooking = () => {
   };
 
   const loadBookings = async () => {
-    if (!userEmail) {
+    // Get fresh values from localStorage
+    const email = getUserEmail();
+    const token = getAuthToken();
+    
+    if (!email || !token) {
       setLoading(false);
       return;
     }
 
     // Only load bookings if user is authenticated
-    const token = getAuthToken();
     if (!token) {
       // Redirect to login if no token
       showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để xem lịch đặt', 'info');
@@ -172,7 +180,7 @@ const VideoCallBooking = () => {
         'Authorization': `Bearer ${token}`
       };
       
-      const res = await fetch(`${API_URL}/api/video-call/bookings/${encodeURIComponent(userEmail)}`, {
+      const res = await fetch(`${API_URL}/api/video-call/bookings/${encodeURIComponent(email)}`, {
         headers
       });
       
