@@ -415,10 +415,19 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                       }
                     };
                     
-                    // Handle ICE candidates
+                    // Handle ICE candidates with detailed logging
                     userPc.onicecandidate = (event) => {
                       if (event.candidate) {
-                        addDebugLog(`🧊 ICE candidate for ${userId}`, 'info');
+                        const candidateType = event.candidate.type || 'unknown';
+                        const candidateProtocol = event.candidate.protocol || 'unknown';
+                        const candidateAddress = event.candidate.address || 'unknown';
+                        addDebugLog(`🧊 ICE candidate (${candidateType}/${candidateProtocol}) for ${userId}: ${candidateAddress}`, 'info');
+                        
+                        // Log if it's a relay candidate (TURN server)
+                        if (candidateType === 'relay') {
+                          addDebugLog(`✅ Using TURN server (relay) for ${userId}`, 'success');
+                        }
+                        
                         ws.send(JSON.stringify({
                           type: 'ice-candidate',
                           roomId: roomId,
@@ -427,6 +436,21 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                         }));
                       } else {
                         addDebugLog(`✅ ICE gathering complete for ${userId}`, 'success');
+                        
+                        // Log ICE gathering stats
+                        userPc.getStats().then(stats => {
+                          let hostCandidates = 0, srflxCandidates = 0, relayCandidates = 0;
+                          stats.forEach(report => {
+                            if (report.type === 'local-candidate' || report.type === 'remote-candidate') {
+                              if (report.candidateType === 'host') hostCandidates++;
+                              else if (report.candidateType === 'srflx') srflxCandidates++;
+                              else if (report.candidateType === 'relay') relayCandidates++;
+                            }
+                          });
+                          addDebugLog(`📊 ICE stats for ${userId}: host=${hostCandidates}, srflx=${srflxCandidates}, relay=${relayCandidates}`, 'info');
+                        }).catch(err => {
+                          console.error('Error getting ICE stats:', err);
+                        });
                       }
                     };
                     
@@ -446,6 +470,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                         addDebugLog(`⚠️ ICE connection failed with ${userId} (retry: ${retryCount}/${MAX_RETRY_ATTEMPTS})`, 'warn');
                         setConnectionStatus('failed');
                         
+                        // Log connection failure reason
+                        userPc.getStats().then(stats => {
+                          stats.forEach(report => {
+                            if (report.type === 'transport' && report.state === 'failed') {
+                              addDebugLog(`📊 Transport failed: ${JSON.stringify(report)}`, 'error');
+                            }
+                          });
+                        }).catch(err => {
+                          console.error('Error getting failure stats:', err);
+                        });
+                        
                         // Retry connection if under limit
                         if (retryCount < MAX_RETRY_ATTEMPTS) {
                           retryCountsRef.current.set(userId, retryCount + 1);
@@ -454,12 +489,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                           // Close old connection
                           try {
                             userPc.close();
+                            peerConnectionsRef.current.delete(userId);
                           } catch (e) {
                             console.error('Error closing old connection:', e);
                           }
                           
                           // Wait a bit before retry
-                          await new Promise(resolve => setTimeout(resolve, 2000));
+                          await new Promise(resolve => setTimeout(resolve, 3000));
                           
                           // Create new connection and retry
                           try {
@@ -527,11 +563,38 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                           }
                         } else {
                           addDebugLog(`❌ Max retry attempts reached for ${userId}`, 'error');
-                          setError(`Không thể kết nối với ${userId}. Vui lòng thử lại sau.`);
+                          addDebugLog(`💡 Gợi ý: Kiểm tra firewall, NAT, hoặc thử lại sau vài phút`, 'info');
+                          setError(`Không thể kết nối với ${userId}. Có thể do firewall hoặc NAT. Vui lòng thử lại sau.`);
                         }
                       } else if (state === 'disconnected') {
                         addDebugLog(`⚠️ ICE connection disconnected with ${userId}`, 'warn');
                         setConnectionStatus('disconnected');
+                        
+                        // Try to reconnect after a delay if disconnected
+                        setTimeout(async () => {
+                          if (userPc && userPc.iceConnectionState === 'disconnected') {
+                            addDebugLog(`🔄 Attempting to reconnect with ${userId}...`, 'info');
+                            // Create new offer to reconnect
+                            try {
+                              const offer = await userPc.createOffer({
+                                offerToReceiveAudio: true,
+                                offerToReceiveVideo: true
+                              });
+                              await userPc.setLocalDescription(offer);
+                              if (socketRef.current) {
+                                socketRef.current.send(JSON.stringify({
+                                  type: 'offer',
+                                  roomId: roomId,
+                                  offer: offer,
+                                  to: userId
+                                }));
+                                addDebugLog(`📤 Sent reconnect offer to ${userId}`, 'info');
+                              }
+                            } catch (err) {
+                              console.error('Error creating reconnect offer:', err);
+                            }
+                          }
+                        }, 5000);
                       }
                     };
                     
@@ -622,10 +685,19 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                   }
                 };
                 
-                // Handle ICE candidates
+                // Handle ICE candidates with detailed logging
                 userPc.onicecandidate = (event) => {
                   if (event.candidate) {
-                    addDebugLog(`🧊 ICE candidate for ${data.from}`, 'info');
+                    const candidateType = event.candidate.type || 'unknown';
+                    const candidateProtocol = event.candidate.protocol || 'unknown';
+                    const candidateAddress = event.candidate.address || 'unknown';
+                    addDebugLog(`🧊 ICE candidate (${candidateType}/${candidateProtocol}) for ${data.from}: ${candidateAddress}`, 'info');
+                    
+                    // Log if it's a relay candidate (TURN server)
+                    if (candidateType === 'relay') {
+                      addDebugLog(`✅ Using TURN server (relay) for ${data.from}`, 'success');
+                    }
+                    
                     ws.send(JSON.stringify({
                       type: 'ice-candidate',
                       roomId: roomId,
@@ -634,6 +706,21 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     }));
                   } else {
                     addDebugLog(`✅ ICE gathering complete for ${data.from}`, 'success');
+                    
+                    // Log ICE gathering stats
+                    userPc.getStats().then(stats => {
+                      let hostCandidates = 0, srflxCandidates = 0, relayCandidates = 0;
+                      stats.forEach(report => {
+                        if (report.type === 'local-candidate' || report.type === 'remote-candidate') {
+                          if (report.candidateType === 'host') hostCandidates++;
+                          else if (report.candidateType === 'srflx') srflxCandidates++;
+                          else if (report.candidateType === 'relay') relayCandidates++;
+                        }
+                      });
+                      addDebugLog(`📊 ICE stats for ${data.from}: host=${hostCandidates}, srflx=${srflxCandidates}, relay=${relayCandidates}`, 'info');
+                    }).catch(err => {
+                      console.error('Error getting ICE stats:', err);
+                    });
                   }
                 };
                 
@@ -653,6 +740,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     addDebugLog(`⚠️ ICE connection failed with ${data.from} (retry: ${retryCount}/${MAX_RETRY_ATTEMPTS})`, 'warn');
                     setConnectionStatus('failed');
                     
+                    // Log connection failure reason
+                    userPc.getStats().then(stats => {
+                      stats.forEach(report => {
+                        if (report.type === 'transport' && report.state === 'failed') {
+                          addDebugLog(`📊 Transport failed: ${JSON.stringify(report)}`, 'error');
+                        }
+                      });
+                    }).catch(err => {
+                      console.error('Error getting failure stats:', err);
+                    });
+                    
                     // Retry connection if under limit
                     if (retryCount < MAX_RETRY_ATTEMPTS) {
                       retryCountsRef.current.set(data.from, retryCount + 1);
@@ -667,18 +765,27 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                       }
                       
                       // Wait a bit before retry
-                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      await new Promise(resolve => setTimeout(resolve, 3000));
                       
                       // Request new offer by sending a signal (or wait for new offer)
                       // For now, we'll wait for the other peer to send a new offer
                       addDebugLog(`⏳ Waiting for new offer from ${data.from}...`, 'info');
                     } else {
                       addDebugLog(`❌ Max retry attempts reached for ${data.from}`, 'error');
-                      setError(`Không thể kết nối với ${data.from}. Vui lòng thử lại sau.`);
+                      addDebugLog(`💡 Gợi ý: Kiểm tra firewall, NAT, hoặc thử lại sau vài phút`, 'info');
+                      setError(`Không thể kết nối với ${data.from}. Có thể do firewall hoặc NAT. Vui lòng thử lại sau.`);
                     }
                   } else if (state === 'disconnected') {
                     addDebugLog(`⚠️ ICE connection disconnected with ${data.from}`, 'warn');
                     setConnectionStatus('disconnected');
+                    
+                    // Try to reconnect after a delay if disconnected
+                    setTimeout(async () => {
+                      if (userPc && userPc.iceConnectionState === 'disconnected') {
+                        addDebugLog(`🔄 Attempting to reconnect with ${data.from}...`, 'info');
+                        // The other peer should send a new offer, or we can request one
+                      }
+                    }, 5000);
                   }
                 };
               }
