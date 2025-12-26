@@ -189,12 +189,10 @@
    MAIN CONTAINER
    ============================================ */
 .community-facebook-container {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 16px;
+  display: flex;
+  justify-content: center;
   padding-top: 72px;
-  padding-left: calc(300px + 32px); /* Space for left sidebar */
-  padding-right: calc(300px + 32px); /* Space for right sidebar */
+  min-height: calc(100vh - 72px);
 }
 
 /* Main Feed - Scrollable */
@@ -202,6 +200,10 @@
   width: 100%;
   max-width: 680px;
   margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* ============================================
