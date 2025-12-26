@@ -218,10 +218,6 @@ const NotificationCenter = () => {
 
 export default NotificationCenter;
 
-// Helper function to show notification
-export const showNotification = (title, message, type = 'info', icon = '🔔', action = null) => {
-  window.dispatchEvent(new CustomEvent('newNotification', {
-    detail: { title, message, type, icon, action }
-  }));
-};
+// Re-export showNotification from NotificationCenterFacebook for backward compatibility
+export { showNotification } from './NotificationCenterFacebook';
 

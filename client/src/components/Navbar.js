@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Search from './Search';
 import AuthModal from './AuthModal';
+import NotificationCenterFacebook from './NotificationCenterFacebook';
 import { isLoggedIn, getUserEmail, logout } from '../utils/auth';
 import './Navbar.css';
 
@@ -292,6 +293,9 @@ const Navbar = () => {
 
         {/* Auth Section */}
         <div className="navbar-auth">
+          {loggedIn && (
+            <NotificationCenterFacebook />
+          )}
           {loggedIn ? (
             <div className="user-menu-wrapper" ref={userMenuRef}>
               <motion.button

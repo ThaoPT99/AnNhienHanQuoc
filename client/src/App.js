@@ -1,15 +1,11 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import SimpleChatbot from './components/SimpleChatbot';
-import ConsultationButton from './components/ConsultationButton';
-import ExitIntentPopup from './components/ExitIntentPopup';
-import SocialProof from './components/SocialProof';
-import LiveChat from './components/LiveChat';
+import ConditionalComponents from './components/ConditionalComponents';
 import PWAInstall from './components/PWAInstall';
-import NotificationCenter from './components/NotificationCenter';
+// NotificationCenter moved to Navbar for Facebook-style integration
 import IncomingCall from './components/IncomingCall';
 import IncomingCallListener from './components/IncomingCallListener';
 import PageViewTracker from './components/PageViewTracker';
@@ -111,13 +107,8 @@ function App() {
               </Suspense>
             </main>
             <Footer />
-            <SimpleChatbot />
-            <ConsultationButton />
-            <ExitIntentPopup />
-            <SocialProof />
-            <LiveChat />
+            <ConditionalComponents />
             <PWAInstall />
-            <NotificationCenter />
             <IncomingCallListener />
             
             {/* Incoming Call Modal - handled by IncomingCall component internally via WebSocket */}
