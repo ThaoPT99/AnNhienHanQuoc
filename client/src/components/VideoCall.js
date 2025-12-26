@@ -428,15 +428,40 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                 peerConnectionsRef.current.set(data.from, userPc);
                 
                 // Add local stream tracks to this peer connection
-                if (localStreamRef.current) {
+                if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
                   localStreamRef.current.getTracks().forEach(track => {
                     userPc.addTrack(track, localStreamRef.current);
+                    console.log('➕ Added track to peer connection:', track.kind);
                   });
+                } else {
+                  console.warn('⚠️ Local stream not ready when receiving offer from', data.from);
+                  // Wait a bit and try again
+                  setTimeout(async () => {
+                    if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
+                      localStreamRef.current.getTracks().forEach(track => {
+                        if (!userPc.getSenders().some(s => s.track === track)) {
+                          userPc.addTrack(track, localStreamRef.current);
+                          console.log('➕ Added track to peer connection (delayed):', track.kind);
+                        }
+                      });
+                    }
+                  }, 500);
                 }
+                
+                // Handle connection state changes
+                userPc.onconnectionstatechange = () => {
+                  console.log(`🔌 Connection state with ${data.from}:`, userPc.connectionState);
+                  if (userPc.connectionState === 'connected') {
+                    setIsConnected(true);
+                    setConnectionStatus('connected');
+                  } else if (userPc.connectionState === 'disconnected' || userPc.connectionState === 'failed') {
+                    setConnectionStatus(userPc.connectionState);
+                  }
+                };
                 
                 // Handle remote stream from this user
                 userPc.ontrack = (event) => {
-                  console.log('📹 Received remote track from', data.from, ':', event.track.kind);
+                  console.log('📹 Received remote track from', data.from, ':', event.track.kind, 'enabled:', event.track.enabled);
                   const remoteStream = event.streams[0];
                   if (remoteStream) {
                     console.log('📹 Remote stream tracks from', data.from, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
@@ -446,19 +471,28 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     setRemoteStreams(new Map(remoteStreamsRef.current));
                     // Also set as main remote stream for backward compatibility
                     setRemoteStream(remoteStream);
+                    setIsCallActive(true);
                   }
                 };
                 
                 // Handle ICE candidates
                 userPc.onicecandidate = (event) => {
                   if (event.candidate) {
+                    console.log('🧊 ICE candidate for', data.from);
                     ws.send(JSON.stringify({
                       type: 'ice-candidate',
                       roomId: roomId,
                       candidate: event.candidate,
                       to: data.from
                     }));
+                  } else {
+                    console.log('✅ ICE gathering complete for', data.from);
                   }
+                };
+                
+                // Handle ICE connection state
+                userPc.oniceconnectionstatechange = () => {
+                  console.log(`🧊 ICE connection state with ${data.from}:`, userPc.iceConnectionState);
                 };
               }
               
@@ -481,6 +515,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               console.log('📤 Sent answer to:', data.from);
             } catch (error) {
               console.error('❌ Error handling offer:', error);
+              setError(`Lỗi khi xử lý offer từ ${data.from}: ${error.message}`);
             }
             break;
 
