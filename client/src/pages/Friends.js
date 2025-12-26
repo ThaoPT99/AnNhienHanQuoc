@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import { showNotification } from '../components/NotificationCenter';
+import { authenticatedFetch } from '../utils/auth';
 import './Friends.css';
 
 const Friends = () => {
@@ -11,6 +13,9 @@ const Friends = () => {
   const [followers, setFollowers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [friendEmail, setFriendEmail] = useState('');
+  const [addingFriend, setAddingFriend] = useState(false);
+  const [showAddFriendForm, setShowAddFriendForm] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const userEmail = localStorage.getItem('userEmail') || '';
@@ -53,39 +58,102 @@ const Friends = () => {
     if (!window.confirm(`Bạn có chắc muốn unfollow ${friendEmail}?`)) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/social/unfollow`, {
+      const res = await authenticatedFetch('/api/social/unfollow', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          follower_email: userEmail,
           following_email: friendEmail
         })
       });
 
       if (res.ok) {
+        showNotification('Thành công', `Đã unfollow ${friendEmail}`, 'success');
         loadFriends();
+      } else {
+        const data = await res.json();
+        showNotification('Lỗi', data.error || 'Không thể unfollow', 'error');
       }
     } catch (error) {
       console.error('Error unfollowing:', error);
+      showNotification('Lỗi', 'Không thể unfollow user này', 'error');
     }
   };
 
   const handleFollow = async (followerEmail) => {
     try {
-      const res = await fetch(`${API_URL}/api/social/follow`, {
+      const res = await authenticatedFetch('/api/social/follow', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          follower_email: userEmail,
           following_email: followerEmail
         })
       });
 
       if (res.ok) {
+        showNotification('Thành công', `Đã follow ${followerEmail}`, 'success');
         loadFriends();
+      } else {
+        const data = await res.json();
+        showNotification('Lỗi', data.error || 'Không thể follow user này', 'error');
       }
     } catch (error) {
       console.error('Error following:', error);
+      showNotification('Lỗi', 'Không thể follow user này', 'error');
+    }
+  };
+
+  const handleAddFriendByEmail = async (e) => {
+    e.preventDefault();
+    
+    if (!friendEmail.trim()) {
+      showNotification('Lỗi', 'Vui lòng nhập email', 'error');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(friendEmail.trim())) {
+      showNotification('Lỗi', 'Email không hợp lệ', 'error');
+      return;
+    }
+
+    // Check if trying to follow self
+    if (friendEmail.trim().toLowerCase() === userEmail.toLowerCase()) {
+      showNotification('Lỗi', 'Bạn không thể follow chính mình', 'error');
+      return;
+    }
+
+    // Check if already following
+    const isAlreadyFollowing = following.some(
+      f => f.email?.toLowerCase() === friendEmail.trim().toLowerCase()
+    );
+    if (isAlreadyFollowing) {
+      showNotification('Thông báo', 'Bạn đã follow user này rồi', 'info');
+      return;
+    }
+
+    setAddingFriend(true);
+    try {
+      const res = await authenticatedFetch('/api/social/follow', {
+        method: 'POST',
+        body: JSON.stringify({
+          following_email: friendEmail.trim()
+        })
+      });
+
+      if (res.ok) {
+        showNotification('Thành công', `Đã thêm bạn bè ${friendEmail.trim()}`, 'success');
+        setFriendEmail('');
+        setShowAddFriendForm(false);
+        // Refresh friends list
+        loadFriends();
+      } else {
+        const data = await res.json();
+        showNotification('Lỗi', data.error || 'Không thể thêm bạn bè. Email có thể không tồn tại.', 'error');
+      }
+    } catch (error) {
+      console.error('Error adding friend:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+    } finally {
+      setAddingFriend(false);
     }
   };
 
@@ -130,6 +198,60 @@ const Friends = () => {
             👥 Followers ({followers.length})
           </button>
         </div>
+
+        <div className="friends-actions">
+          <button
+            className="btn-add-friend"
+            onClick={() => setShowAddFriendForm(!showAddFriendForm)}
+          >
+            <span>➕</span>
+            <span>Thêm bạn bè bằng email</span>
+          </button>
+        </div>
+
+        {showAddFriendForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="add-friend-form-container"
+          >
+            <form onSubmit={handleAddFriendByEmail} className="add-friend-form">
+              <div className="form-group">
+                <label htmlFor="friend-email">Nhập email người bạn muốn kết bạn:</label>
+                <div className="input-with-button">
+                  <input
+                    id="friend-email"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={friendEmail}
+                    onChange={(e) => setFriendEmail(e.target.value)}
+                    className="friend-email-input"
+                    disabled={addingFriend}
+                  />
+                  <button
+                    type="submit"
+                    className="btn-submit-add"
+                    disabled={addingFriend || !friendEmail.trim()}
+                  >
+                    {addingFriend ? 'Đang thêm...' : 'Thêm'}
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-cancel-add"
+                onClick={() => {
+                  setShowAddFriendForm(false);
+                  setFriendEmail('');
+                }}
+                disabled={addingFriend}
+              >
+                Hủy
+              </button>
+            </form>
+          </motion.div>
+        )}
 
         <div className="search-box">
           <input
