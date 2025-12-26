@@ -1,155 +1,105 @@
 /* ============================================
-   LEFT SIDEBAR - Gen Z Modern Design
+   LEFT SIDEBAR - Facebook Style
    ============================================ */
 
 .left-sidebar-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
-/* Profile Section */
+/* Profile */
 .sidebar-profile-link {
   text-decoration: none;
   color: inherit;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .sidebar-profile {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border-radius: var(--radius-md, 16px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
   cursor: pointer;
-  background: var(--bg-primary, #ffffff);
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
-  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
 }
 
 .sidebar-profile:hover {
-  background: var(--bg-secondary, #f8f9fa);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
+  background: var(--fb-hover, #f2f2f2);
 }
 
 .sidebar-avatar,
 .sidebar-avatar-placeholder {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-full, 9999px);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-profile:hover .sidebar-avatar,
-.sidebar-profile:hover .sidebar-avatar-placeholder {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
 }
 
 .sidebar-avatar-placeholder {
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+  background: var(--fb-primary, #1877f2);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .sidebar-profile-name {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--text-primary, #1a1a1a);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--fb-text-primary, #050505);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color 0.3s ease;
-}
-
-.sidebar-profile:hover .sidebar-profile-name {
-  color: #667eea;
 }
 
 /* Section */
 .sidebar-section {
-  margin-bottom: 20px;
-  background: var(--bg-primary, #ffffff);
-  border-radius: var(--radius-md, 16px);
-  padding: 16px;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
-  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  margin-bottom: 16px;
 }
 
 .sidebar-section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 4px;
-  margin-bottom: 12px;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 4px;
 }
 
 .sidebar-section-header h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary, #1a1a1a);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fb-text-primary, #050505);
   margin: 0;
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .sidebar-menu-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border-radius: var(--radius-md, 16px);
+  padding: 8px;
+  border-radius: 8px;
   text-decoration: none;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--fb-text-primary, #050505);
   font-size: 15px;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s;
   cursor: pointer;
-  position: relative;
-  margin-bottom: 4px;
-}
-
-.sidebar-menu-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-md, 16px);
-  background: var(--bg-tertiary, #f0f2f5);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.sidebar-menu-item:hover::before {
-  opacity: 1;
+  margin-bottom: 2px;
 }
 
 .sidebar-menu-item:hover {
-  color: #667eea;
-  transform: translateX(4px);
+  background: var(--fb-hover, #f2f2f2);
 }
 
 .sidebar-icon {
-  font-size: 22px;
-  width: 28px;
+  font-size: 20px;
+  width: 24px;
   text-align: center;
   flex-shrink: 0;
-  transition: transform 0.3s ease;
-}
-
-.sidebar-menu-item:hover .sidebar-icon {
-  transform: scale(1.15);
 }
 
 /* Responsive */

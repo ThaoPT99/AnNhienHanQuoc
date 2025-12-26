@@ -1,72 +1,39 @@
 /* ============================================
-   CREATE POST BOX - Gen Z Modern Design
+   CREATE POST BOX - Facebook Style
    ============================================ */
 
 .create-post-box {
-  background: var(--bg-primary, #ffffff);
-  border-radius: var(--radius-lg, 24px);
-  padding: 20px;
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
-  margin-bottom: 20px;
-  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.create-post-box::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.create-post-box:hover {
-  box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
-  transform: translateY(-2px);
-}
-
-.create-post-box:hover::before {
-  opacity: 1;
+  background: var(--fb-bg-primary, #ffffff);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
 }
 
 .create-post-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .post-box-avatar,
 .post-box-avatar-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-full, 9999px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.post-box-avatar:hover,
-.post-box-avatar-placeholder:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
 }
 
 .post-box-avatar-placeholder {
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+  background: var(--fb-primary, #1877f2);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .post-box-input-wrapper {
@@ -76,92 +43,60 @@
 
 .post-box-input {
   width: 100%;
-  padding: 14px 20px;
+  padding: 10px 16px;
   border: none;
-  background: var(--bg-tertiary, #f0f2f5);
-  border-radius: var(--radius-full, 9999px);
+  background: var(--fb-bg-secondary, #f0f2f5);
+  border-radius: 20px;
   font-size: 15px;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--fb-text-primary, #050505);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 500;
-  border: 2px solid transparent;
+  transition: background 0.2s;
 }
 
 .post-box-input:hover {
-  background: var(--bg-secondary, #f8f9fa);
-  transform: translateY(-1px);
+  background: #e4e6eb;
 }
 
 .post-box-input:focus {
   outline: none;
-  background: var(--bg-primary, #ffffff);
-  border-color: rgba(102, 126, 234, 0.3);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
-}
-
-.post-box-input::placeholder {
-  color: var(--text-tertiary, #8a8d91);
-  font-weight: 400;
+  background: #e4e6eb;
 }
 
 .create-post-expanded {
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
-  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  padding-top: 12px;
+  border-top: 1px solid var(--fb-border, #e4e6eb);
 }
 
 .post-box-textarea {
   width: 100%;
-  min-height: 120px;
-  padding: 16px;
-  border: 2px solid var(--border-color, rgba(0, 0, 0, 0.08));
-  border-radius: var(--radius-md, 16px);
+  min-height: 100px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
   font-size: 15px;
   font-family: inherit;
   resize: vertical;
-  background: var(--bg-primary, #ffffff);
-  color: var(--text-primary, #1a1a1a);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  line-height: 1.6;
+  background: var(--fb-bg-secondary, #f0f2f5);
+  color: var(--fb-text-primary, #050505);
 }
 
 .post-box-textarea:focus {
   outline: none;
-  border-color: rgba(102, 126, 234, 0.5);
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  background: var(--fb-bg-primary, #ffffff);
 }
 
 .post-images-preview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .post-image-preview-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: var(--radius-md, 16px);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.post-image-preview-item:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
 }
 
 .post-image-preview-item img {
@@ -176,9 +111,8 @@
   right: 8px;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-full, 9999px);
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
   color: white;
   border: none;
   cursor: pointer;
@@ -186,22 +120,21 @@
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s;
   font-weight: 700;
 }
 
 .remove-image-btn:hover {
   background: rgba(255, 0, 0, 0.8);
-  transform: scale(1.1) rotate(90deg);
 }
 
 .post-box-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fb-border, #e4e6eb);
 }
 
 .post-box-action-buttons {
@@ -213,150 +146,71 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 8px 12px;
   border: none;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  border-radius: var(--radius-full, 9999px);
-  color: var(--text-secondary, #65676b);
+  background: transparent;
+  border-radius: 8px;
+  color: var(--fb-text-secondary, #65676b);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  border: 2px solid transparent;
-}
-
-.post-box-action-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-full, 9999px);
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: -1;
+  transition: background 0.2s;
 }
 
 .post-box-action-btn:hover {
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-  color: white;
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-  border-color: rgba(102, 126, 234, 0.3);
-}
-
-.post-box-action-btn:hover::before {
-  opacity: 1;
-}
-
-.post-box-action-btn:active {
-  transform: translateY(-1px) scale(1.02);
+  background: var(--fb-hover, #f2f2f2);
 }
 
 .post-box-action-btn svg,
 .post-box-action-btn .action-icon {
   font-size: 20px;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-}
-
-.post-box-action-btn:hover svg,
-.post-box-action-btn:hover .action-icon {
-  transform: scale(1.2) rotate(5deg);
-  filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
 }
 
 .post-box-submit-btn {
-  padding: 12px 24px;
+  padding: 8px 16px;
   border: none;
-  background: var(--primary-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+  background: var(--fb-primary, #1877f2);
   color: white;
-  border-radius: var(--radius-full, 9999px);
+  border-radius: 6px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
-  position: relative;
-  overflow: hidden;
-}
-
-.post-box-submit-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.post-box-submit-btn:hover::before {
-  left: 100%;
+  transition: background 0.2s;
 }
 
 .post-box-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
-}
-
-.post-box-submit-btn:active {
-  transform: translateY(0);
+  background: var(--fb-primary-hover, #166fe5);
 }
 
 .post-box-submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
-}
-
-.post-box-submit-btn:disabled:hover {
-  transform: none;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .create-post-box {
-    padding: 16px;
-    border-radius: var(--radius-md, 16px);
+    padding: 10px;
   }
   
   .post-box-avatar,
   .post-box-avatar-placeholder {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
   }
   
   .post-box-input {
-    padding: 12px 16px;
+    padding: 8px 14px;
     font-size: 14px;
   }
   
-  .post-box-textarea {
-    min-height: 100px;
-    padding: 12px;
-  }
-  
-  .post-images-preview {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 8px;
-  }
-  
-  .post-box-actions {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
   .post-box-action-buttons {
-    justify-content: space-around;
+    flex-wrap: wrap;
   }
   
   .post-box-submit-btn {
-    width: 100%;
+    padding: 6px 12px;
+    font-size: 14px;
   }
 }

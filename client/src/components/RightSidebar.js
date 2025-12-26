@@ -15,6 +15,41 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
 
   return (
     <aside className="right-sidebar-content">
+      {/* Friend Requests */}
+      <div className="sidebar-widget">
+        <div className="widget-header">
+          <h3>Lời mời kết bạn</h3>
+          <button className="widget-see-all">Xem tất cả</button>
+        </div>
+        <div className="friend-requests-list">
+          {/* Placeholder - can be enhanced with API */}
+          <div className="friend-request-item">
+            <div className="friend-request-avatar">D</div>
+            <div className="friend-request-info">
+              <div className="friend-request-name">Người dùng mới</div>
+              <div className="friend-request-mutual">2 bạn chung</div>
+            </div>
+            <div className="friend-request-actions">
+              <button className="friend-request-confirm">Xác nhận</button>
+              <button className="friend-request-delete">Xóa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Birthdays */}
+      <div className="sidebar-widget">
+        <div className="widget-header">
+          <h3>Sinh nhật</h3>
+        </div>
+        <div className="birthdays-list">
+          <div className="birthday-item">
+            <span className="birthday-icon">🎁</span>
+            <span className="birthday-text">Hôm nay là sinh nhật của <strong>Người dùng</strong> và 2 người khác.</span>
+          </div>
+        </div>
+      </div>
+
       {/* Sponsored */}
       <div className="sidebar-widget">
         <div className="widget-header">
@@ -31,7 +66,7 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
         </div>
       </div>
 
-      {/* Online Friends */}
+      {/* Contacts */}
       {onlineFriends.length > 0 && (
         <div className="sidebar-widget">
           <div className="widget-header">
