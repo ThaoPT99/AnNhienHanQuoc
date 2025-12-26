@@ -809,14 +809,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               {showRoomInfo ? '📋' : 'ℹ️'}
             </button>
             <button 
-              className="info-toggle-btn"
+              className="info-toggle-btn debug-btn"
               onClick={() => setShowDebugLogs(!showDebugLogs)}
-              title="Debug Logs (Click để xem logs)"
+              title="Debug Logs - Click để xem logs"
               style={{ 
                 marginLeft: '10px', 
-                background: showDebugLogs ? '#667eea' : 'rgba(255, 255, 255, 0.2)',
-                fontSize: '1.1rem',
-                minWidth: '40px'
+                background: showDebugLogs ? '#667eea' : 'rgba(255, 152, 0, 0.3)',
+                fontSize: '1.2rem',
+                minWidth: '45px',
+                minHeight: '35px',
+                border: showDebugLogs ? '2px solid #667eea' : '2px solid rgba(255, 152, 0, 0.5)',
+                fontWeight: 'bold'
               }}
             >
               🐛
