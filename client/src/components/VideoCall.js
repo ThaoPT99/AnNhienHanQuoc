@@ -315,61 +315,102 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             // Create separate peer connection and offer for each existing user
             if (data.usersInRoom && data.usersInRoom.length > 0) {
               console.log('👥 Other users in room, creating offers for each...');
-              for (const userId of data.usersInRoom) {
-                try {
-                  // Create peer connection for this user
-                  const userPc = new RTCPeerConnection(rtcConfiguration);
-                  peerConnectionsRef.current.set(userId, userPc);
-                  
-                  // Add local stream tracks
-                  if (localStreamRef.current) {
+              
+              // Wait for local stream to be ready before creating offers
+              const waitForStreamAndCreateOffers = async () => {
+                // Wait up to 5 seconds for local stream
+                for (let i = 0; i < 50; i++) {
+                  if (localStreamRef.current && localStreamRef.current.getTracks().length > 0) {
+                    console.log('✅ Local stream ready, creating offers...');
+                    break;
+                  }
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                if (!localStreamRef.current || localStreamRef.current.getTracks().length === 0) {
+                  console.error('❌ Local stream not ready after waiting, cannot create offers');
+                  setError('Không thể truy cập camera/microphone. Vui lòng cho phép và tải lại trang.');
+                  return;
+                }
+                
+                for (const userId of data.usersInRoom) {
+                  try {
+                    // Create peer connection for this user
+                    const userPc = new RTCPeerConnection(rtcConfiguration);
+                    peerConnectionsRef.current.set(userId, userPc);
+                    
+                    // Add local stream tracks
                     localStreamRef.current.getTracks().forEach(track => {
                       userPc.addTrack(track, localStreamRef.current);
+                      console.log('➕ Added track to peer connection:', track.kind);
                     });
+                    
+                    // Handle connection state changes
+                    userPc.onconnectionstatechange = () => {
+                      console.log(`🔌 Connection state with ${userId}:`, userPc.connectionState);
+                      if (userPc.connectionState === 'connected') {
+                        setIsConnected(true);
+                        setConnectionStatus('connected');
+                      } else if (userPc.connectionState === 'disconnected' || userPc.connectionState === 'failed') {
+                        setConnectionStatus(userPc.connectionState);
+                      }
+                    };
+                    
+                    // Handle remote stream from this user
+                    userPc.ontrack = (event) => {
+                      console.log('📹 Received remote track from', userId, ':', event.track.kind, 'enabled:', event.track.enabled);
+                      const remoteStream = event.streams[0];
+                      if (remoteStream) {
+                        console.log('📹 Remote stream tracks from', userId, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+                        remoteStreamsRef.current.set(userId, remoteStream);
+                        setRemoteStreams(new Map(remoteStreamsRef.current));
+                        setRemoteStream(remoteStream); // For backward compatibility
+                        setIsCallActive(true);
+                      }
+                    };
+                    
+                    // Handle ICE candidates
+                    userPc.onicecandidate = (event) => {
+                      if (event.candidate) {
+                        console.log('🧊 ICE candidate for', userId);
+                        ws.send(JSON.stringify({
+                          type: 'ice-candidate',
+                          roomId: roomId,
+                          candidate: event.candidate,
+                          to: userId
+                        }));
+                      } else {
+                        console.log('✅ ICE gathering complete for', userId);
+                      }
+                    };
+                    
+                    // Handle ICE connection state
+                    userPc.oniceconnectionstatechange = () => {
+                      console.log(`🧊 ICE connection state with ${userId}:`, userPc.iceConnectionState);
+                    };
+                    
+                    // Create and send offer
+                    const offer = await userPc.createOffer({
+                      offerToReceiveAudio: true,
+                      offerToReceiveVideo: true
+                    });
+                    await userPc.setLocalDescription(offer);
+                    console.log('✅ Local description set (offer) for', userId);
+                    ws.send(JSON.stringify({
+                      type: 'offer',
+                      roomId: roomId,
+                      offer: offer,
+                      to: userId
+                    }));
+                    console.log('📤 Sent offer to', userId);
+                  } catch (error) {
+                    console.error('❌ Error creating offer for', userId, ':', error);
+                    setError(`Lỗi khi tạo kết nối với ${userId}: ${error.message}`);
                   }
-                  
-                  // Handle remote stream from this user
-                  userPc.ontrack = (event) => {
-                    console.log('📹 Received remote track from', userId, ':', event.track.kind);
-                    const remoteStream = event.streams[0];
-                    if (remoteStream) {
-                      console.log('📹 Remote stream tracks from', userId, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
-                      remoteStreamsRef.current.set(userId, remoteStream);
-                      setRemoteStreams(new Map(remoteStreamsRef.current));
-                      setRemoteStream(remoteStream); // For backward compatibility
-                    }
-                  };
-                  
-                  // Handle ICE candidates
-                  userPc.onicecandidate = (event) => {
-                    if (event.candidate) {
-                      ws.send(JSON.stringify({
-                        type: 'ice-candidate',
-                        roomId: roomId,
-                        candidate: event.candidate,
-                        to: userId
-                      }));
-                    }
-                  };
-                  
-                  // Create and send offer
-                  const offer = await userPc.createOffer({
-                    offerToReceiveAudio: true,
-                    offerToReceiveVideo: true
-                  });
-                  await userPc.setLocalDescription(offer);
-                  console.log('✅ Local description set (offer) for', userId);
-                  ws.send(JSON.stringify({
-                    type: 'offer',
-                    roomId: roomId,
-                    offer: offer,
-                    to: userId
-                  }));
-                  console.log('📤 Sent offer to', userId);
-                } catch (error) {
-                  console.error('❌ Error creating offer for', userId, ':', error);
                 }
-              }
+              };
+              
+              waitForStreamAndCreateOffers();
             } else {
               console.log('👤 First user in room, waiting for others...');
             }
@@ -448,14 +489,39 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             console.log('📥 Received answer from:', data.from);
             try {
               const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
-              if (userPc.signalingState !== 'stable') {
+              if (!userPc) {
+                console.error('❌ No peer connection found for', data.from);
+                return;
+              }
+              
+              console.log('📊 Current signaling state for', data.from, ':', userPc.signalingState);
+              
+              if (userPc.signalingState === 'have-local-offer') {
                 await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
                 console.log('✅ Remote description set (answer) for', data.from);
+                setIsCallActive(true);
+              } else if (userPc.signalingState === 'stable') {
+                console.log('⚠️ Signaling state is stable for', data.from, ', answer may be duplicate or late');
+                // Try to set anyway in case it's a renegotiation
+                try {
+                  await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                  console.log('✅ Remote description set (answer) for', data.from, 'despite stable state');
+                } catch (err) {
+                  console.warn('⚠️ Could not set remote description (stable state):', err.message);
+                }
               } else {
-                console.log('⚠️ Signaling state is stable for', data.from, ', answer may be duplicate');
+                console.log('⚠️ Unexpected signaling state for', data.from, ':', userPc.signalingState);
+                // Try to set anyway
+                try {
+                  await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                  console.log('✅ Remote description set (answer) for', data.from);
+                } catch (err) {
+                  console.error('❌ Error setting remote description:', err);
+                }
               }
             } catch (error) {
               console.error('❌ Error handling answer:', error);
+              setError(`Lỗi khi xử lý answer từ ${data.from}: ${error.message}`);
             }
             break;
 
