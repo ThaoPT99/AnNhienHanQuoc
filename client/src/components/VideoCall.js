@@ -144,26 +144,53 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     if (localStream && localVideoRef.current) {
       console.log('📹 Updating local video element with stream');
       console.log('📹 Local stream tracks:', localStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+      
+      // Ensure video element is visible
+      if (localVideoRef.current.style.display === 'none') {
+        localVideoRef.current.style.display = 'block';
+      }
+      
+      // Set stream
       localVideoRef.current.srcObject = localStream;
       localVideoRef.current.setAttribute('playsinline', 'true');
       localVideoRef.current.setAttribute('autoplay', 'true');
       localVideoRef.current.muted = true;
       
-      // Force play
-      const playPromise = localVideoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          console.log('✅ Local video playing (from useEffect)');
-          console.log('📹 Local video element:', {
-            videoWidth: localVideoRef.current.videoWidth,
-            videoHeight: localVideoRef.current.videoHeight,
-            readyState: localVideoRef.current.readyState,
-            paused: localVideoRef.current.paused
+      // Force play with retry
+      const playVideo = () => {
+        const playPromise = localVideoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log('✅ Local video playing (from useEffect)');
+            console.log('📹 Local video element:', {
+              videoWidth: localVideoRef.current.videoWidth,
+              videoHeight: localVideoRef.current.videoHeight,
+              readyState: localVideoRef.current.readyState,
+              paused: localVideoRef.current.paused
+            });
+          }).catch(err => {
+            console.error('❌ Error playing local video (from useEffect):', err);
+            // Retry once after a short delay
+            setTimeout(() => {
+              if (localVideoRef.current && localVideoRef.current.srcObject) {
+                localVideoRef.current.play().catch(e => {
+                  console.error('❌ Retry failed:', e);
+                });
+              }
+            }, 500);
           });
-        }).catch(err => {
-          console.error('❌ Error playing local video (from useEffect):', err);
-        });
-      }
+        }
+      };
+      
+      // Try to play immediately
+      playVideo();
+      
+      // Also try after video is loaded
+      localVideoRef.current.onloadedmetadata = () => {
+        console.log('📹 Local video metadata loaded');
+        playVideo();
+      };
+      
     } else if (!localStream) {
       console.log('⚠️ No local stream available');
     } else if (!localVideoRef.current) {
@@ -1329,7 +1356,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
           </div>
 
           {/* Local video (self) */}
-          <div className="local-video-container">
+          <div className="local-video-container" style={{ display: isCallActive ? 'block' : 'none' }}>
             <video
               ref={localVideoRef}
               autoPlay
@@ -1337,11 +1364,10 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               webkit-playsinline="true"
               muted
               className="local-video"
-              style={{ display: localStream ? 'block' : 'none' }}
             />
             {!localStream && (
-              <div className="no-video">
-                <span>📷</span>
+              <div className="no-video" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#000', color: 'white' }}>
+                <span style={{ fontSize: '2rem', marginBottom: '10px' }}>📷</span>
                 <p>Đang tải camera...</p>
               </div>
             )}
