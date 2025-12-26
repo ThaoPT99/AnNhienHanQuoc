@@ -269,7 +269,7 @@ const ProfilePageFacebook = () => {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Facebook Style */}
         <div className="profile-tabs">
           <button
             className={`profile-tab ${activeTab === 'posts' ? 'active' : ''}`}
@@ -290,13 +290,26 @@ const ProfilePageFacebook = () => {
             Bạn bè
           </button>
           {isOwnProfile && (
-            <button
-              className={`profile-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Dashboard
-            </button>
+            <>
+              <button
+                className={`profile-tab ${activeTab === 'photos' ? 'active' : ''}`}
+                onClick={() => setActiveTab('photos')}
+              >
+                Ảnh
+              </button>
+              <button
+                className={`profile-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                Dashboard
+              </button>
+            </>
           )}
+          <div className="profile-tabs-more">
+            <button className="profile-tab-more">
+              Xem thêm ▼
+            </button>
+          </div>
         </div>
       </div>
 
