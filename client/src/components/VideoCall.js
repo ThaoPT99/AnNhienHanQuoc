@@ -51,6 +51,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       { urls: 'stun:stun.voipbuster.com' },
       { urls: 'stun:stun.voipstunt.com' },
       // Free TURN servers (for NAT traversal when STUN fails)
+      // Note: Free TURN servers are often unreliable or blocked
+      // For production, consider using a dedicated TURN server
+      
       // Metered.ca Open Relay (free, no auth required)
       { 
         urls: [
@@ -85,6 +88,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       // Twilio STUN (free tier available)
       {
         urls: 'stun:global.stun.twilio.com:3478'
+      },
+      // Additional public TURN servers (may not work)
+      {
+        urls: 'turn:relay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:relay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
       }
     ],
     iceCandidatePoolSize: 10, // Pre-gather ICE candidates for faster connection
@@ -808,8 +822,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                       addDebugLog(`⏳ Waiting for new offer from ${data.from}...`, 'info');
                     } else {
                       addDebugLog(`❌ Max retry attempts reached for ${data.from}`, 'error');
-                      addDebugLog(`💡 Gợi ý: Kiểm tra firewall, NAT, hoặc thử lại sau vài phút`, 'info');
-                      setError(`Không thể kết nối với ${data.from}. Có thể do firewall hoặc NAT. Vui lòng thử lại sau.`);
+                      addDebugLog(`💡 Nguyên nhân: Không có TURN (relay) candidates - TURN servers không hoạt động`, 'warn');
+                      addDebugLog(`💡 Giải pháp:`, 'info');
+                      addDebugLog(`   1. Kiểm tra firewall/network có block TURN traffic không`, 'info');
+                      addDebugLog(`   2. Thử kết nối từ network khác (mobile data, VPN)`, 'info');
+                      addDebugLog(`   3. Setup TURN server riêng (xem TURN-SERVER-SOLUTION.md)`, 'info');
+                      addDebugLog(`   4. Sử dụng dịch vụ TURN có phí (Twilio, Metered.ca)`, 'info');
+                      setError(`Không thể kết nối với ${data.from}. Nguyên nhân: TURN servers không hoạt động (relay=0). Vui lòng xem TURN-SERVER-SOLUTION.md để setup TURN server riêng.`);
                     }
                   } else if (state === 'disconnected') {
                     addDebugLog(`⚠️ ICE connection disconnected with ${data.from}`, 'warn');
