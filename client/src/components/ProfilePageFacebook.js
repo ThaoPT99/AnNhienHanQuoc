@@ -244,8 +244,8 @@ const ProfilePageFacebook = () => {
                 <button 
                   className="btn-message" 
                   onClick={() => {
-                    if (window.startMessengerVideoCall) {
-                      window.startMessengerVideoCall(profileEmail, displayName);
+                    if (window.startMessengerTextChat) {
+                      window.startMessengerTextChat(profileEmail, displayName);
                     }
                   }}
                 >

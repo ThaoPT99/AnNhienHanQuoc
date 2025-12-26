@@ -60,17 +60,17 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
                   <span className="contact-name">{friend.name || friend.email}</span>
                 </Link>
                 <button
-                  className="contact-video-call-btn"
+                  className="contact-chat-btn"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (window.startMessengerVideoCall) {
-                      window.startMessengerVideoCall(friend.email, friend.name);
+                    if (window.startMessengerTextChat) {
+                      window.startMessengerTextChat(friend.email, friend.name);
                     }
                   }}
-                  title="Video call"
+                  title="Nhắn tin"
                 >
-                  📞
+                  💬
                 </button>
               </div>
             ))}

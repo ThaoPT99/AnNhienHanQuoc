@@ -115,7 +115,7 @@
   background: #f0f2f5;
 }
 
-.contact-video-call-btn {
+.contact-chat-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -132,7 +132,7 @@
   margin-left: auto;
 }
 
-.contact-video-call-btn:hover {
+.contact-chat-btn:hover {
   background: #1877f2;
   color: white;
   transform: scale(1.1);
