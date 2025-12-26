@@ -687,43 +687,59 @@ app.post('/api/auth/resend-verification', async (req, res) => {
     // Generate new verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    // Update verification token in database (we'll need to add this function)
-    // For now, we'll use the existing token
-    const frontendUrl = process.env.FRONTEND_URL || 'https://duhocannhien.vercel.app';
-    const verificationLink = `${frontendUrl}/verify-email?token=${user.verification_token || verificationToken}&email=${encodeURIComponent(email)}`;
+    // Update verification token in database first
+    dbHelpers.updateUserVerificationToken(email, verificationToken, async (err) => {
+      if (err) {
+        console.error('Error updating verification token:', err);
+        return res.status(500).json({ error: 'Error updating verification token' });
+      }
 
-    const emailResult = await emailService.sendEmail(
-      email,
-      'Xác thực email - Du học An Nhiên',
-      `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #667eea;">Xác thực email của bạn</h2>
-          <p>Xin chào ${user.display_name || email},</p>
-          <p>Bạn đã yêu cầu gửi lại email xác thực.</p>
-          <p>Vui lòng click vào nút bên dưới để xác thực email của bạn:</p>
-          <p style="text-align: center; margin: 20px 0;">
-            <a href="${verificationLink}" style="background-color: #667eea; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
-              Xác thực email
-            </a>
-          </p>
-          <p>Hoặc copy link này vào trình duyệt:</p>
-          <p><a href="${verificationLink}">${verificationLink}</a></p>
-          <p>Link này sẽ hết hạn sau 24 giờ.</p>
-          <p>Nếu bạn không yêu cầu email này, vui lòng bỏ qua.</p>
-          <p>Trân trọng,<br/>Đội ngũ Du học An Nhiên</p>
-        </div>
-      `,
-      `Xác thực email của bạn\n\nVui lòng truy cập link sau để xác thực:\n${verificationLink}`
-    );
+      console.log('✅ Verification token updated for:', email);
 
-    if (!emailResult.success) {
-      console.warn('Failed to send verification email:', emailResult.error);
-      return res.status(500).json({ error: 'Không thể gửi email. Vui lòng thử lại sau.' });
-    }
+      const frontendUrl = process.env.FRONTEND_URL || 'https://duhocannhien.vercel.app';
+      const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}&email=${encodeURIComponent(email)}`;
 
-    res.json({
-      success: true,
-      message: 'Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn.'
+      const emailResult = await emailService.sendEmail(
+        email,
+        'Xác thực email - Du học An Nhiên',
+        `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2 style="color: #667eea;">Xác thực email của bạn</h2>
+            <p>Xin chào ${user.display_name || email},</p>
+            <p>Bạn đã yêu cầu gửi lại email xác thực.</p>
+            <p>Vui lòng click vào nút bên dưới để xác thực email của bạn:</p>
+            <p style="text-align: center; margin: 20px 0;">
+              <a href="${verificationLink}" style="background-color: #667eea; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                Xác thực email
+              </a>
+            </p>
+            <p>Hoặc copy link này vào trình duyệt:</p>
+            <p><a href="${verificationLink}">${verificationLink}</a></p>
+            <p>Link này sẽ hết hạn sau 24 giờ.</p>
+            <p>Nếu bạn không yêu cầu email này, vui lòng bỏ qua.</p>
+            <p>Trân trọng,<br/>Đội ngũ Du học An Nhiên</p>
+          </div>
+        `,
+        `Xác thực email của bạn\n\nVui lòng truy cập link sau để xác thực:\n${verificationLink}`
+      );
+
+      if (!emailResult.success) {
+        console.warn('⚠️ Failed to send verification email:', emailResult.error);
+        // Still return success - token is updated, user can try again later
+        return res.json({
+          success: true,
+          email_sent: false,
+          message: 'Token đã được cập nhật nhưng email chưa được gửi do lỗi kết nối. Bạn có thể thử lại sau hoặc liên hệ hỗ trợ.',
+          error: emailResult.error
+        });
+      }
+
+      console.log('✅ Verification email resent successfully');
+      res.json({
+        success: true,
+        email_sent: true,
+        message: 'Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn.'
+      });
     });
   });
 });
