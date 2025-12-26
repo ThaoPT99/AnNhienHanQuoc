@@ -429,14 +429,16 @@ const MessengerChat = () => {
   }, []);
 
   // Always maintain WebSocket connection (even when not on Community page)
-  // But only show UI when on Community page or when there are active chats
+  // But only show UI when:
+  // 1. On Community page, OR
+  // 2. There are active chats (video call or text chat)
   
-  // Hide completely if not on Community page and no active chats
+  // Hide UI if not on Community page and no active chats (but WebSocket still active in background)
   if (!isOnCommunityPage && activeChats.length === 0 && !isMinimized) {
     return null;
   }
   
-  // Hide if on Community page but no active chats and minimized (but WebSocket still active)
+  // On Community page: hide if no active chats and not minimized
   if (isOnCommunityPage && activeChats.length === 0 && !isMinimized) {
     return null;
   }

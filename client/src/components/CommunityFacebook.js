@@ -243,8 +243,7 @@ const CommunityFacebook = () => {
         requireAuth={true}
       />
 
-      {/* Messenger Chat */}
-      <MessengerChat />
+      {/* Messenger Chat - now rendered globally in App.js to maintain WebSocket connection */}
     </div>
   );
 };
