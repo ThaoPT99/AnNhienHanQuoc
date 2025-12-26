@@ -24,9 +24,22 @@
   font-family: Helvetica, Arial, sans-serif;
 }
 
-#main-content .community-facebook-page {
+/* Remove any white background layers */
+body .community-facebook-page,
+html .community-facebook-page,
+#main-content .community-facebook-page,
+.App .community-facebook-page {
   margin: 0 !important;
   padding: 0 !important;
+  background: var(--fb-bg-secondary) !important;
+}
+
+/* Ensure no white space above header */
+body:has(.community-facebook-page),
+html:has(.community-facebook-page) {
+  margin: 0;
+  padding: 0;
+  background: var(--fb-bg-secondary);
 }
 
 /* ============================================

@@ -103,6 +103,11 @@ body {
   background-color: #ffffff;
 }
 
+/* Override for Community page */
+body:has(.community-facebook-page) {
+  background-color: #f0f2f5 !important;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   *:focus-visible {

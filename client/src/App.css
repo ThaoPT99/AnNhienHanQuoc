@@ -13,9 +13,23 @@
 }
 
 /* Remove spacing for Community page */
-#main-content .community-facebook-page {
+#main-content .community-facebook-page,
+#main-content .community-facebook-page * {
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* Ensure body/html don't add white background */
+body:has(.community-facebook-page) {
+  margin: 0;
+  padding: 0;
+  background: #f0f2f5 !important;
+}
+
+html:has(.community-facebook-page) {
+  margin: 0;
+  padding: 0;
+  background: #f0f2f5 !important;
 }
 
 /* Gen Z Color Palette */
