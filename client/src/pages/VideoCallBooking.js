@@ -156,16 +156,19 @@ const VideoCallBooking = () => {
       return;
     }
 
+    // Only load bookings if user is authenticated
+    const token = getAuthToken();
+    if (!token) {
+      setBookings([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Get auth token if available
-      const token = localStorage.getItem('authToken');
       const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
       
       const res = await fetch(`${API_URL}/api/video-call/bookings/${encodeURIComponent(userEmail)}`, {
         headers
@@ -174,15 +177,16 @@ const VideoCallBooking = () => {
       if (res.ok) {
         const data = await res.json();
         setBookings(data);
-      } else if (res.status === 401) {
-        // User not logged in - that's okay, just show empty bookings
-        console.log('User not authenticated, showing empty bookings');
+      } else if (res.status === 401 || res.status === 403) {
+        // Token expired or invalid - clear and show empty
+        console.log('Authentication failed, showing empty bookings');
         setBookings([]);
       } else {
         console.error('Error loading bookings:', res.status, res.statusText);
       }
     } catch (error) {
       console.error('Error loading bookings:', error);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
