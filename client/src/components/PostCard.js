@@ -166,42 +166,76 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
       {/* Post Images */}
       {/* Note: You'll need to add image_url field to posts table if not exists */}
       
-      {/* Post Stats */}
-      {(postLikes > 0 || postComments > 0) && (
-        <div className="post-stats">
-          {postLikes > 0 && (
-            <div className="post-stat-item">
-              <span className="post-stat-icon">👍</span>
-              <span>{postLikes}</span>
-            </div>
-          )}
-          {postComments > 0 && (
-            <div className="post-stat-item">
-              <span>{postComments} bình luận</span>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Post Stats - Facebook Style */}
+      {(() => {
+        const totalReactions = reactionsCount?.reduce((sum, r) => sum + (r.count || 0), 0) || postLikes || 0;
+        const hasReactions = totalReactions > 0;
+        const hasComments = postComments > 0;
+        
+        if (!hasReactions && !hasComments) return null;
+        
+        return (
+          <div className="post-stats">
+            {hasReactions && (
+              <div className="post-stats-left">
+                <div className="post-reactions-icons">
+                  {reactionsCount?.slice(0, 3).map((r, idx) => {
+                    const reactionTypes = { 'like': '👍', 'love': '❤️', 'haha': '😂', 'wow': '😮', 'sad': '😢', 'angry': '😠' };
+                    return (
+                      <span key={r.reaction_type} className="reaction-icon-small" style={{ marginLeft: idx > 0 ? '-4px' : 0 }}>
+                        {reactionTypes[r.reaction_type] || '👍'}
+                      </span>
+                    );
+                  })}
+                </div>
+                <span className="post-stats-text">
+                  {currentReaction ? 'Bạn' : ''}
+                  {currentReaction && totalReactions > 1 ? ' và ' : ''}
+                  {totalReactions > (currentReaction ? 1 : 0) ? `${totalReactions - (currentReaction ? 1 : 0)} người khác` : ''}
+                  {!currentReaction && totalReactions > 0 ? `${totalReactions} người` : ''}
+                </span>
+              </div>
+            )}
+            {hasComments && (
+              <div className="post-stats-right">
+                <span className="post-stats-text">{postComments} bình luận</span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
-      {/* Post Actions */}
+      {/* Post Actions - Facebook Style */}
       <div className="post-actions">
-        <ReactionsPicker
-          postId={post.id}
-          userEmail={userEmail}
-          onReactionChange={handleReactionChange}
-          currentReaction={currentReaction}
-          reactionsCount={reactionsCount}
-        />
+        <div className="post-action-btn-wrapper">
+          <ReactionsPicker
+            postId={post.id}
+            userEmail={userEmail}
+            onReactionChange={handleReactionChange}
+            currentReaction={currentReaction}
+            reactionsCount={reactionsCount}
+            buttonStyle="facebook"
+          />
+        </div>
         <button
-          className="post-action-button"
-          onClick={() => setShowComments(!showComments)}
+          className="post-action-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowComments(!showComments);
+          }}
         >
           <span className="post-action-icon">💬</span>
-          <span>Bình luận</span>
+          <span className="post-action-label">Bình luận</span>
         </button>
-        <button className="post-action-button">
+        <button 
+          className="post-action-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Share functionality can be added here
+          }}
+        >
           <span className="post-action-icon">🔗</span>
-          <span>Chia sẻ</span>
+          <span className="post-action-label">Chia sẻ</span>
         </button>
       </div>
 

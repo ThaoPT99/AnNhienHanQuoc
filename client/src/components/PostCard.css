@@ -96,34 +96,77 @@
   margin-bottom: 12px;
 }
 
-/* Post Stats */
+/* Post Stats - Facebook Style */
 .post-stats {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-top: 1px solid var(--fb-border, #e4e6eb);
   border-bottom: 1px solid var(--fb-border, #e4e6eb);
-  margin-bottom: 8px;
-  font-size: 15px;
-  color: var(--fb-text-secondary, #65676b);
+  margin-bottom: 4px;
 }
 
 .post-stats-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex: 1;
 }
 
-.post-stats-icon {
-  font-size: 18px;
+.post-reactions-icons {
+  display: flex;
+  align-items: center;
+  height: 18px;
 }
 
-/* Post Actions */
+.reaction-icon-small {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  font-size: 16px;
+  line-height: 18px;
+  border-radius: 50%;
+  background: var(--fb-primary, #1877f2);
+  border: 1.5px solid white;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.reaction-icon-small:first-child {
+  z-index: 3;
+}
+
+.reaction-icon-small:nth-child(2) {
+  z-index: 2;
+}
+
+.reaction-icon-small:nth-child(3) {
+  z-index: 1;
+}
+
+.post-stats-text {
+  font-size: 15px;
+  color: var(--fb-text-secondary, #65676b);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.post-stats-text:hover {
+  text-decoration: underline;
+}
+
+.post-stats-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Post Actions - Facebook Style */
 .post-actions {
   display: flex;
   justify-content: space-around;
-  padding-top: 4px;
+  padding: 4px 0;
+  border-top: 1px solid var(--fb-border, #e4e6eb);
 }
 
 .post-action-btn {
@@ -131,8 +174,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 6px;
+  padding: 8px 4px;
   border: none;
   background: transparent;
   border-radius: 8px;
@@ -141,18 +184,38 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  position: relative;
 }
 
 .post-action-btn:hover {
   background: var(--fb-hover, #f2f2f2);
 }
 
-.post-action-btn.liked {
+.post-action-btn.active {
   color: var(--fb-primary, #1877f2);
 }
 
 .post-action-icon {
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.post-action-label {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.reactions-picker-wrapper {
+  display: inline-block;
+  position: relative;
+}
+
+.post-action-btn-wrapper .reactions-picker-wrapper {
+  width: 100%;
+}
+
+.post-action-btn-wrapper .reaction-button {
+  width: 100%;
 }
 
 /* Comments Section */

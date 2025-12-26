@@ -11,7 +11,7 @@ const REACTION_TYPES = [
   { type: 'angry', icon: '😠', label: 'Angry' }
 ];
 
-const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, currentReaction, reactionsCount }) => {
+const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, currentReaction, reactionsCount, buttonStyle = 'default' }) => {
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef(null);
 
@@ -82,20 +82,36 @@ const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, curre
   const mainReaction = getMainReaction();
   const totalCount = getTotalReactions();
 
+  const getReactionLabel = () => {
+    if (!currentReaction) return 'Thích';
+    const reactions = { 
+      'like': 'Thích', 
+      'love': 'Yêu thích', 
+      'haha': 'Haha', 
+      'wow': 'Wow', 
+      'sad': 'Thương thương', 
+      'angry': 'Phẫn nộ' 
+    };
+    return reactions[currentReaction] || 'Thích';
+  };
+
   return (
     <div className="reactions-picker-wrapper" ref={pickerRef}>
       <button
-        className={`reaction-button ${currentReaction ? 'has-reaction' : ''}`}
+        className={`reaction-button ${currentReaction ? 'has-reaction' : ''} ${buttonStyle === 'facebook' ? 'facebook-style' : ''}`}
         onClick={() => setShowPicker(!showPicker)}
-        onMouseEnter={() => setShowPicker(true)}
+        onMouseEnter={() => buttonStyle === 'facebook' && setShowPicker(true)}
       >
         <span className="reaction-icon">
           {currentReaction 
             ? REACTION_TYPES.find(r => r.type === currentReaction)?.icon || '👍'
-            : mainReaction.icon
+            : '👍'
           }
         </span>
-        {totalCount > 0 && (
+        {buttonStyle === 'facebook' && (
+          <span className="reaction-label">{getReactionLabel()}</span>
+        )}
+        {buttonStyle !== 'facebook' && totalCount > 0 && (
           <span className="reaction-count">{totalCount}</span>
         )}
       </button>
