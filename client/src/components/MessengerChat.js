@@ -80,15 +80,19 @@ const MessengerChat = () => {
             }
             
             // Check if message already exists (prevent duplicates)
+            // Allow some tolerance for timestamp differences
             const messageTimestamp = timestamp || new Date().toISOString();
-            const messageExists = (chatExists.messages || []).some(
-              msg => msg.text === message && msg.timestamp === messageTimestamp
-            );
+            const messageExists = (chatExists.messages || []).some(msg => {
+              const timeDiff = Math.abs(new Date(msg.timestamp) - new Date(messageTimestamp));
+              return msg.text === message && msg.sender === 'other' && timeDiff < 5000; // 5 second tolerance
+            });
             
             if (messageExists) {
-              console.log('⚠️ MessengerChat: Duplicate message detected, skipping');
+              console.log('⚠️ MessengerChat: Duplicate message detected, skipping:', message);
               return prev;
             }
+            
+            console.log('💬 MessengerChat: Adding new message to chat:', message);
             
             // Add message to chat
             const updatedChat = {
