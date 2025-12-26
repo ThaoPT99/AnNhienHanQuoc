@@ -51,20 +51,43 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       { urls: 'stun:stun.voipbuster.com' },
       { urls: 'stun:stun.voipstunt.com' },
       // Free TURN servers (for NAT traversal when STUN fails)
+      // Metered.ca Open Relay (free, no auth required)
       { 
-        urls: 'turn:openrelay.metered.ca:80',
+        urls: [
+          'turn:openrelay.metered.ca:80',
+          'turn:openrelay.metered.ca:443',
+          'turn:openrelay.metered.ca:443?transport=tcp'
+        ],
         username: 'openrelayproject',
         credential: 'openrelayproject'
       },
-      { 
-        urls: 'turn:openrelay.metered.ca:443',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
+      // Xirsys free TURN (public demo credentials - may have limits)
+      {
+        urls: 'turn:open.xirsys.com:80?transport=udp',
+        username: 'open',
+        credential: 'open'
       },
-      { 
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
+      {
+        urls: 'turn:open.xirsys.com:3478?transport=udp',
+        username: 'open',
+        credential: 'open'
+      },
+      {
+        urls: 'turn:open.xirsys.com:80?transport=tcp',
+        username: 'open',
+        credential: 'open'
+      },
+      {
+        urls: 'turn:open.xirsys.com:3478?transport=tcp',
+        username: 'open',
+        credential: 'open'
+      },
+      // Twilio STUN/TURN (free tier available)
+      {
+        urls: 'stun:global.stun.twilio.com:3478?transport=udp'
+      },
+      {
+        urls: 'stun:global.stun.twilio.com:3478?transport=tcp'
       }
     ],
     iceCandidatePoolSize: 10, // Pre-gather ICE candidates for faster connection
@@ -448,6 +471,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                             }
                           });
                           addDebugLog(`📊 ICE stats for ${userId}: host=${hostCandidates}, srflx=${srflxCandidates}, relay=${relayCandidates}`, 'info');
+                          
+                          // Warn if no relay candidates (TURN servers not working)
+                          if (relayCandidates === 0) {
+                            addDebugLog(`⚠️ WARNING: No TURN (relay) candidates found! Connection may fail behind strict NAT/firewall.`, 'warn');
+                            addDebugLog(`💡 TURN servers may be blocked or unavailable. Consider using a dedicated TURN server.`, 'info');
+                          } else {
+                            addDebugLog(`✅ TURN servers working! Found ${relayCandidates} relay candidates.`, 'success');
+                          }
                         }).catch(err => {
                           console.error('Error getting ICE stats:', err);
                         });
@@ -707,20 +738,28 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                   } else {
                     addDebugLog(`✅ ICE gathering complete for ${data.from}`, 'success');
                     
-                    // Log ICE gathering stats
-                    userPc.getStats().then(stats => {
-                      let hostCandidates = 0, srflxCandidates = 0, relayCandidates = 0;
-                      stats.forEach(report => {
-                        if (report.type === 'local-candidate' || report.type === 'remote-candidate') {
-                          if (report.candidateType === 'host') hostCandidates++;
-                          else if (report.candidateType === 'srflx') srflxCandidates++;
-                          else if (report.candidateType === 'relay') relayCandidates++;
-                        }
-                      });
-                      addDebugLog(`📊 ICE stats for ${data.from}: host=${hostCandidates}, srflx=${srflxCandidates}, relay=${relayCandidates}`, 'info');
-                    }).catch(err => {
-                      console.error('Error getting ICE stats:', err);
-                    });
+                        // Log ICE gathering stats
+                        userPc.getStats().then(stats => {
+                          let hostCandidates = 0, srflxCandidates = 0, relayCandidates = 0;
+                          stats.forEach(report => {
+                            if (report.type === 'local-candidate' || report.type === 'remote-candidate') {
+                              if (report.candidateType === 'host') hostCandidates++;
+                              else if (report.candidateType === 'srflx') srflxCandidates++;
+                              else if (report.candidateType === 'relay') relayCandidates++;
+                            }
+                          });
+                          addDebugLog(`📊 ICE stats for ${data.from}: host=${hostCandidates}, srflx=${srflxCandidates}, relay=${relayCandidates}`, 'info');
+                          
+                          // Warn if no relay candidates (TURN servers not working)
+                          if (relayCandidates === 0) {
+                            addDebugLog(`⚠️ WARNING: No TURN (relay) candidates found! Connection may fail behind strict NAT/firewall.`, 'warn');
+                            addDebugLog(`💡 TURN servers may be blocked or unavailable. Consider using a dedicated TURN server.`, 'info');
+                          } else {
+                            addDebugLog(`✅ TURN servers working! Found ${relayCandidates} relay candidates.`, 'success');
+                          }
+                        }).catch(err => {
+                          console.error('Error getting ICE stats:', err);
+                        });
                   }
                 };
                 
