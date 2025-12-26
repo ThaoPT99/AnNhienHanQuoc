@@ -82,12 +82,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         username: 'open',
         credential: 'open'
       },
-      // Twilio STUN/TURN (free tier available)
+      // Twilio STUN (free tier available)
       {
-        urls: 'stun:global.stun.twilio.com:3478?transport=udp'
-      },
-      {
-        urls: 'stun:global.stun.twilio.com:3478?transport=tcp'
+        urls: 'stun:global.stun.twilio.com:3478'
       }
     ],
     iceCandidatePoolSize: 10, // Pre-gather ICE candidates for faster connection
