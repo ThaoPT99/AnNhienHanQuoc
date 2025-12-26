@@ -42,17 +42,20 @@ class WebRTCSignalingServer {
               // Forward chat message to recipient
               const { from: msgFrom, to: msgTo, message: msgText, timestamp: msgTimestamp } = data;
               
-              // Ensure sender is registered
-              if (!userId) {
-                userId = msgFrom || `user_${Date.now()}`;
+              // Ensure sender is registered (use from field if userId not set)
+              if (!userId || !ws.userId) {
+                userId = msgFrom || userId || `user_${Date.now()}`;
                 ws.userId = userId;
                 this.userConnections.set(userId, ws);
+                console.log(`💬 Server: Auto-registered sender ${userId} for messaging`);
               }
               
               console.log(`💬 Server: Received chat message from ${msgFrom} to ${msgTo}`);
+              console.log(`💬 Server: Sender userId: ${userId}, ws.userId: ${ws.userId}`);
               console.log(`💬 Server: Total registered users: ${this.userConnections.size}`);
-              console.log(`💬 Server: Available users: ${Array.from(this.userConnections.keys()).slice(0, 10).join(', ')}...`);
+              console.log(`💬 Server: Looking for recipient: ${msgTo}`);
               
+              // Try to find recipient connection
               const recipientWs = this.userConnections.get(msgTo);
               
               if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
@@ -64,12 +67,15 @@ class WebRTCSignalingServer {
                   timestamp: msgTimestamp || new Date().toISOString()
                 };
                 recipientWs.send(JSON.stringify(forwardMsg));
-                console.log(`✅ Server: Message forwarded from ${msgFrom} to ${msgTo}`);
+                console.log(`✅ Server: Message forwarded successfully from ${msgFrom} to ${msgTo}`);
               } else {
-                console.log(`⚠️ Server: User ${msgTo} is not online`);
+                console.log(`⚠️ Server: User ${msgTo} is not online or connection issue`);
                 console.log(`   - Connection exists: ${!!recipientWs}`);
-                console.log(`   - Connection open: ${recipientWs?.readyState === WebSocket.OPEN}`);
-                // Message will be saved in localStorage and shown when user comes online
+                if (recipientWs) {
+                  console.log(`   - Connection state: ${recipientWs.readyState} (OPEN=1, CLOSED=3)`);
+                }
+                console.log(`   - All registered users: ${Array.from(this.userConnections.keys()).join(', ')}`);
+                
                 // Send confirmation to sender that message was queued
                 ws.send(JSON.stringify({
                   type: 'message-queued',
