@@ -8,6 +8,14 @@
 /* Note: Individual pages should override with margin-top or padding-top */
 #main-content {
   /* Don't add global padding here - let each page handle it */
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove spacing for Community page */
+#main-content .community-facebook-page {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Gen Z Color Palette */

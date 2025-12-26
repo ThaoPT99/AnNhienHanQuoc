@@ -9,14 +9,17 @@
 
 /* Remove any default margin/padding from main-content when on Community page */
 #main-content .community-facebook-page {
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Facebook-style Header Menu */
+/* Facebook-style Header Menu - Fixed at top */
 .community-header-fb {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 1000;
   background: white;
   border-bottom: 1px solid #e4e6eb;
@@ -204,13 +207,14 @@
   grid-template-columns: 300px 1fr 300px;
   gap: 20px;
   align-items: start;
+  padding-top: 72px; /* Space for fixed header (56px + 16px) */
 }
 
 /* Left Sidebar */
 .left-sidebar {
   position: sticky;
-  top: 68px; /* Account for Facebook-style header (56px + 12px padding) */
-  height: calc(100vh - 68px);
+  top: 72px; /* Account for fixed header (56px + 16px padding) */
+  height: calc(100vh - 72px);
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -243,8 +247,8 @@
 /* Right Sidebar */
 .right-sidebar {
   position: sticky;
-  top: 68px; /* Account for Facebook-style header (56px + 12px padding) */
-  height: calc(100vh - 68px);
+  top: 72px; /* Account for fixed header (56px + 16px padding) */
+  height: calc(100vh - 72px);
   overflow-y: auto;
   overflow-x: hidden;
 }
