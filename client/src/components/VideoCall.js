@@ -511,6 +511,18 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             console.log('👤 New user joined, waiting for their offer...');
             break;
 
+          case 'participants-updated':
+            // Server sent updated participants list - sync with server
+            console.log('🔄 Participants updated from server:', data.participants);
+            const currentUserId = socketRef.current?.userId || userEmail || `user_${Date.now()}`;
+            const otherParticipants = data.participants
+              .filter(uid => uid !== currentUserId)
+              .map(uid => ({ userId: uid, joinedAt: new Date() }));
+            console.log('👥 Setting participants from server (excluding myself):', otherParticipants.map(p => p.userId));
+            console.log('👥 Total participants count (including myself):', otherParticipants.length + 1);
+            setParticipants(otherParticipants);
+            break;
+
           case 'user-left':
             console.log('👋 User left:', data.userId);
             setParticipants(prev => {
