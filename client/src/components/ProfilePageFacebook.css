@@ -72,6 +72,7 @@
   background: white;
   border-bottom: 1px solid #e4e6eb;
   position: relative;
+  padding-bottom: 100px; /* Add space to prevent profile picture from overlapping tabs */
 }
 
 .profile-info-section {
@@ -268,11 +269,11 @@
   display: flex;
   padding: 0 24px;
   border-top: 1px solid #e4e6eb;
-  margin-top: 84px; /* Increased to account for profile picture overlap */
+  margin-top: 0; /* No margin needed, spacing handled by padding-bottom of header */
   background: white;
   overflow-x: auto;
   position: relative;
-  z-index: 0; /* Ensure tabs are below profile picture */
+  z-index: 1; /* Ensure tabs are above profile picture */
 }
 
 .profile-tabs::-webkit-scrollbar {
