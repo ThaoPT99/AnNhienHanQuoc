@@ -54,16 +54,17 @@ const Friends = lazy(() => import('./pages/Friends'));
 const Login = lazy(() => import('./pages/Login'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isCommunityPage = location.pathname.startsWith('/community');
+
   return (
-    <HelmetProvider>
-      <Router>
-        <ErrorBoundary>
-          <PageViewTracker />
-          <SkipToContent />
-          <div className="App">
-            <Navbar />
-            <main id="main-content">
+    <ErrorBoundary>
+      <PageViewTracker />
+      <SkipToContent />
+      <div className="App">
+        {!isCommunityPage && <Navbar />}
+        <main id="main-content">
               <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                 <Route path="/" element={<Home />} />
@@ -116,6 +117,14 @@ function App() {
             {/* Incoming Call Modal - handled by IncomingCall component internally via WebSocket */}
           </div>
         </ErrorBoundary>
+  );
+}
+
+function App() {
+  return (
+    <HelmetProvider>
+      <Router>
+        <AppContent />
       </Router>
     </HelmetProvider>
   );

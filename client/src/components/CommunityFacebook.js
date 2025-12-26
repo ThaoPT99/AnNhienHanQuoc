@@ -165,6 +165,26 @@ const CommunityFacebook = () => {
 
   return (
     <div className="community-facebook-page">
+      {/* Community Header - Mini Navigation */}
+      <header className="community-header">
+        <div className="community-header-container">
+          <Link to="/" className="community-logo-link">
+            <span className="community-logo-icon">🇰🇷</span>
+            <span className="community-logo-text">KR Du học An Nhiên</span>
+          </Link>
+          <motion.button
+            className="community-exit-btn"
+            onClick={() => navigate('/')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title="Quay về trang chủ"
+          >
+            <span>←</span>
+            <span>Thoát</span>
+          </motion.button>
+        </div>
+      </header>
+      
       <div className="community-facebook-container">
         {/* Left Sidebar */}
         <aside className="left-sidebar">
