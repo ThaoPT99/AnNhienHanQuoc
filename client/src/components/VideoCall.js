@@ -240,19 +240,20 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         }
       }, 10000);
 
-      // Mobile-optimized constraints
+      // Video constraints - Always use portrait 9:16 aspect ratio
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       const videoConstraints = isMobile ? {
         facingMode: 'user', // Front camera on mobile
-        width: { ideal: 640, max: 1280 },
-        height: { ideal: 480, max: 720 },
-        // Disable zoom/crop on mobile - let browser use natural camera view
-        aspectRatio: { ideal: 4/3 }
+        width: { ideal: 720, max: 1080 },
+        height: { ideal: 1280, max: 1920 },
+        // Portrait mode: 9:16 aspect ratio
+        aspectRatio: { ideal: 9/16 }
       } : {
-        width: { ideal: 1280, max: 1920 },
-        height: { ideal: 720, max: 1080 },
-        aspectRatio: { ideal: 16/9 }
+        width: { ideal: 720, max: 1080 },
+        height: { ideal: 1280, max: 1920 },
+        // Portrait mode: 9:16 aspect ratio
+        aspectRatio: { ideal: 9/16 }
       };
 
       // Get user media (camera and microphone)
