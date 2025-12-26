@@ -35,16 +35,21 @@ const VideoCallBooking = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get('room');
     
+    console.log('🔍 VideoCallBooking useEffect - roomId:', roomId, 'URL:', window.location.href);
+    
     // If there's a room parameter, allow joining without login (for shared links)
     if (roomId) {
+      console.log('✅ Room parameter found, joining call without login');
       const email = getUserEmail() || 'guest@example.com';
       const userName = localStorage.getItem('userName') || email.split('@')[0] || 'Guest';
+      console.log('👤 User info:', { email, userName, roomId });
       setLoading(false); // Stop loading immediately
       setActiveCall({
         roomId,
         userEmail: email,
         userName
       });
+      console.log('📞 ActiveCall set:', { roomId, userEmail: email, userName });
       // Clean URL but keep room for VideoCall component
       // Don't clean URL here, let VideoCall handle it
       return;
