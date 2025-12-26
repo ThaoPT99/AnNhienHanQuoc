@@ -165,23 +165,51 @@ const CommunityFacebook = () => {
 
   return (
     <div className="community-facebook-page">
-      {/* Community Header - Mini Navigation */}
-      <header className="community-header">
-        <div className="community-header-container">
-          <Link to="/" className="community-logo-link">
-            <span className="community-logo-icon">🇰🇷</span>
-            <span className="community-logo-text">KR Du học An Nhiên</span>
+      {/* Facebook-style Header Menu */}
+      <header className="community-header-fb">
+        <div className="community-header-fb-container">
+          {/* Left: Logo */}
+          <Link to="/community" className="community-logo-fb">
+            <div className="community-logo-icon-fb">🇰🇷</div>
+            <span className="community-logo-text-fb">Du học An Nhiên</span>
           </Link>
-          <motion.button
-            className="community-exit-btn"
-            onClick={() => navigate('/')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="Quay về trang chủ"
-          >
-            <span>←</span>
-            <span>Thoát</span>
-          </motion.button>
+
+          {/* Center: Search (placeholder for now) */}
+          <div className="community-search-fb">
+            <div className="search-input-fb">
+              <span className="search-icon-fb">🔍</span>
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm trên Cộng đồng" 
+                className="search-input-field"
+                disabled
+              />
+            </div>
+          </div>
+
+          {/* Right: Menu Icons */}
+          <div className="community-menu-fb">
+            <Link 
+              to="/community" 
+              className="menu-icon-fb active"
+              title="Trang chủ"
+            >
+              <span className="menu-icon-symbol">🏠</span>
+            </Link>
+            {/* Placeholder for future menu items */}
+            <div className="menu-icon-fb" title="Video" style={{ opacity: 0.3 }}>
+              <span className="menu-icon-symbol">📹</span>
+            </div>
+            <div className="menu-icon-fb" title="Marketplace" style={{ opacity: 0.3 }}>
+              <span className="menu-icon-symbol">🛒</span>
+            </div>
+            <div className="menu-icon-fb" title="Nhóm" style={{ opacity: 0.3 }}>
+              <span className="menu-icon-symbol">👥</span>
+            </div>
+            <div className="menu-icon-fb" title="Menu" style={{ opacity: 0.3 }}>
+              <span className="menu-icon-symbol">☰</span>
+            </div>
+          </div>
         </div>
       </header>
       
