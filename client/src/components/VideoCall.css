@@ -290,7 +290,7 @@
 .remote-video-item .remote-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Changed from cover to contain - prevents zoom/crop */
   background: #000;
 }
 
@@ -499,8 +499,13 @@
   }
 
   .remote-video {
-    /* Better video display on mobile */
-    object-fit: cover;
+    /* Better video display on mobile - use contain to show full face without zoom */
+    object-fit: contain;
+  }
+  
+  .remote-video-item .remote-video {
+    /* Ensure contain is used even in mobile view */
+    object-fit: contain;
   }
 
   .video-call-controls {
