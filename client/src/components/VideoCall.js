@@ -52,12 +52,31 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   useEffect(() => {
     if (localStream && localVideoRef.current) {
       console.log('📹 Updating local video element with stream');
+      console.log('📹 Local stream tracks:', localStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
       localVideoRef.current.srcObject = localStream;
-      localVideoRef.current.play().then(() => {
-        console.log('✅ Local video playing (from useEffect)');
-      }).catch(err => {
-        console.error('❌ Error playing local video (from useEffect):', err);
-      });
+      localVideoRef.current.setAttribute('playsinline', 'true');
+      localVideoRef.current.setAttribute('autoplay', 'true');
+      localVideoRef.current.muted = true;
+      
+      // Force play
+      const playPromise = localVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('✅ Local video playing (from useEffect)');
+          console.log('📹 Local video element:', {
+            videoWidth: localVideoRef.current.videoWidth,
+            videoHeight: localVideoRef.current.videoHeight,
+            readyState: localVideoRef.current.readyState,
+            paused: localVideoRef.current.paused
+          });
+        }).catch(err => {
+          console.error('❌ Error playing local video (from useEffect):', err);
+        });
+      }
+    } else if (!localStream) {
+      console.log('⚠️ No local stream available');
+    } else if (!localVideoRef.current) {
+      console.error('❌ Local video ref is null!');
     }
   }, [localStream]);
 
@@ -65,14 +84,47 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   useEffect(() => {
     if (remoteStream && remoteVideoRef.current) {
       console.log('📹 Updating remote video element with stream');
+      console.log('📹 Remote stream tracks:', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
       remoteVideoRef.current.srcObject = remoteStream;
-      remoteVideoRef.current.play().then(() => {
-        console.log('✅ Remote video playing (from useEffect)');
-      }).catch(err => {
-        console.error('❌ Error playing remote video (from useEffect):', err);
-      });
+      remoteVideoRef.current.setAttribute('playsinline', 'true');
+      remoteVideoRef.current.setAttribute('autoplay', 'true');
+      remoteVideoRef.current.muted = false;
+      
+      // Force play
+      const playPromise = remoteVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('✅ Remote video playing (from useEffect)');
+          console.log('📹 Remote video element:', {
+            videoWidth: remoteVideoRef.current.videoWidth,
+            videoHeight: remoteVideoRef.current.videoHeight,
+            readyState: remoteVideoRef.current.readyState,
+            paused: remoteVideoRef.current.paused
+          });
+        }).catch(err => {
+          console.error('❌ Error playing remote video (from useEffect):', err);
+        });
+      }
+    } else if (!remoteStream) {
+      console.log('⚠️ No remote stream available');
+    } else if (!remoteVideoRef.current) {
+      console.error('❌ Remote video ref is null!');
     }
   }, [remoteStream]);
+
+  // Ensure video elements are updated when refs become available
+  useEffect(() => {
+    if (localStreamRef.current && localVideoRef.current && !localVideoRef.current.srcObject) {
+      console.log('📹 Video element mounted, setting local stream');
+      localVideoRef.current.srcObject = localStreamRef.current;
+      localVideoRef.current.setAttribute('playsinline', 'true');
+      localVideoRef.current.setAttribute('autoplay', 'true');
+      localVideoRef.current.muted = true;
+      localVideoRef.current.play().catch(err => {
+        console.error('❌ Error playing local video on mount:', err);
+      });
+    }
+  }, [localVideoRef.current, localStreamRef.current]);
 
   const initializeCall = async () => {
     try {
