@@ -95,10 +95,13 @@ const VideoCallBooking = () => {
       const res = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
       if (res.ok) {
         const data = await res.json();
-        setFriends(data || []);
+        // Filter out invalid friends (must have email)
+        const validFriends = (data || []).filter(friend => friend && friend.email);
+        setFriends(validFriends);
       }
     } catch (error) {
       console.error('Error loading friends:', error);
+      setFriends([]); // Set empty array on error
     } finally {
       setLoadingFriends(false);
     }
@@ -457,18 +460,18 @@ const VideoCallBooking = () => {
               <div className="friends-list">
                 <h3>Bạn bè của bạn:</h3>
                 <div className="friends-grid">
-                  {friends.map((friend) => (
+                  {friends.filter(friend => friend && friend.email).map((friend) => (
                     <div 
                       key={friend.email} 
                       className="friend-card"
                       onClick={() => callFriend(friend.email, friend.name)}
                     >
                       <div className="friend-avatar">
-                        {friend.name ? friend.name.charAt(0).toUpperCase() : friend.email.charAt(0).toUpperCase()}
+                        {(friend.name || friend.email || 'U').charAt(0).toUpperCase()}
                       </div>
                       <div className="friend-info">
-                        <div className="friend-name">{friend.name || friend.email}</div>
-                        <div className="friend-email">{friend.email}</div>
+                        <div className="friend-name">{friend.name || friend.email || 'Unknown'}</div>
+                        <div className="friend-email">{friend.email || ''}</div>
                       </div>
                       <button className="call-friend-btn">📞 Gọi</button>
                     </div>
