@@ -111,21 +111,21 @@ const MessengerChat = () => {
               chat.userEmail === senderEmail ? updatedChat : chat
             );
             
-            // Update selectedChat after state update completes
-            setTimeout(() => {
-              setSelectedChat(prevSelected => {
-                // If this chat is already selected, update it
-                if (prevSelected?.userEmail === senderEmail) {
-                  return updatedChat;
-                }
-                // If no chat selected or different chat selected, select this one
-                if (!prevSelected || prevSelected.userEmail !== senderEmail) {
-                  setIsMinimized(false);
-                  return updatedChat;
-                }
-                return prevSelected;
-              });
-            }, 0);
+            // Update selectedChat synchronously to ensure immediate UI update
+            setSelectedChat(prevSelected => {
+              // If this chat is already selected, update it with new message
+              if (prevSelected?.userEmail === senderEmail) {
+                console.log('💬 MessengerChat: Updating selected chat with new message');
+                return updatedChat;
+              }
+              // If no chat selected or different chat selected, select this one and open it
+              if (!prevSelected || prevSelected.userEmail !== senderEmail) {
+                console.log('💬 MessengerChat: Auto-selecting and opening chat for new message');
+                setIsMinimized(false);
+                return updatedChat;
+              }
+              return prevSelected;
+            });
             
             return updatedChats;
           });
@@ -220,15 +220,36 @@ const MessengerChat = () => {
     return () => window.removeEventListener('startVideoCall', handleIncomingCall);
   }, []);
 
+  // Sync selectedChat with activeChats to ensure messages are up to date
+  useEffect(() => {
+    if (selectedChat && !selectedChat.isVideoCall) {
+      const chatInActiveChats = activeChats.find(chat => 
+        chat.userEmail === selectedChat.userEmail && !chat.isVideoCall
+      );
+      
+      // If chat exists in activeChats and has more messages, update selectedChat
+      if (chatInActiveChats && chatInActiveChats.messages) {
+        const messagesDiff = chatInActiveChats.messages.length - (selectedChat.messages?.length || 0);
+        if (messagesDiff > 0) {
+          console.log(`💬 MessengerChat: Syncing ${messagesDiff} new messages to selectedChat`);
+          setSelectedChat(chatInActiveChats);
+        }
+      }
+    }
+  }, [activeChats, selectedChat]);
+  
   // Load messages from localStorage when chat is selected
   useEffect(() => {
     if (selectedChat && !selectedChat.isVideoCall && (!selectedChat.messages || selectedChat.messages.length === 0)) {
       const savedMessages = loadMessagesFromStorage(selectedChat.userEmail);
-      setActiveChats(prev => prev.map(chat =>
-        chat.userEmail === selectedChat.userEmail
-          ? { ...chat, messages: savedMessages }
-          : chat
-      ));
+      if (savedMessages.length > 0) {
+        setActiveChats(prev => prev.map(chat =>
+          chat.userEmail === selectedChat.userEmail
+            ? { ...chat, messages: savedMessages }
+            : chat
+        ));
+        setSelectedChat(prev => ({ ...prev, messages: savedMessages }));
+      }
     }
   }, [selectedChat]);
 
