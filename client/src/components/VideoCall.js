@@ -1041,6 +1041,26 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
           <p className="status-indicator">
             {isConnected ? '🟢 Đã kết nối' : '🟡 Đang kết nối...'}
           </p>
+          {/* Debug button for mobile - always visible */}
+          <button
+            onClick={() => setShowDebugLogs(!showDebugLogs)}
+            style={{
+              marginTop: '10px',
+              padding: '8px 15px',
+              background: showDebugLogs ? '#667eea' : 'rgba(255, 152, 0, 0.8)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            🐛 {showDebugLogs ? 'Ẩn Logs' : 'Xem Logs'}
+          </button>
         </div>
       </motion.div>
     </AnimatePresence>
