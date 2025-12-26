@@ -25,6 +25,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const remoteStreamsRef = useRef(new Map()); // Map<userId, MediaStream>
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
+  const retryCountsRef = useRef(new Map()); // Map<userId, number> - track retry attempts per user
+  const MAX_RETRY_ATTEMPTS = 2; // Maximum retry attempts per user
 
   // Helper function to add debug log
   const addDebugLog = (message, type = 'info') => {
@@ -34,14 +36,41 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     console.log(message);
   };
 
-  // WebRTC Configuration (using free STUN servers)
+  // WebRTC Configuration (using multiple STUN servers and free TURN servers)
   const rtcConfiguration = {
     iceServers: [
+      // Google STUN servers
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' }
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      // Additional STUN servers
+      { urls: 'stun:stun.stunprotocol.org:3478' },
+      { urls: 'stun:stun.voiparound.com' },
+      { urls: 'stun:stun.voipbuster.com' },
+      { urls: 'stun:stun.voipstunt.com' },
+      // Free TURN servers (for NAT traversal when STUN fails)
+      { 
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      { 
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      { 
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      }
     ],
-    iceCandidatePoolSize: 10 // Pre-gather ICE candidates for faster connection
+    iceCandidatePoolSize: 10, // Pre-gather ICE candidates for faster connection
+    iceTransportPolicy: 'all', // Try both relay and non-relay candidates
+    bundlePolicy: 'max-bundle', // Bundle RTP and RTCP together
+    rtcpMuxPolicy: 'require' // Require RTCP multiplexing
   };
 
   useEffect(() => {
@@ -401,16 +430,108 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                       }
                     };
                     
-                    // Handle ICE connection state
-                    userPc.oniceconnectionstatechange = () => {
-                      addDebugLog(`🧊 ICE connection state with ${userId}: ${userPc.iceConnectionState}`, 'info');
-                      if (userPc.iceConnectionState === 'connected' || userPc.iceConnectionState === 'completed') {
+                    // Handle ICE connection state with retry logic
+                    userPc.oniceconnectionstatechange = async () => {
+                      const state = userPc.iceConnectionState;
+                      addDebugLog(`🧊 ICE connection state with ${userId}: ${state}`, 'info');
+                      
+                      if (state === 'connected' || state === 'completed') {
                         setIsConnected(true);
                         setConnectionStatus('connected');
                         addDebugLog(`✅ ICE connection established with ${userId}`, 'success');
-                      } else if (userPc.iceConnectionState === 'disconnected' || userPc.iceConnectionState === 'failed') {
-                        addDebugLog(`⚠️ ICE connection ${userPc.iceConnectionState} with ${userId}`, 'warn');
-                        setConnectionStatus(userPc.iceConnectionState);
+                        // Reset retry count on success
+                        retryCountsRef.current.set(userId, 0);
+                      } else if (state === 'failed') {
+                        const retryCount = retryCountsRef.current.get(userId) || 0;
+                        addDebugLog(`⚠️ ICE connection failed with ${userId} (retry: ${retryCount}/${MAX_RETRY_ATTEMPTS})`, 'warn');
+                        setConnectionStatus('failed');
+                        
+                        // Retry connection if under limit
+                        if (retryCount < MAX_RETRY_ATTEMPTS) {
+                          retryCountsRef.current.set(userId, retryCount + 1);
+                          addDebugLog(`🔄 Retrying connection with ${userId} (attempt ${retryCount + 1})...`, 'info');
+                          
+                          // Close old connection
+                          try {
+                            userPc.close();
+                          } catch (e) {
+                            console.error('Error closing old connection:', e);
+                          }
+                          
+                          // Wait a bit before retry
+                          await new Promise(resolve => setTimeout(resolve, 2000));
+                          
+                          // Create new connection and retry
+                          try {
+                            const newPc = new RTCPeerConnection(rtcConfiguration);
+                            peerConnectionsRef.current.set(userId, newPc);
+                            
+                            // Add local tracks
+                            if (localStreamRef.current) {
+                              localStreamRef.current.getTracks().forEach(track => {
+                                newPc.addTrack(track, localStreamRef.current);
+                              });
+                            }
+                            
+                            // Set up handlers (same as before)
+                            newPc.ontrack = (event) => {
+                              addDebugLog(`📹 Received remote track from ${userId}: ${event.track.kind}`, 'success');
+                              const remoteStream = event.streams[0];
+                              if (remoteStream) {
+                                remoteStreamsRef.current.set(userId, remoteStream);
+                                setRemoteStreams(new Map(remoteStreamsRef.current));
+                                setRemoteStream(remoteStream);
+                                setIsCallActive(true);
+                              }
+                            };
+                            
+                            newPc.onicecandidate = (event) => {
+                              if (event.candidate && socketRef.current) {
+                                socketRef.current.send(JSON.stringify({
+                                  type: 'ice-candidate',
+                                  roomId: roomId,
+                                  candidate: event.candidate,
+                                  to: userId
+                                }));
+                              }
+                            };
+                            
+                            newPc.oniceconnectionstatechange = () => {
+                              if (newPc.iceConnectionState === 'connected' || newPc.iceConnectionState === 'completed') {
+                                setIsConnected(true);
+                                setConnectionStatus('connected');
+                                addDebugLog(`✅ ICE connection established (retry) with ${userId}`, 'success');
+                              } else if (newPc.iceConnectionState === 'failed') {
+                                addDebugLog(`⚠️ ICE connection failed (retry) with ${userId}`, 'warn');
+                              }
+                            };
+                            
+                            // Create and send new offer
+                            const offer = await newPc.createOffer({
+                              offerToReceiveAudio: true,
+                              offerToReceiveVideo: true
+                            });
+                            await newPc.setLocalDescription(offer);
+                            
+                            if (socketRef.current) {
+                              socketRef.current.send(JSON.stringify({
+                                type: 'offer',
+                                roomId: roomId,
+                                offer: offer,
+                                to: userId
+                              }));
+                              addDebugLog(`📤 Sent retry offer to ${userId}`, 'info');
+                            }
+                          } catch (error) {
+                            addDebugLog(`❌ Error retrying connection with ${userId}: ${error.message}`, 'error');
+                          }
+                        } else {
+                          addDebugLog(`❌ Max retry attempts reached for ${userId}`, 'error');
+                          setError(`Không thể kết nối với ${userId}. Vui lòng thử lại sau.`);
+                        }
+                      } else if (state === 'disconnected') {
+                        addDebugLog(`⚠️ ICE connection disconnected with ${userId}`, 'warn');
+                        setConnectionStatus('disconnected');
                       }
                     };
                     
@@ -516,16 +637,48 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                   }
                 };
                 
-                // Handle ICE connection state
-                userPc.oniceconnectionstatechange = () => {
-                  addDebugLog(`🧊 ICE connection state with ${data.from}: ${userPc.iceConnectionState}`, 'info');
-                  if (userPc.iceConnectionState === 'connected' || userPc.iceConnectionState === 'completed') {
+                // Handle ICE connection state with retry logic
+                userPc.oniceconnectionstatechange = async () => {
+                  const state = userPc.iceConnectionState;
+                  addDebugLog(`🧊 ICE connection state with ${data.from}: ${state}`, 'info');
+                  
+                  if (state === 'connected' || state === 'completed') {
                     setIsConnected(true);
                     setConnectionStatus('connected');
                     addDebugLog(`✅ ICE connection established with ${data.from}`, 'success');
-                  } else if (userPc.iceConnectionState === 'disconnected' || userPc.iceConnectionState === 'failed') {
-                    addDebugLog(`⚠️ ICE connection ${userPc.iceConnectionState} with ${data.from}`, 'warn');
-                    setConnectionStatus(userPc.iceConnectionState);
+                    // Reset retry count on success
+                    retryCountsRef.current.set(data.from, 0);
+                  } else if (state === 'failed') {
+                    const retryCount = retryCountsRef.current.get(data.from) || 0;
+                    addDebugLog(`⚠️ ICE connection failed with ${data.from} (retry: ${retryCount}/${MAX_RETRY_ATTEMPTS})`, 'warn');
+                    setConnectionStatus('failed');
+                    
+                    // Retry connection if under limit
+                    if (retryCount < MAX_RETRY_ATTEMPTS) {
+                      retryCountsRef.current.set(data.from, retryCount + 1);
+                      addDebugLog(`🔄 Retrying connection with ${data.from} (attempt ${retryCount + 1})...`, 'info');
+                      
+                      // Close old connection
+                      try {
+                        userPc.close();
+                        peerConnectionsRef.current.delete(data.from);
+                      } catch (e) {
+                        console.error('Error closing old connection:', e);
+                      }
+                      
+                      // Wait a bit before retry
+                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      
+                      // Request new offer by sending a signal (or wait for new offer)
+                      // For now, we'll wait for the other peer to send a new offer
+                      addDebugLog(`⏳ Waiting for new offer from ${data.from}...`, 'info');
+                    } else {
+                      addDebugLog(`❌ Max retry attempts reached for ${data.from}`, 'error');
+                      setError(`Không thể kết nối với ${data.from}. Vui lòng thử lại sau.`);
+                    }
+                  } else if (state === 'disconnected') {
+                    addDebugLog(`⚠️ ICE connection disconnected with ${data.from}`, 'warn');
+                    setConnectionStatus('disconnected');
                   }
                 };
               }

@@ -133,3 +133,5 @@ Vào Railway → Service → **Deployments** → Click vào deployment mới nh�
 
 **Sau khi setup xong, email xác thực sẽ tự động gửi khi có người đăng ký!** ✅
 
+
+
