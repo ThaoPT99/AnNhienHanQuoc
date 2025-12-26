@@ -1,41 +1,162 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { authenticatedFetch } from '../utils/auth';
+import { showNotification } from './NotificationCenter';
 import './RightSidebar.css';
 
 const RightSidebar = ({ userEmail, friends, navigate }) => {
   const [onlineFriends, setOnlineFriends] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   useEffect(() => {
     // Filter friends for online status (simplified - can be enhanced with WebSocket)
     setOnlineFriends(friends.slice(0, 5));
-    // Set suggestions (can be enhanced with API)
-    setSuggestions([]);
-  }, [friends]);
+    // Load friend requests
+    if (userEmail) {
+      loadFriendRequests();
+    }
+  }, [friends, userEmail]);
+
+  // Load friend requests - people who follow you but you don't follow back
+  const loadFriendRequests = async () => {
+    if (!userEmail) return;
+    
+    setLoadingRequests(true);
+    try {
+      // Get followers (people who follow you)
+      const followersRes = await fetch(`${API_URL}/api/social/followers/${encodeURIComponent(userEmail)}`);
+      const followers = followersRes.ok ? await followersRes.json() : [];
+      
+      // Get following (people you follow)
+      const followingRes = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
+      const following = followingRes.ok ? await followingRes.json() : [];
+      
+      // Friend requests = followers who are not in following list
+      const followingEmails = new Set((following || []).map(f => f.email));
+      const requests = (followers || []).filter(f => f.email && !followingEmails.has(f.email));
+      
+      setFriendRequests(requests);
+    } catch (error) {
+      console.error('Error loading friend requests:', error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  // Accept friend request = follow them back
+  const handleAcceptRequest = async (requestEmail, requestName) => {
+    if (!userEmail) return;
+    
+    try {
+      const res = await authenticatedFetch('/api/social/follow', {
+        method: 'POST',
+        body: JSON.stringify({
+          following_email: requestEmail
+        })
+      });
+
+      if (res.ok) {
+        showNotification('Thành công', `Đã kết bạn với ${requestName || requestEmail}`, 'success');
+        // Remove from requests list
+        setFriendRequests(prev => prev.filter(r => r.email !== requestEmail));
+        // Reload to update friends list
+        if (window.location.reload) {
+          setTimeout(() => window.location.reload(), 500);
+        }
+      } else {
+        const error = await res.json();
+        showNotification('Lỗi', error.error || 'Không thể kết bạn', 'error');
+      }
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+    }
+  };
+
+  // Delete friend request = remove from list (just hide it, don't unfollow)
+  const handleDeleteRequest = async (requestEmail) => {
+    // Just remove from UI - they're still following you, you just don't see the request
+    setFriendRequests(prev => prev.filter(r => r.email !== requestEmail));
+    showNotification('Đã ẩn', 'Đã ẩn lời mời kết bạn', 'info');
+  };
 
   return (
     <aside className="right-sidebar-content">
       {/* Friend Requests */}
-      <div className="sidebar-widget">
-        <div className="widget-header">
-          <h3>Lời mời kết bạn</h3>
-          <button className="widget-see-all">Xem tất cả</button>
-        </div>
-        <div className="friend-requests-list">
-          {/* Placeholder - can be enhanced with API */}
-          <div className="friend-request-item">
-            <div className="friend-request-avatar">D</div>
-            <div className="friend-request-info">
-              <div className="friend-request-name">Người dùng mới</div>
-              <div className="friend-request-mutual">2 bạn chung</div>
-            </div>
-            <div className="friend-request-actions">
-              <button className="friend-request-confirm">Xác nhận</button>
-              <button className="friend-request-delete">Xóa</button>
-            </div>
+      {friendRequests.length > 0 && (
+        <div className="sidebar-widget">
+          <div className="widget-header">
+            <h3>Lời mời kết bạn</h3>
+            <button 
+              className="widget-see-all"
+              onClick={() => navigate('/friends?tab=requests')}
+            >
+              Xem tất cả
+            </button>
+          </div>
+          <div className="friend-requests-list">
+            {loadingRequests ? (
+              <div className="loading-requests">Đang tải...</div>
+            ) : (
+              friendRequests.slice(0, 5).map((request) => {
+                const requestName = request.name || request.display_name || request.email?.split('@')[0] || 'Người dùng';
+                const requestInitial = requestName.charAt(0).toUpperCase();
+                
+                return (
+                  <div key={request.email} className="friend-request-item">
+                    <Link 
+                      to={`/community/profile/${encodeURIComponent(request.email)}`}
+                      className="friend-request-link"
+                    >
+                      <div className="friend-request-avatar">
+                        {requestInitial}
+                      </div>
+                      <div className="friend-request-info">
+                        <div className="friend-request-name">{requestName}</div>
+                        <div className="friend-request-mutual">
+                          {(() => {
+                            // Calculate mutual friends (simplified - can be enhanced)
+                            const mutualCount = friends.filter(f => 
+                              request.followers && request.followers.includes(f.email)
+                            ).length;
+                            return mutualCount > 0 ? `${mutualCount} bạn chung` : 'Mới tham gia';
+                          })()}
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="friend-request-actions">
+                      <button 
+                        className="friend-request-confirm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAcceptRequest(request.email, requestName);
+                        }}
+                      >
+                        Xác nhận
+                      </button>
+                      <button 
+                        className="friend-request-delete"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteRequest(request.email);
+                        }}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Birthdays */}
       <div className="sidebar-widget">

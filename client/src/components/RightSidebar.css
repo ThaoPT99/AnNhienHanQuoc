@@ -194,9 +194,9 @@
 
 .friend-request-item {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 12px;
-  padding: 8px;
+  padding: 12px;
   border-radius: 8px;
   transition: background 0.2s;
 }
@@ -205,9 +205,18 @@
   background: var(--fb-hover, #f2f2f2);
 }
 
+.friend-request-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+}
+
 .friend-request-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--fb-primary, #1877f2);
   color: white;
@@ -215,8 +224,14 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.friend-request-link:hover .friend-request-avatar {
+  transform: scale(1.05);
 }
 
 .friend-request-info {
@@ -229,6 +244,11 @@
   font-weight: 600;
   color: var(--fb-text-primary, #050505);
   margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.friend-request-link:hover .friend-request-name {
+  text-decoration: underline;
 }
 
 .friend-request-mutual {
@@ -239,13 +259,12 @@
 .friend-request-actions {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
   width: 100%;
 }
 
 .friend-request-confirm {
   flex: 1;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border: none;
   background: var(--fb-primary, #1877f2);
   color: white;
@@ -253,16 +272,21 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .friend-request-confirm:hover {
   background: var(--fb-primary-hover, #166fe5);
+  transform: translateY(-1px);
+}
+
+.friend-request-confirm:active {
+  transform: translateY(0);
 }
 
 .friend-request-delete {
   flex: 1;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border: none;
   background: var(--fb-bg-secondary, #f0f2f5);
   color: var(--fb-text-primary, #050505);
@@ -270,11 +294,23 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .friend-request-delete:hover {
   background: #e4e6eb;
+  transform: translateY(-1px);
+}
+
+.friend-request-delete:active {
+  transform: translateY(0);
+}
+
+.loading-requests {
+  padding: 20px;
+  text-align: center;
+  color: var(--fb-text-secondary, #65676b);
+  font-size: 14px;
 }
 
 /* Birthdays */
