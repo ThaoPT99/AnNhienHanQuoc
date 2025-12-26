@@ -26,6 +26,16 @@ const VideoCallBooking = () => {
     notes: ''
   });
   const [loading, setLoading] = useState(true);
+  
+  // Check for room parameter immediately on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room');
+    if (roomId) {
+      // If room parameter exists, set loading to false immediately
+      setLoading(false);
+    }
+  }, []);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const userEmail = getUserEmail() || '';
