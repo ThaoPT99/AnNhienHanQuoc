@@ -7,7 +7,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [remoteStream, setRemoteStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null); // Keep for backward compatibility
+  const [remoteStreams, setRemoteStreams] = useState(new Map()); // Map<userId, MediaStream>
   const [localStream, setLocalStream] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [error, setError] = useState(null);
@@ -322,18 +323,60 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             break;
 
           case 'offer':
-            // Received offer from another peer
+            // Received offer from another peer - create separate peer connection for this user
             console.log('📥 Received offer from:', data.from);
             try {
-              await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-              console.log('✅ Remote description set (offer)');
+              // Check if we already have a peer connection for this user
+              let userPc = peerConnectionsRef.current.get(data.from);
+              if (!userPc) {
+                console.log('🔗 Creating new peer connection for:', data.from);
+                userPc = new RTCPeerConnection(rtcConfiguration);
+                peerConnectionsRef.current.set(data.from, userPc);
+                
+                // Add local stream tracks to this peer connection
+                if (localStreamRef.current) {
+                  localStreamRef.current.getTracks().forEach(track => {
+                    userPc.addTrack(track, localStreamRef.current);
+                  });
+                }
+                
+                // Handle remote stream from this user
+                userPc.ontrack = (event) => {
+                  console.log('📹 Received remote track from', data.from, ':', event.track.kind);
+                  const remoteStream = event.streams[0];
+                  if (remoteStream) {
+                    console.log('📹 Remote stream tracks from', data.from, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+                    // Store in Map
+                    remoteStreamsRef.current.set(data.from, remoteStream);
+                    // Update state
+                    setRemoteStreams(new Map(remoteStreamsRef.current));
+                    // Also set as main remote stream for backward compatibility
+                    setRemoteStream(remoteStream);
+                  }
+                };
+                
+                // Handle ICE candidates
+                userPc.onicecandidate = (event) => {
+                  if (event.candidate) {
+                    ws.send(JSON.stringify({
+                      type: 'ice-candidate',
+                      roomId: roomId,
+                      candidate: event.candidate,
+                      to: data.from
+                    }));
+                  }
+                };
+              }
               
-              const answer = await pc.createAnswer({
+              await userPc.setRemoteDescription(new RTCSessionDescription(data.offer));
+              console.log('✅ Remote description set (offer) for', data.from);
+              
+              const answer = await userPc.createAnswer({
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true
               });
-              await pc.setLocalDescription(answer);
-              console.log('✅ Local description set (answer)');
+              await userPc.setLocalDescription(answer);
+              console.log('✅ Local description set (answer) for', data.from);
               
               ws.send(JSON.stringify({
                 type: 'answer',
@@ -348,14 +391,15 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             break;
 
           case 'answer':
-            // Received answer from another peer
+            // Received answer from another peer - use the peer connection for this user
             console.log('📥 Received answer from:', data.from);
             try {
-              if (pc.signalingState !== 'stable') {
-                await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-                console.log('✅ Remote description set (answer)');
+              const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
+              if (userPc.signalingState !== 'stable') {
+                await userPc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                console.log('✅ Remote description set (answer) for', data.from);
               } else {
-                console.log('⚠️ Signaling state is stable, answer may be duplicate');
+                console.log('⚠️ Signaling state is stable for', data.from, ', answer may be duplicate');
               }
             } catch (error) {
               console.error('❌ Error handling answer:', error);
@@ -363,30 +407,31 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             break;
 
           case 'ice-candidate':
-            // Received ICE candidate
+            // Received ICE candidate - add to the peer connection for this user
             if (data.candidate) {
               try {
+                const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
                 // Wait for remote description if not set yet
-                if (!pc.remoteDescription) {
-                  console.log('⏳ Waiting for remote description before adding ICE candidate...');
+                if (!userPc.remoteDescription) {
+                  console.log('⏳ Waiting for remote description before adding ICE candidate for', data.from);
                   // Store candidate and add later
                   setTimeout(async () => {
                     try {
-                      await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                      console.log('✅ ICE candidate added (delayed)');
+                      await userPc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                      console.log('✅ ICE candidate added (delayed) for', data.from);
                     } catch (err) {
-                      console.error('❌ Error adding delayed ICE candidate:', err);
+                      console.error('❌ Error adding delayed ICE candidate for', data.from, ':', err);
                     }
                   }, 500);
                 } else {
-                  await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                  console.log('✅ ICE candidate added');
+                  await userPc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                  console.log('✅ ICE candidate added for', data.from);
                 }
               } catch (error) {
-                console.error('❌ Error adding ICE candidate:', error);
-                // Ignore if remote description not set yet
-                if (pc.remoteDescription) {
-                  console.warn('⚠️ Remote description exists but failed to add candidate');
+                console.error('❌ Error adding ICE candidate for', data.from, ':', error);
+                const userPc = peerConnectionsRef.current.get(data.from) || peerConnectionRef.current;
+                if (userPc.remoteDescription) {
+                  console.warn('⚠️ Remote description exists but failed to add candidate for', data.from);
                 }
               }
             }
@@ -418,6 +463,19 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               console.log('✅ Updated participants after user left:', updated.map(p => p.userId));
               return updated;
             });
+            // Clean up peer connection and remote stream for this user
+            const leftUserPc = peerConnectionsRef.current.get(data.userId);
+            if (leftUserPc) {
+              leftUserPc.close();
+              peerConnectionsRef.current.delete(data.userId);
+              console.log('🔌 Closed peer connection for', data.userId);
+            }
+            remoteStreamsRef.current.delete(data.userId);
+            setRemoteStreams(new Map(remoteStreamsRef.current));
+            // If this was the main remote stream, clear it
+            if (remoteStream && remoteStreamsRef.current.size === 0) {
+              setRemoteStream(null);
+            }
             break;
         }
       };
@@ -596,22 +654,47 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         )}
 
         <div className="video-call-content">
-          {/* Remote video (other person) */}
+          {/* Remote videos (other people) - Grid layout */}
           <div className="remote-video-container">
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              webkit-playsinline="true"
-              className="remote-video"
-              style={{ display: remoteStream ? 'block' : 'none' }}
-            />
-            {!remoteStream && (
-              <div className="waiting-for-peer">
-                <div className="waiting-spinner"></div>
-                <p>Đang chờ người tham gia...</p>
-                <p className="connection-status">Trạng thái: {connectionStatus}</p>
+            {remoteStreams.size > 0 ? (
+              <div className="remote-videos-grid">
+                {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
+                  <div key={userId} className="remote-video-item">
+                    <video
+                      autoPlay
+                      playsInline
+                      webkit-playsinline="true"
+                      className="remote-video"
+                      ref={(el) => {
+                        if (el && stream) {
+                          el.srcObject = stream;
+                          el.play().catch(err => console.error('Error playing video for', userId, ':', err));
+                        }
+                      }}
+                    />
+                    <div className="remote-video-label">{userId}</div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <>
+                {/* Keep single video for backward compatibility */}
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  webkit-playsinline="true"
+                  className="remote-video"
+                  style={{ display: remoteStream ? 'block' : 'none' }}
+                />
+                {!remoteStream && (
+                  <div className="waiting-for-peer">
+                    <div className="waiting-spinner"></div>
+                    <p>Đang chờ người tham gia...</p>
+                    <p className="connection-status">Trạng thái: {connectionStatus}</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
