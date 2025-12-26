@@ -299,23 +299,63 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             setParticipants(allParticipants);
             
             // Only create offer if there are other users in room
+            // Create separate peer connection and offer for each existing user
             if (data.usersInRoom && data.usersInRoom.length > 0) {
-              console.log('👥 Other users in room, creating offer...');
-              try {
-                const offer = await pc.createOffer({
-                  offerToReceiveAudio: true,
-                  offerToReceiveVideo: true
-                });
-                await pc.setLocalDescription(offer);
-                console.log('✅ Local description set (offer)');
-                ws.send(JSON.stringify({
-                  type: 'offer',
-                  roomId: roomId,
-                  offer: offer
-                }));
-                console.log('📤 Sent offer to room');
-              } catch (error) {
-                console.error('❌ Error creating offer:', error);
+              console.log('👥 Other users in room, creating offers for each...');
+              for (const userId of data.usersInRoom) {
+                try {
+                  // Create peer connection for this user
+                  const userPc = new RTCPeerConnection(rtcConfiguration);
+                  peerConnectionsRef.current.set(userId, userPc);
+                  
+                  // Add local stream tracks
+                  if (localStreamRef.current) {
+                    localStreamRef.current.getTracks().forEach(track => {
+                      userPc.addTrack(track, localStreamRef.current);
+                    });
+                  }
+                  
+                  // Handle remote stream from this user
+                  userPc.ontrack = (event) => {
+                    console.log('📹 Received remote track from', userId, ':', event.track.kind);
+                    const remoteStream = event.streams[0];
+                    if (remoteStream) {
+                      console.log('📹 Remote stream tracks from', userId, ':', remoteStream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+                      remoteStreamsRef.current.set(userId, remoteStream);
+                      setRemoteStreams(new Map(remoteStreamsRef.current));
+                      setRemoteStream(remoteStream); // For backward compatibility
+                    }
+                  };
+                  
+                  // Handle ICE candidates
+                  userPc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                      ws.send(JSON.stringify({
+                        type: 'ice-candidate',
+                        roomId: roomId,
+                        candidate: event.candidate,
+                        to: userId
+                      }));
+                    }
+                  };
+                  
+                  // Create and send offer
+                  const offer = await userPc.createOffer({
+                    offerToReceiveAudio: true,
+                    offerToReceiveVideo: true
+                  });
+                  await userPc.setLocalDescription(offer);
+                  console.log('✅ Local description set (offer) for', userId);
+                  ws.send(JSON.stringify({
+                    type: 'offer',
+                    roomId: roomId,
+                    offer: offer,
+                    to: userId
+                  }));
+                  console.log('📤 Sent offer to', userId);
+                } catch (error) {
+                  console.error('❌ Error creating offer for', userId, ':', error);
+                }
               }
             } else {
               console.log('👤 First user in room, waiting for others...');
