@@ -12,6 +12,11 @@ export const getUserEmail = () => {
   return localStorage.getItem('userEmail');
 };
 
+// Get user name from localStorage
+export const getUserName = () => {
+  return localStorage.getItem('userName') || localStorage.getItem('displayName');
+};
+
 // Check if user is logged in
 export const isLoggedIn = () => {
   return !!getAuthToken();

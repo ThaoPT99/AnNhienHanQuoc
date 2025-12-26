@@ -1,5 +1,5 @@
 import React from 'react';
-import CommunityComponent from '../components/Community';
+import CommunityFacebook from '../components/CommunityFacebook';
 import SEO from '../components/SEO';
 import './Community.css';
 
@@ -11,7 +11,7 @@ const Community = () => {
         description="Tham gia cộng đồng du học sinh Hàn Quốc. Chia sẻ kinh nghiệm, hỏi đáp và kết nối với các du học sinh khác."
         keywords="cộng đồng du học sinh, forum du học Hàn Quốc, chia sẻ kinh nghiệm du học"
       />
-      <CommunityComponent />
+      <CommunityFacebook />
     </div>
   );
 };

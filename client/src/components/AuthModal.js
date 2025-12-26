@@ -5,7 +5,7 @@ import { showNotification } from './NotificationCenter';
 import { isAuthenticated } from '../utils/auth';
 import './AuthModal.css';
 
-const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
+const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false, onSuccess }) => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [formData, setFormData] = useState({
@@ -28,10 +28,15 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
   // Check if already logged in
   useEffect(() => {
     if (isOpen && isAuthenticated()) {
-      onClose();
-      navigate('/community');
+      if (requireAuth && onSuccess) {
+        onSuccess();
+      }
+      if (!requireAuth) {
+        onClose();
+        navigate('/community');
+      }
     }
-  }, [isOpen, onClose, navigate]);
+  }, [isOpen, onClose, navigate, requireAuth, onSuccess]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,9 +65,15 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
             'success'
           );
 
-          onClose();
-          // Reload page to update navbar state
-          window.location.reload();
+          if (requireAuth && onSuccess) {
+            onSuccess();
+          }
+          
+          if (!requireAuth) {
+            onClose();
+            // Reload page to update navbar state
+            window.location.reload();
+          }
         } else {
           // Registration successful
           showNotification(
@@ -121,7 +132,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="auth-modal-overlay"
-        onClick={onClose}
+        onClick={requireAuth ? undefined : onClose}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -130,13 +141,15 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
           className="auth-modal-content"
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            className="auth-modal-close"
-            onClick={onClose}
-            aria-label="Đóng"
-          >
-            ✕
-          </button>
+          {!requireAuth && (
+            <button
+              className="auth-modal-close"
+              onClick={onClose}
+              aria-label="Đóng"
+            >
+              ✕
+            </button>
+          )}
 
           <div className="auth-modal-header">
             <h2>{isLogin ? '🔐 Đăng nhập' : '✨ Đăng ký'}</h2>
