@@ -18,6 +18,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [showCallFriends, setShowCallFriends] = useState(false);
   const [friends, setFriends] = useState([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(null); // { roomLink, callerName, callerEmail, roomId }
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
@@ -26,6 +27,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
   const retryCountsRef = useRef(new Map()); // Map<userId, number> - track retry attempts per user
+  const ringtoneAudioRef = useRef(null);
   const MAX_RETRY_ATTEMPTS = 2; // Maximum retry attempts per user
 
   // Helper function to add debug log (console only)
@@ -194,6 +196,93 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       console.error('❌ Local video ref is null!');
     }
   }, [localStream]);
+
+  // Play ringtone when incoming call arrives
+  useEffect(() => {
+    const stopRingtone = () => {
+      if (ringtoneAudioRef.current) {
+        try {
+          if (ringtoneAudioRef.current.intervalId) {
+            clearInterval(ringtoneAudioRef.current.intervalId);
+          }
+          if (ringtoneAudioRef.current.oscillator) {
+            ringtoneAudioRef.current.oscillator.stop();
+          }
+          if (ringtoneAudioRef.current.audioContext) {
+            ringtoneAudioRef.current.audioContext.close();
+          }
+          ringtoneAudioRef.current = null;
+        } catch (e) {
+          console.error('Error stopping ringtone:', e);
+        }
+      }
+    };
+
+    if (incomingCall) {
+      // Stop any existing ringtone first
+      stopRingtone();
+      
+      // Create audio context for ringtone
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Set frequency for ringtone (800Hz)
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.type = 'sine';
+        
+        // Create a beeping pattern (beep-beep, pause, beep-beep)
+        const beepDuration = 0.15; // 150ms per beep
+        const pauseDuration = 0.1; // 100ms pause
+        const cycleDuration = (beepDuration * 2) + pauseDuration + 0.6; // Total cycle time
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        
+        const scheduleBeeps = () => {
+          const now = audioContext.currentTime;
+          
+          // First beep
+          gainNode.gain.setValueAtTime(0.3, now);
+          gainNode.gain.setValueAtTime(0, now + beepDuration);
+          
+          // Second beep
+          gainNode.gain.setValueAtTime(0.3, now + beepDuration + pauseDuration);
+          gainNode.gain.setValueAtTime(0, now + beepDuration * 2 + pauseDuration);
+        };
+        
+        oscillator.start();
+        
+        // Schedule beeps repeatedly
+        const intervalId = setInterval(() => {
+          if (audioContext.state === 'running') {
+            scheduleBeeps();
+          }
+        }, cycleDuration * 1000);
+        
+        // Start first beep
+        scheduleBeeps();
+        
+        // Store references for cleanup
+        ringtoneAudioRef.current = { audioContext, oscillator, gainNode, intervalId };
+        
+        console.log('🔔 Playing ringtone for incoming call');
+      } catch (e) {
+        console.error('Error creating ringtone:', e);
+      }
+      
+      return () => {
+        console.log('🔕 Stopping ringtone');
+        stopRingtone();
+      };
+    } else {
+      // Stop ringtone if it's playing
+      stopRingtone();
+    }
+  }, [incomingCall]);
 
   // Update remote video element when stream changes
   useEffect(() => {
@@ -1150,9 +1239,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             break;
 
           case 'incoming-call':
-            // Received incoming call notification (for other users, not ourselves)
-            // This would be handled by a notification system
-            console.log('📞 Incoming call notification received (for other users):', data);
+            // Received incoming call notification
+            console.log('📞 Incoming call notification received:', data);
+            // Only show notification if we're not already in a call
+            if (!isCallActive && !roomId) {
+              setIncomingCall({
+                roomLink: data.roomLink,
+                roomId: data.roomId,
+                callerName: data.callerName || data.callerEmail,
+                callerEmail: data.callerEmail
+              });
+            }
             break;
 
           case 'user-left':
@@ -1231,7 +1328,40 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     }
   };
 
+  const acceptCall = () => {
+    if (incomingCall && incomingCall.roomLink) {
+      // Navigate to the room by extracting roomId from roomLink
+      const urlParts = incomingCall.roomLink.split('/');
+      const roomIdFromLink = urlParts[urlParts.length - 1];
+      
+      // Close current connection if any
+      cleanup();
+      
+      // Reset states
+      setIncomingCall(null);
+      
+      // Navigate to the room
+      window.location.href = incomingCall.roomLink;
+    }
+  };
+
+  const rejectCall = () => {
+    setIncomingCall(null);
+  };
+
   const cleanup = () => {
+    // Stop ringtone if playing
+    if (ringtoneAudioRef.current) {
+      try {
+        clearInterval(ringtoneAudioRef.current.intervalId);
+        ringtoneAudioRef.current.oscillator.stop();
+        ringtoneAudioRef.current.audioContext.close();
+        ringtoneAudioRef.current = null;
+      } catch (e) {
+        console.error('Error stopping ringtone in cleanup:', e);
+      }
+    }
+    
     // Leave room before closing
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
@@ -1574,6 +1704,86 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             )}
           </div>
         </div>
+
+        {/* Incoming Call Notification */}
+        <AnimatePresence>
+          {incomingCall && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="incoming-call-modal"
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10000,
+                padding: '20px'
+              }}
+            >
+              <motion.div
+                initial={{ y: 50 }}
+                animate={{ y: 0 }}
+                className="incoming-call-content"
+                style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  padding: '30px',
+                  textAlign: 'center',
+                  maxWidth: '400px',
+                  width: '100%',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+                }}
+              >
+                <div style={{ fontSize: '4rem', marginBottom: '20px' }}>📞</div>
+                <h2 style={{ marginBottom: '10px', color: '#333' }}>Cuộc gọi đến</h2>
+                <p style={{ fontSize: '1.2rem', color: '#666', marginBottom: '30px' }}>
+                  {incomingCall.callerName || incomingCall.callerEmail}
+                </p>
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                  <button
+                    onClick={rejectCall}
+                    style={{
+                      padding: '15px 30px',
+                      fontSize: '1rem',
+                      borderRadius: '50px',
+                      border: 'none',
+                      background: '#ff4444',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      minWidth: '120px'
+                    }}
+                  >
+                    ❌ Từ chối
+                  </button>
+                  <button
+                    onClick={acceptCall}
+                    style={{
+                      padding: '15px 30px',
+                      fontSize: '1rem',
+                      borderRadius: '50px',
+                      border: 'none',
+                      background: '#4CAF50',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      minWidth: '120px'
+                    }}
+                  >
+                    ✅ Trả lời
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Controls */}
         <div className="video-call-controls">
