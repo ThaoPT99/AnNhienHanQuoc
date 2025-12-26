@@ -29,6 +29,37 @@ const Friends = () => {
     loadFriends();
   }, [userEmail, activeTab]);
 
+  // Load both following and followers on mount
+  useEffect(() => {
+    if (!userEmail) return;
+    
+    const loadAllFriends = async () => {
+      try {
+        // Load following
+        const followingRes = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
+        if (followingRes.ok) {
+          const followingData = await followingRes.json();
+          const validFollowing = (followingData || []).filter(f => f && f.email);
+          setFollowing(validFollowing);
+          console.log('Loaded following on mount:', validFollowing.length);
+        }
+
+        // Load followers
+        const followersRes = await fetch(`${API_URL}/api/social/followers/${encodeURIComponent(userEmail)}`);
+        if (followersRes.ok) {
+          const followersData = await followersRes.json();
+          const validFollowers = (followersData || []).filter(f => f && f.email);
+          setFollowers(validFollowers);
+          console.log('Loaded followers on mount:', validFollowers.length);
+        }
+      } catch (error) {
+        console.error('Error loading all friends:', error);
+      }
+    };
+
+    loadAllFriends();
+  }, [userEmail]);
+
   const loadFriends = async () => {
     if (!userEmail) return;
     
@@ -38,17 +69,32 @@ const Friends = () => {
         const res = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
         if (res.ok) {
           const data = await res.json();
-          setFollowing(data || []);
+          const validFriends = (data || []).filter(f => f && f.email);
+          console.log('Loaded following:', validFriends.length, validFriends);
+          setFollowing(validFriends);
+        } else {
+          console.error('Failed to load following:', res.status);
+          setFollowing([]);
         }
       } else {
         const res = await fetch(`${API_URL}/api/social/followers/${encodeURIComponent(userEmail)}`);
         if (res.ok) {
           const data = await res.json();
-          setFollowers(data || []);
+          const validFollowers = (data || []).filter(f => f && f.email);
+          console.log('Loaded followers:', validFollowers.length, validFollowers);
+          setFollowers(validFollowers);
+        } else {
+          console.error('Failed to load followers:', res.status);
+          setFollowers([]);
         }
       }
     } catch (error) {
       console.error('Error loading friends:', error);
+      if (activeTab === 'following') {
+        setFollowing([]);
+      } else {
+        setFollowers([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -266,13 +312,24 @@ const Friends = () => {
         <div className="friends-list-section">
           {activeTab === 'following' ? (
             <>
-              <h2>Đang follow ({filteredList.length})</h2>
-              {filteredList.length === 0 ? (
+              <h2>Đang follow ({following.length})</h2>
+              {following.length === 0 ? (
                 <div className="empty-state">
                   <p>Bạn chưa follow ai</p>
                   <Link to="/community" className="go-to-community-btn">
                     Đi đến Community để tìm bạn bè
                   </Link>
+                </div>
+              ) : filteredList.length === 0 ? (
+                <div className="empty-state">
+                  <p>Không tìm thấy bạn bè nào phù hợp với từ khóa "{searchQuery}"</p>
+                  <button
+                    className="go-to-community-btn"
+                    onClick={() => setSearchQuery('')}
+                    style={{ border: 'none', cursor: 'pointer' }}
+                  >
+                    Xóa tìm kiếm
+                  </button>
                 </div>
               ) : (
                 <div className="friends-grid">
@@ -315,11 +372,22 @@ const Friends = () => {
             </>
           ) : (
             <>
-              <h2>Followers ({filteredList.length})</h2>
-              {filteredList.length === 0 ? (
+              <h2>Followers ({followers.length})</h2>
+              {followers.length === 0 ? (
                 <div className="empty-state">
                   <p>Chưa có ai follow bạn</p>
                   <p className="hint">Hãy tham gia Community và chia sẻ để có thêm followers!</p>
+                </div>
+              ) : filteredList.length === 0 ? (
+                <div className="empty-state">
+                  <p>Không tìm thấy follower nào phù hợp với từ khóa "{searchQuery}"</p>
+                  <button
+                    className="go-to-community-btn"
+                    onClick={() => setSearchQuery('')}
+                    style={{ border: 'none', cursor: 'pointer' }}
+                  >
+                    Xóa tìm kiếm
+                  </button>
                 </div>
               ) : (
                 <div className="friends-grid">
