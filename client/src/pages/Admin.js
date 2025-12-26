@@ -640,10 +640,11 @@ const Admin = () => {
                         <th>Hạng</th>
                         <th>Email</th>
                         <th>Tên</th>
+                        <th>Xác thực</th>
                         <th>Điểm</th>
                         <th>Level</th>
-                        <th>Ngày tham gia</th>
-                        <th>Cập nhật lần cuối</th>
+                        <th>Ngày đăng ký</th>
+                        <th>Đăng nhập cuối</th>
                         <th>Thao tác</th>
                       </tr>
                     </thead>
@@ -651,23 +652,54 @@ const Admin = () => {
                       {users.map((user, index) => (
                         <tr key={user.user_email}>
                           <td>
-                            <span style={{
-                              display: 'inline-block',
-                              width: '30px',
-                              height: '30px',
-                              borderRadius: '50%',
-                              background: user.rank <= 3 ? '#ffd700' : '#667eea',
-                              color: 'white',
-                              textAlign: 'center',
-                              lineHeight: '30px',
-                              fontWeight: 'bold',
-                              fontSize: '0.9rem'
-                            }}>
-                              {user.rank || index + 1}
-                            </span>
+                            {user.rank ? (
+                              <span style={{
+                                display: 'inline-block',
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '50%',
+                                background: user.rank <= 3 ? '#ffd700' : '#667eea',
+                                color: 'white',
+                                textAlign: 'center',
+                                lineHeight: '30px',
+                                fontWeight: 'bold',
+                                fontSize: '0.9rem'
+                              }}>
+                                {user.rank}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#999', fontSize: '0.9rem' }}>-</span>
+                            )}
                           </td>
                           <td><a href={`mailto:${user.user_email}`}>{user.user_email}</a></td>
                           <td>{user.user_name || user.display_name || '-'}</td>
+                          <td>
+                            {user.email_verified === true ? (
+                              <span style={{
+                                padding: '4px 8px',
+                                background: '#e8f5e9',
+                                borderRadius: '4px',
+                                fontWeight: '600',
+                                color: '#2e7d32',
+                                fontSize: '0.85rem'
+                              }}>
+                                ✅ Đã xác thực
+                              </span>
+                            ) : user.email_verified === false ? (
+                              <span style={{
+                                padding: '4px 8px',
+                                background: '#fff3e0',
+                                borderRadius: '4px',
+                                fontWeight: '600',
+                                color: '#f57c00',
+                                fontSize: '0.85rem'
+                              }}>
+                                ⏳ Chưa xác thực
+                              </span>
+                            ) : (
+                              <span style={{ color: '#999', fontSize: '0.85rem' }}>-</span>
+                            )}
+                          </td>
                           <td>
                             <strong style={{ color: '#667eea', fontSize: '1.1rem' }}>
                               {user.points || 0}
@@ -684,8 +716,8 @@ const Admin = () => {
                               Level {user.level || 1}
                             </span>
                           </td>
-                          <td>{formatDate(user.created_at)}</td>
-                          <td>{formatDate(user.last_updated)}</td>
+                          <td>{formatDate(user.registered_at || user.created_at)}</td>
+                          <td>{formatDate(user.last_login) || <em style={{ color: '#999' }}>Chưa đăng nhập</em>}</td>
                           <td>
                             <button
                               onClick={() => {

@@ -1696,6 +1696,7 @@ const dbHelpers = {
 
   // Admin functions for user management
   getAllUsers: (callback) => {
+    // Get all users from user_points table (for gamification)
     db.all(
       `SELECT 
         user_email,
@@ -1710,7 +1711,88 @@ const dbHelpers = {
          OR (up2.points = up1.points AND up2.created_at < up1.created_at)) + 1 as rank
        FROM user_points up1
        ORDER BY points DESC, created_at ASC`,
-      callback
+      (err, userPointsRows) => {
+        if (err) {
+          callback(err, null);
+          return;
+        }
+        
+        // Also get all registered users from users table (authentication)
+        db.all(
+          `SELECT 
+            email,
+            display_name,
+            email_verified,
+            created_at as registered_at,
+            last_login
+           FROM users
+           ORDER BY created_at DESC`,
+          (err2, authUsersRows) => {
+            if (err2) {
+              console.error('Error fetching auth users:', err2);
+              // Return user_points data even if auth users query fails
+              callback(null, userPointsRows || []);
+              return;
+            }
+            
+            // Merge data: combine user_points with auth users info
+            const usersMap = new Map();
+            
+            // Add users from user_points
+            (userPointsRows || []).forEach(user => {
+              usersMap.set(user.user_email, {
+                user_email: user.user_email,
+                user_name: user.user_name,
+                display_name: user.user_name,
+                points: user.points || 0,
+                level: user.level || 1,
+                rank: user.rank,
+                created_at: user.created_at,
+                last_updated: user.last_updated,
+                email_verified: null,
+                registered_at: user.created_at,
+                last_login: null
+              });
+            });
+            
+            // Add/update with auth users info
+            (authUsersRows || []).forEach(authUser => {
+              const existing = usersMap.get(authUser.email);
+              if (existing) {
+                // Update existing user
+                existing.display_name = authUser.display_name || existing.display_name;
+                existing.email_verified = authUser.email_verified === 1;
+                existing.registered_at = authUser.registered_at || existing.registered_at;
+                existing.last_login = authUser.last_login;
+              } else {
+                // New user from auth table (not in user_points yet)
+                usersMap.set(authUser.email, {
+                  user_email: authUser.email,
+                  user_name: authUser.display_name || authUser.email.split('@')[0],
+                  display_name: authUser.display_name || authUser.email.split('@')[0],
+                  points: 0,
+                  level: 1,
+                  rank: null,
+                  created_at: authUser.registered_at,
+                  last_updated: authUser.registered_at,
+                  email_verified: authUser.email_verified === 1,
+                  registered_at: authUser.registered_at,
+                  last_login: authUser.last_login
+                });
+              }
+            });
+            
+            // Convert map to array and sort by registered_at (newest first)
+            const allUsers = Array.from(usersMap.values()).sort((a, b) => {
+              const dateA = new Date(a.registered_at || a.created_at || 0);
+              const dateB = new Date(b.registered_at || b.created_at || 0);
+              return dateB - dateA;
+            });
+            
+            callback(null, allUsers);
+          }
+        );
+      }
     );
   },
 
