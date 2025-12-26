@@ -70,8 +70,11 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
       {onlineFriends.length > 0 && (
         <div className="sidebar-widget">
           <div className="widget-header">
-            <h3>Bạn bè đang online</h3>
-            <button className="widget-see-all">Xem tất cả</button>
+            <h3>Người liên hệ</h3>
+            <div className="contacts-header-actions">
+              <button className="contacts-search-btn" title="Tìm kiếm">🔍</button>
+              <button className="contacts-menu-btn" title="Menu">⋯</button>
+            </div>
           </div>
           <div className="contacts-list">
             {onlineFriends.map((friend) => (
