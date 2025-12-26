@@ -596,11 +596,19 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       localStreamRef.current = null;
     }
 
-    // Close peer connection
+    // Close all peer connections
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
     }
+    // Close all peer connections in Map
+    peerConnectionsRef.current.forEach((pc, userId) => {
+      pc.close();
+      console.log('🔌 Closed peer connection for', userId);
+    });
+    peerConnectionsRef.current.clear();
+    remoteStreamsRef.current.clear();
+    setRemoteStreams(new Map());
 
     // Close socket if exists
     if (socketRef.current) {
