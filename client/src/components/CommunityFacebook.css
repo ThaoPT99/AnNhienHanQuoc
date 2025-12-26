@@ -193,6 +193,8 @@
   justify-content: center;
   padding-top: 72px;
   min-height: calc(100vh - 72px);
+  margin-left: 300px; /* Space for fixed left sidebar */
+  margin-right: 300px; /* Space for fixed right sidebar */
 }
 
 /* Main Feed - Scrollable */
@@ -326,8 +328,8 @@
   }
   
   .community-facebook-container {
-    padding-left: calc(250px + 32px);
-    padding-right: calc(250px + 32px);
+    margin-left: 250px;
+    margin-right: 250px;
   }
 }
 
@@ -341,8 +343,8 @@
   }
   
   .community-facebook-container {
-    padding-left: calc(240px + 24px);
-    padding-right: calc(240px + 24px);
+    margin-left: 240px;
+    margin-right: 240px;
   }
 }
 
@@ -391,8 +393,8 @@
   }
   
   .community-facebook-container {
-    padding-left: 16px;
-    padding-right: 16px;
+    margin-left: 0;
+    margin-right: 0;
     padding-top: 76px;
     max-width: 100%;
   }
