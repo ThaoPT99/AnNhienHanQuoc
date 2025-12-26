@@ -286,6 +286,11 @@ const VideoCallBooking = () => {
             <button 
               className="btn-call-now webrtc-call-btn"
               onClick={() => {
+                if (!isLoggedIn()) {
+                  showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để sử dụng tính năng này', 'info');
+                  navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
                 const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 const userEmail = localStorage.getItem('userEmail') || '';
                 const userName = localStorage.getItem('userName') || userEmail;
@@ -301,6 +306,11 @@ const VideoCallBooking = () => {
             <button 
               className="btn-call-friend"
               onClick={() => {
+                if (!isLoggedIn()) {
+                  showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để sử dụng tính năng này', 'info');
+                  navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
                 if (!userEmail) {
                   alert('Vui lòng nhập email để sử dụng tính năng này');
                   return;
@@ -310,7 +320,17 @@ const VideoCallBooking = () => {
             >
               👥 Gọi cho bạn
             </button>
-            <button className="btn-new-booking" onClick={() => setShowForm(!showForm)}>
+            <button 
+              className="btn-new-booking" 
+              onClick={() => {
+                if (!isLoggedIn()) {
+                  showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để đặt lịch', 'info');
+                  navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
+                setShowForm(!showForm);
+              }}
+            >
               {showForm ? '✖️ Hủy' : '+ Đặt lịch mới'}
             </button>
           </div>
