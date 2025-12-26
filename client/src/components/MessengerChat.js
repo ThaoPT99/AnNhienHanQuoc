@@ -515,7 +515,7 @@ const MessengerChat = () => {
                     {selectedChat.messages && selectedChat.messages.length > 0 ? (
                       selectedChat.messages.map((msg, idx) => (
                         <div
-                          key={idx}
+                          key={`${msg.timestamp}-${idx}-${msg.text.substring(0, 10)}`}
                           className={`message ${msg.sender === 'me' ? 'message-sent' : 'message-received'}`}
                         >
                           <div className="message-bubble">
