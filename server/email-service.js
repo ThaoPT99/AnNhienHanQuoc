@@ -259,8 +259,8 @@ async function sendNotificationEmail({ recipientEmail, recipientName, subject, m
   }
 }
 
-// Generic sendEmail function
-async function sendEmail(to, subject, htmlContent, textContent) {
+// Generic sendEmail function with retry logic
+async function sendEmail(to, subject, htmlContent, textContent, retries = 2) {
   if (!transporter) {
     if (!initializeEmailService()) {
       console.warn('⚠️ Email service: Not configured. Skipping email to', to);
@@ -279,13 +279,45 @@ async function sendEmail(to, subject, htmlContent, textContent) {
     text: textContent || htmlContent.replace(/<[^>]*>/g, '') // Strip HTML tags for text version
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('❌ Error sending email:', error);
-    return { success: false, error: error.message };
+  // Wrap in timeout promise
+  const sendWithTimeout = (timeoutMs = 15000) => {
+    return Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email send timeout')), timeoutMs)
+      )
+    ]);
+  };
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      if (attempt > 0) {
+        console.log(`🔄 Retrying email send (attempt ${attempt + 1}/${retries + 1})...`);
+        // Wait before retry: 1s, 2s, 3s...
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+      }
+      
+      const info = await sendWithTimeout(15000); // 15 second timeout
+      console.log('✅ Email sent successfully:', info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      const isLastAttempt = attempt === retries;
+      const isTimeout = error.message === 'Email send timeout' || error.code === 'ETIMEDOUT';
+      
+      if (isLastAttempt) {
+        console.error(`❌ Error sending email after ${retries + 1} attempts:`, error.message);
+        return { 
+          success: false, 
+          error: error.message,
+          code: error.code || 'UNKNOWN',
+          message: isTimeout 
+            ? 'Connection timeout. Email service may be temporarily unavailable. User can resend verification email later.'
+            : error.message
+        };
+      } else {
+        console.warn(`⚠️ Email send attempt ${attempt + 1} failed:`, error.message, '- Retrying...');
+      }
+    }
   }
 }
 
