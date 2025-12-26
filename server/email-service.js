@@ -15,13 +15,21 @@ function initializeEmailService() {
   try {
     switch (emailProvider.toLowerCase()) {
       case 'gmail':
-        // Gmail SMTP
+        // Gmail SMTP with timeout settings
         transporter = nodemailer.createTransport({
           service: 'gmail',
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false, // true for 465, false for other ports
           auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD
-          }
+          },
+          connectionTimeout: 10000, // 10 seconds
+          greetingTimeout: 10000, // 10 seconds
+          socketTimeout: 10000, // 10 seconds
+          debug: process.env.NODE_ENV === 'development',
+          logger: process.env.NODE_ENV === 'development'
         });
         break;
         
@@ -30,10 +38,14 @@ function initializeEmailService() {
         transporter = nodemailer.createTransport({
           host: 'smtp.sendgrid.net',
           port: 587,
+          secure: false,
           auth: {
             user: 'apikey',
             pass: process.env.SENDGRID_API_KEY
-          }
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 10000
         });
         break;
         
@@ -42,10 +54,14 @@ function initializeEmailService() {
         transporter = nodemailer.createTransport({
           host: process.env.MAILGUN_SMTP_SERVER || 'smtp.mailgun.org',
           port: 587,
+          secure: false,
           auth: {
             user: process.env.MAILGUN_SMTP_LOGIN,
             pass: process.env.MAILGUN_SMTP_PASSWORD
-          }
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 10000
         });
         break;
         
@@ -59,7 +75,10 @@ function initializeEmailService() {
           auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASSWORD
-          }
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 10000
         });
         break;
     }
