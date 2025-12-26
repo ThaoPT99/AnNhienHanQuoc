@@ -26,6 +26,38 @@ class WebRTCSignalingServer {
           console.log('📨 Received message:', data.type);
           
           switch (data.type) {
+            case 'register-messaging':
+              // Register user for messaging (without joining a room)
+              userId = data.userId || `user_${Date.now()}`;
+              ws.userId = userId;
+              this.userConnections.set(userId, ws);
+              console.log(`💬 Registered user for messaging: ${userId}`);
+              ws.send(JSON.stringify({
+                type: 'messaging-registered',
+                userId: userId
+              }));
+              break;
+              
+            case 'chat-message':
+              // Forward chat message to recipient
+              const { from, to, message, timestamp } = data;
+              const recipientWs = this.userConnections.get(to);
+              
+              if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
+                recipientWs.send(JSON.stringify({
+                  type: 'chat-message',
+                  from: from,
+                  to: to,
+                  message: message,
+                  timestamp: timestamp || new Date().toISOString()
+                }));
+                console.log(`💬 Message sent from ${from} to ${to}`);
+              } else {
+                console.log(`⚠️ User ${to} is not online, message will be stored in localStorage on client side`);
+                // Message will be saved in localStorage and shown when user comes online
+              }
+              break;
+              
             case 'join-room':
               roomId = data.roomId;
               userId = data.userId || `user_${Date.now()}`;
