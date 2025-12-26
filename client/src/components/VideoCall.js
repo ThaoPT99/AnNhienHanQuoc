@@ -50,7 +50,15 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       { urls: 'stun:stun.voiparound.com' },
       { urls: 'stun:stun.voipbuster.com' },
       { urls: 'stun:stun.voipstunt.com' },
-      // Free TURN servers (for NAT traversal when STUN fails)
+      // Railway TURN Server (dedicated TURN server - prioritized)
+      {
+        urls: [
+          'turn:turn-server-production-f957.up.railway.app:3478',
+          'turn:turn-server-production-f957.up.railway.app:3478?transport=tcp'
+        ]
+        // No authentication needed (configured as no-auth in turnserver.conf)
+      },
+      // Free TURN servers (for NAT traversal when STUN fails - fallback)
       // Note: Free TURN servers are often unreliable or blocked
       // For production, consider using a dedicated TURN server
       
