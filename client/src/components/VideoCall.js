@@ -219,25 +219,72 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
           case 'offer':
             // Received offer from another peer
-            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            ws.send(JSON.stringify({
-              type: 'answer',
-              roomId: roomId,
-              answer: answer
-            }));
+            console.log('📥 Received offer from:', data.from);
+            try {
+              await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+              console.log('✅ Remote description set (offer)');
+              
+              const answer = await pc.createAnswer({
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true
+              });
+              await pc.setLocalDescription(answer);
+              console.log('✅ Local description set (answer)');
+              
+              ws.send(JSON.stringify({
+                type: 'answer',
+                roomId: roomId,
+                answer: answer,
+                to: data.from
+              }));
+              console.log('📤 Sent answer to:', data.from);
+            } catch (error) {
+              console.error('❌ Error handling offer:', error);
+            }
             break;
 
           case 'answer':
             // Received answer from another peer
-            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+            console.log('📥 Received answer from:', data.from);
+            try {
+              if (pc.signalingState !== 'stable') {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                console.log('✅ Remote description set (answer)');
+              } else {
+                console.log('⚠️ Signaling state is stable, answer may be duplicate');
+              }
+            } catch (error) {
+              console.error('❌ Error handling answer:', error);
+            }
             break;
 
           case 'ice-candidate':
             // Received ICE candidate
             if (data.candidate) {
-              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+              try {
+                // Wait for remote description if not set yet
+                if (!pc.remoteDescription) {
+                  console.log('⏳ Waiting for remote description before adding ICE candidate...');
+                  // Store candidate and add later
+                  setTimeout(async () => {
+                    try {
+                      await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                      console.log('✅ ICE candidate added (delayed)');
+                    } catch (err) {
+                      console.error('❌ Error adding delayed ICE candidate:', err);
+                    }
+                  }, 500);
+                } else {
+                  await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                  console.log('✅ ICE candidate added');
+                }
+              } catch (error) {
+                console.error('❌ Error adding ICE candidate:', error);
+                // Ignore if remote description not set yet
+                if (pc.remoteDescription) {
+                  console.warn('⚠️ Remote description exists but failed to add candidate');
+                }
+              }
             }
             break;
 
