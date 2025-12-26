@@ -75,6 +75,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       };
 
       // Get user media (camera and microphone)
+      console.log('🎥 Requesting camera and microphone access...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
         audio: {
@@ -84,17 +85,33 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         }
       });
 
+      console.log('✅ Camera and microphone accessed successfully');
+      console.log('📹 Stream tracks:', stream.getTracks().map(t => `${t.kind} (${t.enabled ? 'enabled' : 'disabled'})`));
+      
       clearTimeout(mediaTimeout);
       localStreamRef.current = stream;
       setLocalStream(stream);
       
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-        // Important for mobile: set playsInline and autoplay
-        localVideoRef.current.setAttribute('playsinline', 'true');
-        localVideoRef.current.setAttribute('autoplay', 'true');
-        localVideoRef.current.setAttribute('muted', 'true');
-      }
+      // Wait a bit for video element to be ready
+      setTimeout(() => {
+        if (localVideoRef.current) {
+          console.log('📹 Setting local video element srcObject...');
+          localVideoRef.current.srcObject = stream;
+          // Important for mobile: set playsInline and autoplay
+          localVideoRef.current.setAttribute('playsinline', 'true');
+          localVideoRef.current.setAttribute('autoplay', 'true');
+          localVideoRef.current.setAttribute('muted', 'true');
+          
+          // Play the video
+          localVideoRef.current.play().then(() => {
+            console.log('✅ Local video playing');
+          }).catch(err => {
+            console.error('❌ Error playing local video:', err);
+          });
+        } else {
+          console.error('❌ Local video ref is null!');
+        }
+      }, 100);
 
       // Create peer connection
       const pc = new RTCPeerConnection(rtcConfiguration);
