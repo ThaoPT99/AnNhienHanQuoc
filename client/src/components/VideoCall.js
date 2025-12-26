@@ -55,8 +55,10 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         urls: [
           'turn:turn-server-production-f957.up.railway.app:3478',
           'turn:turn-server-production-f957.up.railway.app:3478?transport=tcp'
-        ]
-        // No authentication needed (configured as no-auth in turnserver.conf)
+        ],
+        // Dummy credentials required by browser API (server is configured as no-auth)
+        username: 'railway',
+        credential: 'railway'
       },
       // Free TURN servers (for NAT traversal when STUN fails - fallback)
       // Note: Free TURN servers are often unreliable or blocked
