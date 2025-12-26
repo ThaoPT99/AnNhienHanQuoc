@@ -313,6 +313,13 @@
   font-size: 14px;
 }
 
+.no-friend-requests {
+  padding: 20px;
+  text-align: center;
+  color: var(--fb-text-secondary, #65676b);
+  font-size: 14px;
+}
+
 /* Birthdays */
 .birthdays-list {
   display: flex;

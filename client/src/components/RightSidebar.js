@@ -86,75 +86,79 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
 
   return (
     <aside className="right-sidebar-content">
-      {/* Friend Requests */}
-      {friendRequests.length > 0 && (
-        <div className="sidebar-widget">
-          <div className="widget-header">
-            <h3>Lời mời kết bạn</h3>
+      {/* Friend Requests - Always show section */}
+      <div className="sidebar-widget">
+        <div className="widget-header">
+          <h3>Lời mời kết bạn</h3>
+          {friendRequests.length > 0 && (
             <button 
               className="widget-see-all"
               onClick={() => navigate('/friends?tab=requests')}
             >
               Xem tất cả
             </button>
-          </div>
-          <div className="friend-requests-list">
-            {loadingRequests ? (
-              <div className="loading-requests">Đang tải...</div>
-            ) : (
-              friendRequests.slice(0, 5).map((request) => {
-                const requestName = request.name || request.display_name || request.email?.split('@')[0] || 'Người dùng';
-                const requestInitial = requestName.charAt(0).toUpperCase();
-                
-                return (
-                  <div key={request.email} className="friend-request-item">
-                    <Link 
-                      to={`/community/profile/${encodeURIComponent(request.email)}`}
-                      className="friend-request-link"
-                    >
-                      <div className="friend-request-avatar">
-                        {requestInitial}
-                      </div>
-                      <div className="friend-request-info">
-                        <div className="friend-request-name">{requestName}</div>
-                        <div className="friend-request-mutual">
-                          {(() => {
-                            // Simplified mutual friends - can be enhanced with proper API
-                            // For now, just show a generic message
-                            return 'Có thể bạn quen biết';
-                          })()}
-                        </div>
-                      </div>
-                    </Link>
-                    <div className="friend-request-actions">
-                      <button 
-                        className="friend-request-confirm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleAcceptRequest(request.email, requestName);
-                        }}
-                      >
-                        Xác nhận
-                      </button>
-                      <button 
-                        className="friend-request-delete"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDeleteRequest(request.email);
-                        }}
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+          )}
         </div>
-      )}
+        <div className="friend-requests-list">
+          {loadingRequests ? (
+            <div className="loading-requests">Đang tải...</div>
+          ) : friendRequests.length > 0 ? (
+            friendRequests.slice(0, 5).map((request) => {
+              const requestName = request.name || request.display_name || request.email?.split('@')[0] || 'Người dùng';
+              const requestInitial = requestName.charAt(0).toUpperCase();
+              
+              return (
+                <div key={request.email} className="friend-request-item">
+                  <Link 
+                    to={`/community/profile/${encodeURIComponent(request.email)}`}
+                    className="friend-request-link"
+                  >
+                    <div className="friend-request-avatar">
+                      {requestInitial}
+                    </div>
+                    <div className="friend-request-info">
+                      <div className="friend-request-name">{requestName}</div>
+                      <div className="friend-request-mutual">
+                        {(() => {
+                          // Simplified mutual friends - can be enhanced with proper API
+                          // For now, just show a generic message
+                          return 'Có thể bạn quen biết';
+                        })()}
+                      </div>
+                    </div>
+                  </Link>
+                  <div className="friend-request-actions">
+                    <button 
+                      className="friend-request-confirm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAcceptRequest(request.email, requestName);
+                      }}
+                    >
+                      Xác nhận
+                    </button>
+                    <button 
+                      className="friend-request-delete"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeleteRequest(request.email);
+                      }}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="no-friend-requests">
+              <p>Không có lời mời kết bạn</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Birthdays */}
       <div className="sidebar-widget">
