@@ -31,6 +31,7 @@ const PORT = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const emailService = require('./email-service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -2323,7 +2324,6 @@ app.get('/api/matching/results/:email', (req, res) => {
 // ========== VIDEO CALL INTEGRATION API ==========
 
 const videoCallIntegration = require('./video-call-integration');
-const emailService = require('./email-service');
 
 app.post('/api/video-call/bookings', async (req, res) => {
   const bookingData = req.body;
