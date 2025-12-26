@@ -104,7 +104,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     iceCandidatePoolSize: 10, // Pre-gather ICE candidates for faster connection
     iceTransportPolicy: 'all', // Try both relay and non-relay candidates
     bundlePolicy: 'max-bundle', // Bundle RTP and RTCP together
-    rtcpMuxPolicy: 'require' // Require RTCP multiplexing
+    rtcpMuxPolicy: 'require', // Require RTCP multiplexing
+    // Optimize for peer-to-peer connection (reduce TURN dependency)
+    iceCandidatePoolSize: 10,
+    // Increase connection timeout for better NAT traversal
+    iceConnectionReceivingTimeout: 30000, // 30 seconds
+    iceBackupCandidatePairPingInterval: 25000 // 25 seconds
   };
 
   useEffect(() => {
