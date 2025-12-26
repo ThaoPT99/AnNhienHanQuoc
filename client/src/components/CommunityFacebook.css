@@ -1,7 +1,7 @@
 .community-facebook-page {
   min-height: 100vh;
   background: #f0f2f5;
-  padding-top: 60px; /* Account for navbar */
+  padding-top: 100px; /* Account for navbar */
 }
 
 .community-facebook-container {
