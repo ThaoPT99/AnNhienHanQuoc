@@ -310,6 +310,26 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               }
               return prev;
             });
+            
+            // When a new user joins, create offer to them
+            if (pc.signalingState === 'stable' && localStreamRef.current) {
+              console.log('👥 New user joined, creating offer...');
+              pc.createOffer({
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true
+              }).then(offer => {
+                pc.setLocalDescription(offer);
+                ws.send(JSON.stringify({
+                  type: 'offer',
+                  roomId: roomId,
+                  offer: offer,
+                  to: data.userId
+                }));
+                console.log('📤 Sent offer to new user:', data.userId);
+              }).catch(err => {
+                console.error('❌ Error creating offer for new user:', err);
+              });
+            }
             break;
 
           case 'user-left':
