@@ -672,4 +672,19 @@
   .profile-content-wrapper {
     padding: 16px;
   }
+
+  .profile-content-wrapper-fb {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .profile-sidebar-fb {
+    position: static;
+    order: 2;
+  }
+
+  .profile-main-content-fb {
+    order: 1;
+  }
 }
