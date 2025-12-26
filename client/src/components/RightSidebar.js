@@ -52,7 +52,7 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
     if (!userEmail) return;
     
     try {
-      const res = await authenticatedFetch('/api/social/follow', {
+      const res = await authenticatedFetch(`${API_URL}/api/social/follow`, {
         method: 'POST',
         body: JSON.stringify({
           following_email: requestEmail
@@ -63,9 +63,9 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
         showNotification('Thành công', `Đã kết bạn với ${requestName || requestEmail}`, 'success');
         // Remove from requests list
         setFriendRequests(prev => prev.filter(r => r.email !== requestEmail));
-        // Reload to update friends list
-        if (window.location.reload) {
-          setTimeout(() => window.location.reload(), 500);
+        // Trigger refresh in parent component if callback exists
+        if (window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('friendRequestAccepted', { detail: { email: requestEmail } }));
         }
       } else {
         const error = await res.json();
@@ -119,11 +119,9 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
                         <div className="friend-request-name">{requestName}</div>
                         <div className="friend-request-mutual">
                           {(() => {
-                            // Calculate mutual friends (simplified - can be enhanced)
-                            const mutualCount = friends.filter(f => 
-                              request.followers && request.followers.includes(f.email)
-                            ).length;
-                            return mutualCount > 0 ? `${mutualCount} bạn chung` : 'Mới tham gia';
+                            // Simplified mutual friends - can be enhanced with proper API
+                            // For now, just show a generic message
+                            return 'Có thể bạn quen biết';
                           })()}
                         </div>
                       </div>

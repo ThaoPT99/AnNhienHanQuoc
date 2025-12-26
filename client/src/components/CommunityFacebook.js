@@ -75,6 +75,18 @@ const CommunityFacebook = () => {
     }
   };
 
+  // Listen for friend request accepted event
+  useEffect(() => {
+    const handleFriendRequestAccepted = () => {
+      loadFriends();
+    };
+    
+    window.addEventListener('friendRequestAccepted', handleFriendRequestAccepted);
+    return () => {
+      window.removeEventListener('friendRequestAccepted', handleFriendRequestAccepted);
+    };
+  }, [userEmail]);
+
   // Load posts
   const loadPosts = async (reset = false) => {
     if (reset) {
