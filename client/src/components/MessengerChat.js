@@ -8,6 +8,7 @@ import VideoCall from './VideoCall';
 import './MessengerChat.css';
 
 const MessengerChat = () => {
+  const location = useLocation();
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeChats, setActiveChats] = useState([]); // [{ userId, userName, userEmail, roomId, isVideoCall, messages }]
   const [selectedChat, setSelectedChat] = useState(null);
@@ -17,6 +18,9 @@ const MessengerChat = () => {
   const userEmail = getUserEmail();
   const userName = getUserName() || userEmail?.split('@')[0] || 'User';
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+  
+  // Check if we're on Community page - only show UI there, but maintain WebSocket everywhere
+  const isOnCommunityPage = location.pathname.startsWith('/community');
 
   // Initialize WebSocket for messaging
   useEffect(() => {
