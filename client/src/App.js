@@ -11,6 +11,7 @@ import LiveChat from './components/LiveChat';
 import PWAInstall from './components/PWAInstall';
 import NotificationCenter from './components/NotificationCenter';
 import IncomingCall from './components/IncomingCall';
+import IncomingCallListener from './components/IncomingCallListener';
 import PageViewTracker from './components/PageViewTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -117,6 +118,7 @@ function App() {
             <LiveChat />
             <PWAInstall />
             <NotificationCenter />
+            <IncomingCallListener />
             
             {/* Incoming Call Modal - handled by IncomingCall component internally via WebSocket */}
           </div>

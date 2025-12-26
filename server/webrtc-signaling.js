@@ -30,9 +30,11 @@ class WebRTCSignalingServer {
               roomId = data.roomId;
               userId = data.userId || `user_${Date.now()}`;
               
-              // Store user connection for notifications
+              // Store user connection for notifications (ALWAYS, even if in notification-only room)
               ws.userId = userId;
               this.userConnections.set(userId, ws);
+              console.log(`👤 Registered user connection: ${userId} (room: ${data.roomId})`);
+              console.log(`📊 Total registered users: ${this.userConnections.size}`);
               
               if (!this.rooms.has(roomId)) {
                 this.rooms.set(roomId, new Set());
@@ -84,7 +86,11 @@ class WebRTCSignalingServer {
               // Notify specific user about incoming call
               const targetUserId = data.targetUserId;
               const callerName = data.callerName;
-              const callerEmail = data.callerEmail || userId;
+              const callerEmail = data.callerEmail || userId || data.from;
+              const callerId = userId || data.from || callerEmail;
+              
+              console.log(`📞 Incoming call request: target=${targetUserId}, caller=${callerId}, roomId=${data.roomId}`);
+              console.log(`📊 Available users in userConnections: ${Array.from(this.userConnections.keys()).join(', ')}`);
               
               // Try to find target user's connection (whether in room or not)
               const targetConnection = this.userConnections.get(targetUserId);
@@ -97,9 +103,9 @@ class WebRTCSignalingServer {
                   roomLink: data.roomLink,
                   callerName,
                   callerEmail,
-                  from: userId
+                  from: callerId
                 }));
-                console.log(`📞 Incoming call notification sent to ${targetUserId} from ${userId || callerEmail}`);
+                console.log(`✅ Incoming call notification sent to ${targetUserId} from ${callerId}`);
               } else {
                 // User not online, try to send via room (if they're in the room)
                 const targetRoom = this.rooms.get(data.roomId);
@@ -113,16 +119,16 @@ class WebRTCSignalingServer {
                         roomLink: data.roomLink,
                         callerName,
                         callerEmail,
-                        from: userId
+                        from: callerId
                       }));
                       sent = true;
-                      console.log(`📞 Incoming call notification sent to ${targetUserId} via room from ${userId || callerEmail}`);
+                      console.log(`✅ Incoming call notification sent to ${targetUserId} via room from ${callerId}`);
                     }
                   });
                 }
                 
                 if (!sent) {
-                  console.log(`⚠️ User ${targetUserId} is not online, cannot send call notification`);
+                  console.log(`⚠️ User ${targetUserId} is not online (connection not found in userConnections map)`);
                 }
               }
               break;

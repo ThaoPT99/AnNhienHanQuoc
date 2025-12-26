@@ -132,7 +132,9 @@ const VideoCallBooking = () => {
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
-        // First, join the room
+        console.log('📞 VideoCallBooking: WebSocket opened for sending call notification');
+        
+        // First, join the room to register our userId
         ws.send(JSON.stringify({
           type: 'join-room',
           roomId: roomId,
@@ -140,43 +142,54 @@ const VideoCallBooking = () => {
         }));
         
         // Then send incoming call notification to friend
+        // Wait a bit longer to ensure join-room is processed first
         setTimeout(() => {
+          console.log(`📞 VideoCallBooking: Sending incoming-call to ${friendEmail} from ${userEmail}`);
           ws.send(JSON.stringify({
             type: 'incoming-call',
             roomId: roomId,
             roomLink: roomLink,
             targetUserId: friendEmail,
             callerName: userName,
-            callerEmail: userEmail
+            callerEmail: userEmail,
+            from: userEmail // Explicitly set from field
           }));
-          ws.close();
-        }, 500);
+          
+          // Close connection after sending
+          setTimeout(() => {
+            ws.close();
+          }, 1000);
+        }, 1000); // Increased timeout to ensure join-room is processed
+      };
+      
+      ws.onerror = (error) => {
+        console.error('📞 VideoCallBooking: WebSocket error:', error);
       };
     } catch (error) {
       console.error('Error sending WebSocket notification:', error);
     }
     
-    // Also send email notification (optional)
-    try {
-      const res = await fetch(`${API_URL}/api/video-call/invite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomId,
-          roomLink,
-          callerEmail: userEmail,
-          callerName: userName,
-          recipientEmail: friendEmail,
-          recipientName: friendName
-        })
-      });
-      
-      if (res.ok) {
-        console.log('✅ Email notification sent');
-      }
-    } catch (error) {
-      console.error('Error sending email:', error);
-    }
+    // Email notification temporarily disabled due to timeout issues
+    // try {
+    //   const res = await fetch(`${API_URL}/api/video-call/invite`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //       roomId,
+    //       roomLink,
+    //       callerEmail: userEmail,
+    //       callerName: userName,
+    //       recipientEmail: friendEmail,
+    //       recipientName: friendName
+    //     })
+    //   });
+    //   
+    //   if (res.ok) {
+    //     console.log('✅ Email notification sent');
+    //   }
+    // } catch (error) {
+    //   console.error('Error sending email:', error);
+    // }
     
     alert(`📞 Đang gọi ${friendName || friendEmail}...\n\n💡 Họ sẽ nhận được thông báo cuộc gọi đến ngay lập tức (như Messenger)!`);
   };
