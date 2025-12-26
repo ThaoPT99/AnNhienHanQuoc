@@ -811,8 +811,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             <button 
               className="info-toggle-btn"
               onClick={() => setShowDebugLogs(!showDebugLogs)}
-              title="Debug Logs"
-              style={{ marginLeft: '10px', background: showDebugLogs ? '#667eea' : 'rgba(255, 255, 255, 0.2)' }}
+              title="Debug Logs (Click để xem logs)"
+              style={{ 
+                marginLeft: '10px', 
+                background: showDebugLogs ? '#667eea' : 'rgba(255, 255, 255, 0.2)',
+                fontSize: '1.1rem',
+                minWidth: '40px'
+              }}
             >
               🐛
             </button>
