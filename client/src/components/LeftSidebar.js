@@ -9,7 +9,7 @@ const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate }) =>
   return (
     <aside className="left-sidebar-content">
       {/* Profile Shortcut */}
-      <Link to={`/profile/${encodeURIComponent(userEmail)}`} className="sidebar-profile-link">
+      <Link to={`/community/profile/${encodeURIComponent(userEmail)}`} className="sidebar-profile-link">
         <div className="sidebar-profile">
           {userAvatar ? (
             <img src={userAvatar} alt={displayName} className="sidebar-avatar" />

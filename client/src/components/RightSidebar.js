@@ -40,25 +40,39 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
           </div>
           <div className="contacts-list">
             {onlineFriends.map((friend) => (
-              <Link
-                key={friend.email}
-                to={`/profile/${encodeURIComponent(friend.email)}`}
-                className="contact-item"
-              >
-                <div className="contact-avatar-wrapper">
-                  {friend.name ? (
-                    <div className="contact-avatar">
-                      {friend.name.charAt(0).toUpperCase()}
-                    </div>
-                  ) : (
-                    <div className="contact-avatar">
-                      {friend.email.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <span className="online-indicator"></span>
-                </div>
-                <span className="contact-name">{friend.name || friend.email}</span>
-              </Link>
+              <div key={friend.email} className="contact-item-wrapper">
+                <Link
+                  to={`/community/profile/${encodeURIComponent(friend.email)}`}
+                  className="contact-item"
+                >
+                  <div className="contact-avatar-wrapper">
+                    {friend.name ? (
+                      <div className="contact-avatar">
+                        {friend.name.charAt(0).toUpperCase()}
+                      </div>
+                    ) : (
+                      <div className="contact-avatar">
+                        {friend.email.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="online-indicator"></span>
+                  </div>
+                  <span className="contact-name">{friend.name || friend.email}</span>
+                </Link>
+                <button
+                  className="contact-video-call-btn"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.startMessengerVideoCall) {
+                      window.startMessengerVideoCall(friend.email, friend.name);
+                    }
+                  }}
+                  title="Video call"
+                >
+                  📞
+                </button>
+              </div>
             ))}
           </div>
         </div>

@@ -107,10 +107,41 @@
   text-decoration: none;
   color: #050505;
   transition: background 0.2s;
+  flex: 1;
+  min-width: 0;
 }
 
 .contact-item:hover {
   background: #f0f2f5;
+}
+
+.contact-video-call-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e4e6eb;
+  border: none;
+  color: #050505;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.contact-video-call-btn:hover {
+  background: #1877f2;
+  color: white;
+  transform: scale(1.1);
+}
+
+.contacts-list .contact-item-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .contact-avatar-wrapper {

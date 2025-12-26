@@ -83,6 +83,7 @@ function App() {
                 <Route path="/events" element={<Events />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/community" element={<Community />} />
+                <Route path="/community/profile/:email" element={<Community />} />
                 <Route path="/progress-tracker" element={<ProgressTracker />} />
                 <Route path="/referral" element={<ReferralProgram />} />
                 <Route path="/gamification" element={<Gamification />} />
