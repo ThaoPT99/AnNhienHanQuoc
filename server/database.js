@@ -2174,6 +2174,48 @@ const dbHelpers = {
         }
       }
     );
+  },
+
+  updateUserDisplayName: (email, displayName, callback) => {
+    db.run(
+      'UPDATE users SET display_name = ?, updated_at = datetime(\'now\') WHERE email = ?',
+      [displayName, email],
+      (err) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      }
+    );
+  },
+
+  updateUserVerificationStatus: (email, callback) => {
+    db.run(
+      'UPDATE users SET email_verified = 1, verification_token = NULL, updated_at = datetime(\'now\') WHERE email = ?',
+      [email],
+      (err) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      }
+    );
+  },
+
+  updateUserVerificationToken: (email, token, callback) => {
+    db.run(
+      'UPDATE users SET verification_token = ?, updated_at = datetime(\'now\') WHERE email = ?',
+      [token, email],
+      (err) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null);
+        }
+      }
+    );
   }
 };
 
