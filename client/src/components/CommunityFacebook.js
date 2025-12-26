@@ -9,7 +9,8 @@ import CreatePostBox from './CreatePostBox';
 import PostCard from './PostCard';
 import LeftSidebar from './LeftSidebar';
 import RightSidebar from './RightSidebar';
-import MessengerChat from './MessengerChat';
+// MessengerChat is now rendered globally in App.js to maintain WebSocket connection
+// import MessengerChat from './MessengerChat';
 import './CommunityFacebook.css';
 
 const CommunityFacebook = () => {

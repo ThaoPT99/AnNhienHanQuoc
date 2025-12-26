@@ -111,6 +111,7 @@ function App() {
             <ConditionalComponents />
             <PWAInstall />
             <IncomingCallListener />
+            <MessengerChat />
             
             {/* Incoming Call Modal - handled by IncomingCall component internally via WebSocket */}
           </div>

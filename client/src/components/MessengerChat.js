@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { getUserEmail, getUserName } from '../utils/auth';
 import { getRelativeTime } from '../utils/timezone';
 import { showNotification } from './NotificationCenterFacebook';
@@ -427,12 +428,16 @@ const MessengerChat = () => {
     };
   }, []);
 
-  // Always render (hidden) to maintain WebSocket connection for receiving messages
-  // This ensures users receive messages even when chat window is not open
-
-  if (activeChats.length === 0 && !isMinimized) {
-    // Hide chat container if no active chats and not minimized
-    // But WebSocket is still active in the background
+  // Always maintain WebSocket connection (even when not on Community page)
+  // But only show UI when on Community page or when there are active chats
+  
+  // Hide completely if not on Community page and no active chats
+  if (!isOnCommunityPage && activeChats.length === 0 && !isMinimized) {
+    return null;
+  }
+  
+  // Hide if on Community page but no active chats and minimized (but WebSocket still active)
+  if (isOnCommunityPage && activeChats.length === 0 && !isMinimized) {
     return null;
   }
 
