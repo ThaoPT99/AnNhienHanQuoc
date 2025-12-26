@@ -108,7 +108,7 @@ function AppContent() {
                 </Routes>
               </Suspense>
             </main>
-            <Footer />
+            {!isCommunityPage && <Footer />}
             <ConditionalComponents />
             <PWAInstall />
             <IncomingCallListener />
