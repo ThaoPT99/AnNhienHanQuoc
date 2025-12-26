@@ -273,12 +273,19 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         console.log('✅ Connected to signaling server');
         setConnectionStatus('connecting');
         
+        // Use consistent userId (prefer email, fallback to generated ID stored in ref)
+        const currentUserId = userEmail || `user_${Date.now()}`;
+        if (!socketRef.current.userId) {
+          socketRef.current.userId = currentUserId;
+        }
+        
         // Join room
         ws.send(JSON.stringify({
           type: 'join-room',
           roomId: roomId,
-          userId: userEmail || `user_${Date.now()}`
+          userId: socketRef.current.userId
         }));
+        console.log('📤 Sent join-room with userId:', socketRef.current.userId);
       };
 
       ws.onmessage = async (event) => {
@@ -288,14 +295,20 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         switch (data.type) {
           case 'room-joined':
             console.log('✅ Joined room, existing users:', data.usersInRoom);
+            console.log('👤 My userId from server:', data.userId);
             setConnectionStatus('connected');
             
-            // Update participants list: include existing users + myself
-            const currentUserId = userEmail || `user_${Date.now()}`;
+            // Store our userId from server
+            if (data.userId && socketRef.current) {
+              socketRef.current.userId = data.userId;
+            }
+            
+            // Update participants list: include existing users (not including myself)
             const allParticipants = data.usersInRoom 
               ? [...data.usersInRoom.map(uid => ({ userId: uid, joinedAt: new Date() }))]
               : [];
-            console.log('👥 Setting participants:', allParticipants.map(p => p.userId));
+            console.log('👥 Setting participants from room-joined:', allParticipants.map(p => p.userId));
+            console.log('👥 Total participants count (including myself):', allParticipants.length + 1);
             setParticipants(allParticipants);
             
             // Only create offer if there are other users in room
@@ -484,10 +497,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               const exists = prev.find(p => p.userId === data.userId);
               if (exists) {
                 console.log('⚠️ User already in participants list:', data.userId);
+                console.log('👥 Current participants:', prev.map(p => p.userId));
                 return prev;
               }
               const updated = [...prev, { userId: data.userId, joinedAt: new Date() }];
-              console.log('✅ Updated participants list:', updated.map(p => p.userId));
+              console.log('✅ Updated participants list after user-joined:', updated.map(p => p.userId));
+              console.log('👥 Total participants count (including myself):', updated.length + 1);
               return updated;
             });
             
