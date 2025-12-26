@@ -135,7 +135,7 @@ const MessengerChat = () => {
     return () => {
       websocket.close();
     };
-  }, [userEmail, isMinimized]);
+  }, [userEmail]);
 
   // Listen for new video call requests from UI
   useEffect(() => {
@@ -337,7 +337,7 @@ const MessengerChat = () => {
       delete window.startMessengerVideoCall;
       delete window.startMessengerTextChat;
     };
-  }, [userEmail]);
+  }, []);
 
   if (activeChats.length === 0) {
     return null; // Don't render if no active chats
