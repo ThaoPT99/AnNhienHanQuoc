@@ -50,27 +50,30 @@ const MessengerChat = () => {
           console.log('💬 MessengerChat: Received message:', data);
           const { from, to, message, timestamp } = data;
           
-          // Determine sender (the one who sent TO me)
-          const senderEmail = from;
-          
           // Verify this message is for me
           if (to !== userEmail) {
             console.log(`⚠️ MessengerChat: Message not for me. To: ${to}, My email: ${userEmail}`);
             return;
           }
           
+          // The sender is who sent the message (from field)
+          const senderEmail = from;
+          
+          console.log(`💬 MessengerChat: Processing message from ${senderEmail} to ${userEmail}`);
+          
           // Find or create chat
           setActiveChats(prev => {
-            let chatExists = prev.find(chat => chat.userEmail === senderEmail);
+            let chatExists = prev.find(chat => chat.userEmail === senderEmail && !chat.isVideoCall);
             
             if (!chatExists) {
-              // Create new text chat
+              // Create new text chat for incoming message
+              const messages = loadMessagesFromStorage(senderEmail);
               const newChat = {
                 userId: senderEmail,
                 userName: senderEmail.split('@')[0],
                 userEmail: senderEmail,
                 isVideoCall: false,
-                messages: []
+                messages: messages
               };
               chatExists = newChat;
               prev = [...prev, newChat];
@@ -360,12 +363,17 @@ const MessengerChat = () => {
     };
   }, []);
 
-  if (activeChats.length === 0) {
-    return null; // Don't render if no active chats
+  // Always render (hidden) to maintain WebSocket connection for receiving messages
+  // This ensures users receive messages even when chat window is not open
+
+  if (activeChats.length === 0 && !isMinimized) {
+    // Hide chat container if no active chats and not minimized
+    // But WebSocket is still active in the background
+    return null;
   }
 
   return (
-    <div className={`messenger-chat-container ${isMinimized ? 'minimized' : ''}`}>
+    <div className={`messenger-chat-container ${isMinimized ? 'minimized' : ''} ${activeChats.length === 0 ? 'hidden' : ''}`}>
       {/* Chat Tabs */}
       {activeChats.length > 1 && (
         <div className="chat-tabs">
