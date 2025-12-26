@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Search from './Search';
 import AuthModal from './AuthModal';
-import NotificationCenterFacebook from './NotificationCenterFacebook';
+// NotificationCenterFacebook removed - only available in Community page
 import { isLoggedIn, getUserEmail, logout } from '../utils/auth';
 import './Navbar.css';
 
@@ -53,9 +53,6 @@ const Navbar = () => {
     const handleClickOutside = (event) => {
       if (moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
         setIsMoreMenuOpen(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setIsUserMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -107,13 +104,12 @@ const Navbar = () => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         if (isMoreMenuOpen) setIsMoreMenuOpen(false);
-        if (isUserMenuOpen) setIsUserMenuOpen(false);
         if (isAuthModalOpen) setIsAuthModalOpen(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isMoreMenuOpen, isUserMenuOpen, isAuthModalOpen]);
+  }, [isMoreMenuOpen, isAuthModalOpen]);
 
   const handleOpenAuthModal = (mode = 'login') => {
     setAuthModalMode(mode);
@@ -123,7 +119,6 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    setIsUserMenuOpen(false);
     setLoggedIn(false);
     setUserEmail(null);
   };
@@ -290,87 +285,7 @@ const Navbar = () => {
 
         {/* Auth Section */}
         <div className="navbar-auth">
-          {loggedIn && (
-            <NotificationCenterFacebook />
-          )}
-          {loggedIn ? (
-            <div className="user-menu-wrapper" ref={userMenuRef}>
-              <motion.button
-                className="user-menu-btn"
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                aria-expanded={isUserMenuOpen}
-                aria-haspopup="true"
-                aria-label="Menu người dùng"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="user-avatar">👤</span>
-                <span className="user-email">{userEmail?.split('@')[0] || 'User'}</span>
-                <motion.svg
-                  className="dropdown-arrow"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  aria-hidden="true"
-                  animate={{ rotate: isUserMenuOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </motion.svg>
-              </motion.button>
-
-              <AnimatePresence>
-                {isUserMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="user-menu-dropdown"
-                    role="menu"
-                    aria-label="Menu người dùng"
-                  >
-                    <div className="user-menu-info">
-                      <p className="user-menu-email">{userEmail}</p>
-                    </div>
-                    <Link
-                      to={`/profile/${encodeURIComponent(userEmail)}`}
-                      className="dropdown-item"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <span className="dropdown-icon">👤</span>
-                      <span className="dropdown-text">Hồ sơ</span>
-                    </Link>
-                    <Link
-                      to="/community"
-                      className="dropdown-item"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <span className="dropdown-icon">💬</span>
-                      <span className="dropdown-text">Cộng đồng</span>
-                    </Link>
-                    <button
-                      className="dropdown-item logout-item"
-                      onClick={handleLogout}
-                      role="menuitem"
-                    >
-                      <span className="dropdown-icon">🚪</span>
-                      <span className="dropdown-text">Đăng xuất</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
+          {!loggedIn && (
             <div className="auth-buttons">
               <motion.button
                 className="auth-btn login-btn"
