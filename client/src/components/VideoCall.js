@@ -62,7 +62,23 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         credential: 'railway'
       },
       */
-      // Free TURN servers (for NAT traversal when STUN fails)
+      // Twilio STUN/TURN (Free tier: 10,000 minutes/month) - KHuyến nghị
+      // Setup: https://console.twilio.com/us1/develop/video/manage/tools/network-traversal-service
+      // Hướng dẫn chi tiết: Xem file SETUP-TWILIO-TURN.md
+      // TODO: Thay YOUR_TWILIO_USERNAME và YOUR_TWILIO_PASSWORD bằng credentials từ Twilio Console
+      /*
+      {
+        urls: [
+          'stun:global.stun.twilio.com:3478',
+          'turn:global.turn.twilio.com:3478?transport=udp',
+          'turn:global.turn.twilio.com:3478?transport=tcp',
+          'turn:global.turn.twilio.com:443?transport=tcp'
+        ],
+        username: 'YOUR_TWILIO_USERNAME',  // ← Lấy từ Twilio Console
+        credential: 'YOUR_TWILIO_PASSWORD'  // ← Lấy từ Twilio Console
+      },
+      */
+      // Free TURN servers (for NAT traversal when STUN fails - fallback)
       // Note: Free TURN servers are often unreliable or blocked
       // For production, consider using a dedicated TURN server
       
@@ -97,10 +113,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         username: 'open',
         credential: 'open'
       },
-      // Twilio STUN (free tier available)
-      {
-        urls: 'stun:global.stun.twilio.com:3478'
-      },
+      // Twilio STUN (đã được thêm ở trên nếu uncomment Twilio TURN server)
+      // Nếu không dùng Twilio TURN, có thể dùng STUN only:
+      // { urls: 'stun:global.stun.twilio.com:3478' },
       // Additional public TURN servers (may not work)
       {
         urls: 'turn:relay.metered.ca:80',
