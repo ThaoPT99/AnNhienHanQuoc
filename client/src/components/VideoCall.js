@@ -250,6 +250,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             console.log('✅ Joined room, existing users:', data.usersInRoom);
             setConnectionStatus('connected');
             
+            // Update participants list: include existing users + myself
+            const currentUserId = userEmail || `user_${Date.now()}`;
+            const allParticipants = data.usersInRoom 
+              ? [...data.usersInRoom.map(uid => ({ userId: uid, joinedAt: new Date() }))]
+              : [];
+            console.log('👥 Setting participants:', allParticipants.map(p => p.userId));
+            setParticipants(allParticipants);
+            
             // Only create offer if there are other users in room
             if (data.usersInRoom && data.usersInRoom.length > 0) {
               console.log('👥 Other users in room, creating offer...');
@@ -348,10 +356,15 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
           case 'user-joined':
             console.log('👤 User joined:', data.userId);
             setParticipants(prev => {
-              if (!prev.find(p => p.userId === data.userId)) {
-                return [...prev, { userId: data.userId, joinedAt: new Date() }];
+              // Check if user already exists
+              const exists = prev.find(p => p.userId === data.userId);
+              if (exists) {
+                console.log('⚠️ User already in participants list:', data.userId);
+                return prev;
               }
-              return prev;
+              const updated = [...prev, { userId: data.userId, joinedAt: new Date() }];
+              console.log('✅ Updated participants list:', updated.map(p => p.userId));
+              return updated;
             });
             
             // When a new user joins, create offer to them
@@ -377,13 +390,11 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
           case 'user-left':
             console.log('👋 User left:', data.userId);
-            setParticipants(prev => prev.filter(p => p.userId !== data.userId));
-            break;
-
-          case 'room-joined':
-            if (data.usersInRoom) {
-              setParticipants(data.usersInRoom.map(uid => ({ userId: uid, joinedAt: new Date() })));
-            }
+            setParticipants(prev => {
+              const updated = prev.filter(p => p.userId !== data.userId);
+              console.log('✅ Updated participants after user left:', updated.map(p => p.userId));
+              return updated;
+            });
             break;
         }
       };
