@@ -70,6 +70,8 @@ const Login = () => {
           setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password
         }
       } else {
+        console.error('Registration/Login error:', res.status, data);
+        
         // Handle unverified email error
         if (res.status === 403 && data.email_verified === false) {
           setUnverifiedEmail(formData.email);

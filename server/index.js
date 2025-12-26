@@ -401,11 +401,22 @@ const verifyAdminToken = (req, res, next) => {
 app.post('/api/auth/register', async (req, res) => {
   const { email, password, name } = req.body;
 
+  console.log('📝 Registration attempt:', { email, hasPassword: !!password, passwordLength: password?.length, name });
+
   if (!email || !password) {
+    console.log('❌ Missing email or password');
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    console.log('❌ Invalid email format:', email);
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
   if (password.length < 6) {
+    console.log('❌ Password too short:', password.length);
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
@@ -417,8 +428,11 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     if (existingUser) {
+      console.log('❌ Email already registered:', email);
       return res.status(400).json({ error: 'Email already registered' });
     }
+
+    console.log('✅ Email available, proceeding with registration');
 
     // Hash password
     const saltRounds = 10;
