@@ -8,6 +8,7 @@ import PWAInstall from './components/PWAInstall';
 // NotificationCenter moved to Navbar for Facebook-style integration
 import IncomingCall from './components/IncomingCall';
 import IncomingCallListener from './components/IncomingCallListener';
+import MessengerChat from './components/MessengerChat';
 import PageViewTracker from './components/PageViewTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
