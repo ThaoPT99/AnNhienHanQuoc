@@ -18,6 +18,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
+  const peerConnectionsRef = useRef(new Map()); // Map<userId, RTCPeerConnection>
+  const remoteStreamsRef = useRef(new Map()); // Map<userId, MediaStream>
   const socketRef = useRef(null);
   const localStreamRef = useRef(null);
 
@@ -117,6 +119,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
       // Handle connection state changes
       pc.onconnectionstatechange = () => {
+        console.log('🔗 Peer connection state:', pc.connectionState);
         setConnectionStatus(pc.connectionState);
         if (pc.connectionState === 'connected') {
           setIsConnected(true);
@@ -187,15 +190,31 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
 
         switch (data.type) {
           case 'room-joined':
+            console.log('✅ Joined room, existing users:', data.usersInRoom);
             setConnectionStatus('connected');
-            // Create offer after joining
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            ws.send(JSON.stringify({
-              type: 'offer',
-              roomId: roomId,
-              offer: offer
-            }));
+            
+            // Only create offer if there are other users in room
+            if (data.usersInRoom && data.usersInRoom.length > 0) {
+              console.log('👥 Other users in room, creating offer...');
+              try {
+                const offer = await pc.createOffer({
+                  offerToReceiveAudio: true,
+                  offerToReceiveVideo: true
+                });
+                await pc.setLocalDescription(offer);
+                console.log('✅ Local description set (offer)');
+                ws.send(JSON.stringify({
+                  type: 'offer',
+                  roomId: roomId,
+                  offer: offer
+                }));
+                console.log('📤 Sent offer to room');
+              } catch (error) {
+                console.error('❌ Error creating offer:', error);
+              }
+            } else {
+              console.log('👤 First user in room, waiting for others...');
+            }
             break;
 
           case 'offer':
