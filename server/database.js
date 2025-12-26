@@ -1870,7 +1870,15 @@ const dbHelpers = {
 
   getFollowers: (userEmail, callback) => {
     db.all(
-      `SELECT follower_email, created_at FROM user_follows WHERE following_email = ? ORDER BY created_at DESC`,
+      `SELECT 
+        uf.follower_email as email, 
+        uf.created_at,
+        COALESCE(up.display_name, u.display_name, NULL) as name
+      FROM user_follows uf
+      LEFT JOIN user_profiles up ON uf.follower_email = up.email
+      LEFT JOIN users u ON uf.follower_email = u.email
+      WHERE uf.following_email = ? 
+      ORDER BY uf.created_at DESC`,
       [userEmail],
       callback
     );
@@ -1878,7 +1886,15 @@ const dbHelpers = {
 
   getFollowing: (userEmail, callback) => {
     db.all(
-      `SELECT following_email, created_at FROM user_follows WHERE follower_email = ? ORDER BY created_at DESC`,
+      `SELECT 
+        uf.following_email as email, 
+        uf.created_at,
+        COALESCE(up.display_name, u.display_name, NULL) as name
+      FROM user_follows uf
+      LEFT JOIN user_profiles up ON uf.following_email = up.email
+      LEFT JOIN users u ON uf.following_email = u.email
+      WHERE uf.follower_email = ? 
+      ORDER BY uf.created_at DESC`,
       [userEmail],
       callback
     );
