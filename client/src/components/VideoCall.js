@@ -52,6 +52,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         throw new Error('getUserMedia is not supported in this browser');
       }
 
+      // Set a timeout for getting user media (10 seconds)
+      const mediaTimeout = setTimeout(() => {
+        if (!localStreamRef.current) {
+          setError('Đang chờ quyền truy cập camera/microphone quá lâu. Vui lòng cho phép và tải lại trang.');
+        }
+      }, 10000);
+
       // Mobile-optimized constraints
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
@@ -74,6 +81,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         }
       });
 
+      clearTimeout(mediaTimeout);
       localStreamRef.current = stream;
       setLocalStream(stream);
       

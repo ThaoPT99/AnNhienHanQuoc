@@ -31,13 +31,31 @@ const VideoCallBooking = () => {
   const userEmail = getUserEmail() || '';
 
   useEffect(() => {
-    // Check if user is logged in - must have both email and token
+    // Check for room parameter in URL first (for shared links)
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room');
+    
+    // If there's a room parameter, allow joining without login (for shared links)
+    if (roomId) {
+      const email = getUserEmail() || 'guest@example.com';
+      const userName = localStorage.getItem('userName') || email.split('@')[0] || 'Guest';
+      setActiveCall({
+        roomId,
+        userEmail: email,
+        userName
+      });
+      // Clean URL but keep room for VideoCall component
+      // Don't clean URL here, let VideoCall handle it
+      return;
+    }
+    
+    // If no room parameter, require login for normal usage
     const token = getAuthToken();
     const email = getUserEmail();
     
     if (!token || !email) {
       showNotification('Yêu cầu đăng nhập', 'Vui lòng đăng nhập để sử dụng tính năng Video Call', 'info');
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
 
@@ -48,20 +66,6 @@ const VideoCallBooking = () => {
     if (token && email) {
       loadBookings();
       loadFriends();
-    }
-    
-    // Check for room parameter in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('room');
-    if (roomId) {
-      const userName = localStorage.getItem('userName') || email;
-      setActiveCall({
-        roomId,
-        userEmail: email,
-        userName
-      });
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [navigate]);
 
