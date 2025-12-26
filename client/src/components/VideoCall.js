@@ -454,8 +454,22 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                   return;
                 }
                 
-                for (const userId of data.usersInRoom) {
+                // Create offers sequentially with small delay to avoid race conditions
+                for (let i = 0; i < data.usersInRoom.length; i++) {
+                  const userId = data.usersInRoom[i];
+                  
+                  // Add small delay between creating connections (except first one)
+                  if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                  }
+                  
                   try {
+                    // Check if peer connection already exists for this user
+                    if (peerConnectionsRef.current.has(userId)) {
+                      addDebugLog(`⚠️ Peer connection already exists for ${userId}, skipping...`, 'warn');
+                      continue;
+                    }
+                    
                     // Create peer connection for this user
                     const userPc = new RTCPeerConnection(rtcConfiguration);
                     peerConnectionsRef.current.set(userId, userPc);
@@ -720,6 +734,19 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             try {
               // Check if we already have a peer connection for this user
               let userPc = peerConnectionsRef.current.get(data.from);
+              
+              // If peer connection exists but is in bad state, close and recreate
+              if (userPc) {
+                const state = userPc.connectionState;
+                const iceState = userPc.iceConnectionState;
+                if (state === 'closed' || state === 'failed' || iceState === 'failed' || iceState === 'closed') {
+                  addDebugLog(`🔄 Existing peer connection for ${data.from} is in bad state (${state}/${iceState}), recreating...`, 'warn');
+                  userPc.close();
+                  peerConnectionsRef.current.delete(data.from);
+                  userPc = null;
+                }
+              }
+              
               if (!userPc) {
                 addDebugLog(`🔗 Creating new peer connection for: ${data.from}`, 'info');
                 userPc = new RTCPeerConnection(rtcConfiguration);
@@ -890,6 +917,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     }, 5000);
                   }
                 };
+              }
+              
+              // Check if remote description is already set
+              if (userPc.remoteDescription) {
+                addDebugLog(`⚠️ Remote description already set for ${data.from}, ignoring duplicate offer`, 'warn');
+                return;
               }
               
               await userPc.setRemoteDescription(new RTCSessionDescription(data.offer));
