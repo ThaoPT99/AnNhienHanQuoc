@@ -15,6 +15,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [participants, setParticipants] = useState([]);
   const [showRoomInfo, setShowRoomInfo] = useState(false); // Hide by default on mobile
   const [roomLink, setRoomLink] = useState('');
+  const [showCallFriends, setShowCallFriends] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
@@ -366,6 +369,84 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       }
       
       setError(errorMessage);
+    }
+  };
+
+  // Load friends list
+  const loadFriends = async () => {
+    if (!userEmail) return;
+    
+    setLoadingFriends(true);
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+      const res = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFriends(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading friends:', error);
+    } finally {
+      setLoadingFriends(false);
+    }
+  };
+
+  // Call friend - send notification
+  const callFriend = async (friendEmail, friendName) => {
+    try {
+      // Send notification through existing WebSocket connection if available
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        socketRef.current.send(JSON.stringify({
+          type: 'incoming-call',
+          roomId: roomId,
+          roomLink: roomLink,
+          targetUserId: friendEmail,
+          callerName: userName || userEmail,
+          callerEmail: userEmail
+        }));
+        console.log(`📞 Sent call notification to ${friendEmail}`);
+        alert(`📞 Đã gửi thông báo cuộc gọi đến ${friendName || friendEmail}!\n\n💡 Họ sẽ nhận được thông báo và có thể tham gia bằng cách click vào notification.`);
+        setShowCallFriends(false);
+      } else {
+        // If socket not ready, create new connection
+        const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
+        const wsProtocol = 'wss:';
+        const wsHost = API_URL.replace(/^https?:\/\//, '').replace(/^wss?:\/\//, '');
+        const wsUrl = `${wsProtocol}//${wsHost}/webrtc-signaling`;
+        
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          ws.send(JSON.stringify({
+            type: 'join-room',
+            roomId: roomId,
+            userId: userEmail
+          }));
+          
+          setTimeout(() => {
+            ws.send(JSON.stringify({
+              type: 'incoming-call',
+              roomId: roomId,
+              roomLink: roomLink,
+              targetUserId: friendEmail,
+              callerName: userName || userEmail,
+              callerEmail: userEmail
+            }));
+            ws.close();
+            console.log(`📞 Sent call notification to ${friendEmail}`);
+            alert(`📞 Đã gửi thông báo cuộc gọi đến ${friendName || friendEmail}!\n\n💡 Họ sẽ nhận được thông báo và có thể tham gia bằng cách click vào notification.`);
+            setShowCallFriends(false);
+          }, 500);
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          alert('❌ Không thể gửi thông báo. Vui lòng thử lại.');
+        };
+      }
+    } catch (error) {
+      console.error('Error calling friend:', error);
+      alert('❌ Không thể gửi thông báo. Vui lòng thử lại.');
     }
   };
 
@@ -1068,6 +1149,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             setParticipants(otherParticipants);
             break;
 
+          case 'incoming-call':
+            // Received incoming call notification (for other users, not ourselves)
+            // This would be handled by a notification system
+            console.log('📞 Incoming call notification received (for other users):', data);
+            break;
+
           case 'user-left':
             addDebugLog(`👋 User left: ${data.userId}`, 'info');
             setParticipants(prev => {
@@ -1231,6 +1318,31 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               <p className="room-id">Room ID: {roomId}</p>
             </div>
             
+            <div className="room-info-section">
+              <h4>Gọi bạn bè</h4>
+              <button
+                className="call-friend-btn"
+                onClick={() => {
+                  setShowCallFriends(true);
+                  loadFriends();
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: '#667eea',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  marginTop: '10px'
+                }}
+              >
+                📞 Gọi bạn bè
+              </button>
+            </div>
+            
             <div className="participants-section">
               <h4>👥 Người tham gia ({participants.length + 1})</h4>
               <div className="participants-list">
@@ -1256,6 +1368,141 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Call Friends Modal */}
+        {showCallFriends && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="call-friends-modal"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 20000,
+              padding: '20px'
+            }}
+            onClick={() => setShowCallFriends(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="call-friends-content"
+              style={{
+                background: '#1a1a1a',
+                borderRadius: '15px',
+                padding: '25px',
+                maxWidth: '500px',
+                width: '100%',
+                maxHeight: '80vh',
+                overflow: 'auto',
+                border: '2px solid rgba(255, 255, 255, 0.2)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ color: 'white', margin: 0 }}>📞 Gọi bạn bè</h3>
+                <button
+                  onClick={() => setShowCallFriends(false)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    border: 'none',
+                    color: 'white',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    fontSize: '1.2rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {loadingFriends ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <div className="waiting-spinner"></div>
+                  <p>Đang tải danh sách bạn bè...</p>
+                </div>
+              ) : friends.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <p>📭 Bạn chưa có bạn bè nào.</p>
+                  <p style={{ fontSize: '0.9rem', marginTop: '10px' }}>
+                    Hãy follow người khác để có thể gọi họ!
+                  </p>
+                </div>
+              ) : (
+                <div className="friends-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {friends.map((friend, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => callFriend(friend.email || friend.following_email, friend.name)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '15px',
+                        marginBottom: '10px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)';
+                        e.currentTarget.style.borderColor = '#667eea';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                    >
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.5rem',
+                        marginRight: '15px'
+                      }}>
+                        👤
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '5px' }}>
+                          {friend.name || friend.email || friend.following_email}
+                        </div>
+                        <div style={{ color: '#999', fontSize: '0.85rem' }}>
+                          {friend.email || friend.following_email}
+                        </div>
+                      </div>
+                      <div style={{
+                        background: '#667eea',
+                        color: 'white',
+                        padding: '8px 15px',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold'
+                      }}>
+                        📞 Gọi
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
         )}
 
         {error && (
@@ -1343,6 +1590,17 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             title={isVideoOff ? 'Bật camera' : 'Tắt camera'}
           >
             {isVideoOff ? '📷❌' : '📹'}
+          </button>
+          <button
+            className="control-btn"
+            onClick={() => {
+              setShowCallFriends(true);
+              loadFriends();
+            }}
+            title="Gọi bạn bè"
+            style={{ background: 'rgba(102, 126, 234, 0.8)' }}
+          >
+            👥
           </button>
           <button
             className="control-btn end-call"

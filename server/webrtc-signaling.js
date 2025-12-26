@@ -12,6 +12,7 @@ class WebRTCSignalingServer {
       path: '/webrtc-signaling'
     });
     this.rooms = new Map(); // roomId -> Set of WebSocket connections
+    this.userConnections = new Map(); // userId -> WebSocket connection (for notifications)
     
     this.wss.on('connection', (ws, req) => {
       console.log('🔌 New WebRTC signaling connection');
@@ -29,13 +30,16 @@ class WebRTCSignalingServer {
               roomId = data.roomId;
               userId = data.userId || `user_${Date.now()}`;
               
+              // Store user connection for notifications
+              ws.userId = userId;
+              this.userConnections.set(userId, ws);
+              
               if (!this.rooms.has(roomId)) {
                 this.rooms.set(roomId, new Set());
               }
               
               this.rooms.get(roomId).add(ws);
               ws.roomId = roomId;
-              ws.userId = userId;
               
               // Get list of existing users BEFORE adding new user
               const usersInRoom = Array.from(this.rooms.get(roomId))
@@ -80,24 +84,46 @@ class WebRTCSignalingServer {
               // Notify specific user about incoming call
               const targetUserId = data.targetUserId;
               const callerName = data.callerName;
-              const callerEmail = data.callerEmail;
+              const callerEmail = data.callerEmail || userId;
               
-              // Find target user's connection
-              const targetRoom = this.rooms.get(roomId);
-              if (targetRoom) {
-                targetRoom.forEach(client => {
-                  if (client.userId === targetUserId && client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                      type: 'incoming-call',
-                      roomId: data.roomId,
-                      roomLink: data.roomLink,
-                      callerName,
-                      callerEmail,
-                      from: userId
-                    }));
-                    console.log(`📞 Incoming call notification sent to ${targetUserId} from ${userId}`);
-                  }
-                });
+              // Try to find target user's connection (whether in room or not)
+              const targetConnection = this.userConnections.get(targetUserId);
+              
+              if (targetConnection && targetConnection.readyState === WebSocket.OPEN) {
+                // User is online, send notification
+                targetConnection.send(JSON.stringify({
+                  type: 'incoming-call',
+                  roomId: data.roomId,
+                  roomLink: data.roomLink,
+                  callerName,
+                  callerEmail,
+                  from: userId
+                }));
+                console.log(`📞 Incoming call notification sent to ${targetUserId} from ${userId || callerEmail}`);
+              } else {
+                // User not online, try to send via room (if they're in the room)
+                const targetRoom = this.rooms.get(data.roomId);
+                let sent = false;
+                if (targetRoom) {
+                  targetRoom.forEach(client => {
+                    if (client.userId === targetUserId && client.readyState === WebSocket.OPEN) {
+                      client.send(JSON.stringify({
+                        type: 'incoming-call',
+                        roomId: data.roomId,
+                        roomLink: data.roomLink,
+                        callerName,
+                        callerEmail,
+                        from: userId
+                      }));
+                      sent = true;
+                      console.log(`📞 Incoming call notification sent to ${targetUserId} via room from ${userId || callerEmail}`);
+                    }
+                  });
+                }
+                
+                if (!sent) {
+                  console.log(`⚠️ User ${targetUserId} is not online, cannot send call notification`);
+                }
               }
               break;
               
@@ -169,6 +195,15 @@ class WebRTCSignalingServer {
       if (room.size === 0) {
         this.rooms.delete(roomId);
         console.log(`🗑️ Room ${roomId} cleaned up`);
+      }
+    }
+    
+    // Clean up user connection when WebSocket closes
+    if (ws.userId) {
+      const userConn = this.userConnections.get(ws.userId);
+      if (userConn === ws) {
+        this.userConnections.delete(ws.userId);
+        console.log(`🗑️ User connection cleaned up for ${ws.userId}`);
       }
     }
   }
