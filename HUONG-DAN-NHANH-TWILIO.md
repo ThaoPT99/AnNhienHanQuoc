@@ -8,13 +8,21 @@
 
 ## Bước 2: Lấy Credentials
 
+### ⚠️ LƯU Ý QUAN TRỌNG:
+
+**Trang "Video credentials" (Public Keys) KHÔNG phải là trang đúng!**
+
+- ❌ **Video credentials** → Dùng để quản lý Public Keys (KHÔNG phải STUN/TURN)
+- ✅ **Network Traversal Service** → Mới là trang lấy STUN/TURN credentials
+
 ### Cách 1: Qua Twilio Console (Nếu Console hoạt động)
 
 1. **Đăng nhập vào Twilio Console**: https://console.twilio.com/
 
 2. **Vào Network Traversal Service**:
-   - Cách 1: Menu bên trái → **Programmable Video** → **Tools** → **Network Traversal Service**
-   - Cách 2: Truy cập trực tiếp: https://console.twilio.com/us1/develop/video/manage/tools/network-traversal-service
+   - ✅ **Cách đúng**: Menu bên trái → **Develop** → **Video** → **Tools** → **Network Traversal Service**
+   - ❌ **KHÔNG phải**: Video → Manage → Video credentials (đây là Public Keys, không phải STUN/TURN)
+   - Hoặc truy cập trực tiếp: https://console.twilio.com/us1/develop/video/tools/network-traversal-service
 
 3. **Copy Credentials**:
    - Bạn sẽ thấy 2 thông tin:
