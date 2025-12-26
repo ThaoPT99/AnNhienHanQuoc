@@ -406,25 +406,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               return updated;
             });
             
-            // When a new user joins, create offer to them
-            if (pc.signalingState === 'stable' && localStreamRef.current) {
-              console.log('👥 New user joined, creating offer...');
-              pc.createOffer({
-                offerToReceiveAudio: true,
-                offerToReceiveVideo: true
-              }).then(offer => {
-                pc.setLocalDescription(offer);
-                ws.send(JSON.stringify({
-                  type: 'offer',
-                  roomId: roomId,
-                  offer: offer,
-                  to: data.userId
-                }));
-                console.log('📤 Sent offer to new user:', data.userId);
-              }).catch(err => {
-                console.error('❌ Error creating offer for new user:', err);
-              });
-            }
+            // NOTE: When a new user joins, they will create offer themselves (in room-joined handler)
+            // We (existing user) should NOT create offer here, just wait for their offer and respond with answer
+            console.log('👤 New user joined, waiting for their offer...');
             break;
 
           case 'user-left':
