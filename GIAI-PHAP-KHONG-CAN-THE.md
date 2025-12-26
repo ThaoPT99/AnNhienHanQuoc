@@ -32,15 +32,12 @@ Code đã được tối ưu để:
 
 ### Railway.app
 
-**Ưu điểm:**
-- ✅ Có thể đăng ký không cần credit card (tùy region)
-- ✅ $5 credit miễn phí/tháng
-- ✅ Có thể deploy TURN server trên Railway
+⚠️ **Lưu ý:** Railway không hỗ trợ UDP qua public domain, nên **TURN server trên Railway không hoạt động**. Đã chuyển sang Twilio.
 
-**Cách làm:**
+**Cách làm (Không khuyến nghị - Railway TURN không hoạt động):**
 1. Đăng ký Railway: https://railway.app
 2. Tạo project mới
-3. Deploy coturn container
+3. Deploy coturn container (nhưng sẽ không hoạt động do thiếu UDP support)
 4. Lấy public URL
 
 ### Render.com

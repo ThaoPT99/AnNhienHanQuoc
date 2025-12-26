@@ -1,8 +1,18 @@
-# 🔧 TURN Server Troubleshooting - Railway
+# 🔧 TURN Server Troubleshooting
 
-## Vấn đề hiện tại
+## ⚠️ Lưu ý: Railway TURN Server không hoạt động
 
-Từ logs, bạn thấy:
+**Railway không hỗ trợ UDP qua public domain, nên TURN server trên Railway không tạo relay candidates.**
+
+**Giải pháp hiện tại:** Đã chuyển sang sử dụng Twilio TURN Server (miễn phí, hoạt động tốt).
+
+Xem hướng dẫn: `SETUP-TWILIO-TURN.md` hoặc `HUONG-DAN-NHANH-TWILIO.md`
+
+---
+
+## Vấn đề (Đã giải quyết - Giữ lại để tham khảo)
+
+Từ logs trước đây:
 ```
 📊 ICE stats: host=2, srflx=2, relay=0
 ⚠️ WARNING: No TURN (relay) candidates found!

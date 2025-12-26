@@ -50,18 +50,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       { urls: 'stun:stun.voiparound.com' },
       { urls: 'stun:stun.voipbuster.com' },
       { urls: 'stun:stun.voipstunt.com' },
-      // Railway TURN Server - DISABLED (Railway doesn't support UDP via public domain)
-      // Uncomment below if Railway adds UDP support in the future
-      /*
-      {
-        urls: [
-          'turn:turn-server-production-f957.up.railway.app:3478',
-          'turn:turn-server-production-f957.up.railway.app:3478?transport=tcp'
-        ],
-        username: 'railway',
-        credential: 'railway'
-      },
-      */
       // Twilio STUN/TURN (Free tier: 10,000 minutes/month) - KHuyến nghị
       // Setup: https://console.twilio.com/us1/develop/video/manage/tools/network-traversal-service
       // Hướng dẫn chi tiết: Xem file SETUP-TWILIO-TURN.md
