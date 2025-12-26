@@ -16,6 +16,8 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [comments, setComments] = useState([]);
   const [reactionsCount, setReactionsCount] = useState([]);
+  const [expanded, setExpanded] = useState(false);
+  const MAX_LENGTH = 300; // Maximum characters before showing "Xem thêm"
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const authorName = post.author_name || post.author_email?.split('@')[0] || 'Unknown';
@@ -161,7 +163,27 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
       {post.title && (
         <div className="post-title">{post.title}</div>
       )}
-      <div className="post-content">{formatContent(post.content)}</div>
+      <div className="post-content">
+        {expanded || !post.content || post.content.length <= MAX_LENGTH ? (
+          formatContent(post.content)
+        ) : (
+          <>
+            {formatContent(post.content.substring(0, MAX_LENGTH))}
+            <span className="post-content-ellipsis">...</span>
+          </>
+        )}
+        {post.content && post.content.length > MAX_LENGTH && (
+          <button 
+            className="post-see-more-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+          >
+            {expanded ? 'Xem ít hơn' : 'Xem thêm'}
+          </button>
+        )}
+      </div>
 
       {/* Post Images */}
       {/* Note: You'll need to add image_url field to posts table if not exists */}

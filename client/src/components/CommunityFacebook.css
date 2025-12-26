@@ -189,27 +189,48 @@
    MAIN CONTAINER
    ============================================ */
 .community-facebook-container {
-  max-width: 1200px;
+  max-width: 680px;
   margin: 0 auto;
   padding: 16px;
-  display: grid;
-  grid-template-columns: 300px 1fr 300px;
-  gap: 16px;
-  align-items: start;
   padding-top: 72px;
+  padding-left: calc(300px + 32px); /* Space for left sidebar */
+  padding-right: calc(300px + 32px); /* Space for right sidebar */
+}
+
+/* Main Feed - Scrollable */
+.main-feed {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
 }
 
 /* ============================================
-   SIDEBARS
+   SIDEBARS - Fixed Position
    ============================================ */
 .left-sidebar,
 .right-sidebar {
-  position: sticky;
+  position: fixed;
   top: 72px;
   height: calc(100vh - 72px);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 8px;
+  background: var(--fb-bg-secondary, #f0f2f5);
+  z-index: 100;
+}
+
+.left-sidebar {
+  left: 0;
+  width: 300px;
+  padding-left: 16px;
+  padding-top: 16px;
+}
+
+.right-sidebar {
+  right: 0;
+  width: 300px;
+  padding-right: 16px;
+  padding-top: 16px;
 }
 
 .left-sidebar::-webkit-scrollbar,
@@ -233,15 +254,7 @@
   background: #8a8d91;
 }
 
-/* ============================================
-   MAIN FEED
-   ============================================ */
-.main-feed {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
+/* Main feed is now in container above */
 
 /* ============================================
    LOADING STATES
@@ -301,10 +314,33 @@
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1264px) {
+  .left-sidebar {
+    width: 250px;
+  }
+  
+  .right-sidebar {
+    width: 250px;
+  }
+  
   .community-facebook-container {
-    grid-template-columns: 250px 1fr 250px;
-    gap: 12px;
+    padding-left: calc(250px + 32px);
+    padding-right: calc(250px + 32px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .left-sidebar {
+    width: 240px;
+  }
+  
+  .right-sidebar {
+    width: 240px;
+  }
+  
+  .community-facebook-container {
+    padding-left: calc(240px + 24px);
+    padding-right: calc(240px + 24px);
   }
 }
 

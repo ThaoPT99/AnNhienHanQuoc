@@ -88,6 +88,28 @@
   margin-bottom: 12px;
   white-space: pre-wrap;
   word-wrap: break-word;
+  position: relative;
+}
+
+.post-content-ellipsis {
+  display: inline;
+}
+
+.post-see-more-btn {
+  background: none;
+  border: none;
+  color: var(--fb-text-secondary, #65676b);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-left: 4px;
+  transition: color 0.2s;
+}
+
+.post-see-more-btn:hover {
+  color: var(--fb-primary, #1877f2);
+  text-decoration: underline;
 }
 
 .post-image {
