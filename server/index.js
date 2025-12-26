@@ -565,7 +565,8 @@ app.post('/api/auth/login', (req, res) => {
       }
 
       // Check if email is verified (can be disabled via env var for testing)
-      const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION !== 'false';
+      // Default: allow login without verification (for testing when email service is down)
+      const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
       
       if (!user.email_verified && requireEmailVerification) {
         console.log('⚠️ Login blocked: Email not verified for', email);
@@ -575,8 +576,8 @@ app.post('/api/auth/login', (req, res) => {
         });
       }
       
-      if (!user.email_verified) {
-        console.log('⚠️ Login allowed without email verification (REQUIRE_EMAIL_VERIFICATION=false)');
+      if (!user.email_verified && !requireEmailVerification) {
+        console.log('⚠️ Login allowed without email verification (email service may be unavailable)');
       }
 
       // Update last login
