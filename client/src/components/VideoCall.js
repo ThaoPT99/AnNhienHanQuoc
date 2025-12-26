@@ -15,9 +15,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [participants, setParticipants] = useState([]);
   const [showRoomInfo, setShowRoomInfo] = useState(false); // Hide by default on mobile
   const [roomLink, setRoomLink] = useState('');
-  const [showDebugLogs, setShowDebugLogs] = useState(false);
-  const [debugLogs, setDebugLogs] = useState([]);
-
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
@@ -28,11 +25,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const retryCountsRef = useRef(new Map()); // Map<userId, number> - track retry attempts per user
   const MAX_RETRY_ATTEMPTS = 2; // Maximum retry attempts per user
 
-  // Helper function to add debug log
+  // Helper function to add debug log (console only)
   const addDebugLog = (message, type = 'info') => {
-    const timestamp = new Date().toLocaleTimeString('vi-VN');
-    const logEntry = { timestamp, message, type };
-    setDebugLogs(prev => [...prev.slice(-49), logEntry]); // Keep last 50 logs
     console.log(message);
   };
 
@@ -1175,22 +1169,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             >
               {showRoomInfo ? '📋' : 'ℹ️'}
             </button>
-            <button 
-              className="info-toggle-btn debug-btn"
-              onClick={() => setShowDebugLogs(!showDebugLogs)}
-              title="Debug Logs - Click để xem logs"
-              style={{ 
-                marginLeft: '10px', 
-                background: showDebugLogs ? '#667eea' : 'rgba(255, 152, 0, 0.3)',
-                fontSize: '1.2rem',
-                minWidth: '45px',
-                minHeight: '35px',
-                border: showDebugLogs ? '2px solid #667eea' : '2px solid rgba(255, 152, 0, 0.5)',
-                fontWeight: 'bold'
-              }}
-            >
-              🐛
-            </button>
           </div>
           <button className="close-btn" onClick={endCall}>×</button>
         </div>
@@ -1249,67 +1227,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         {error && (
           <div className="error-message">
             ⚠️ {error}
-          </div>
-        )}
-
-        {/* Debug Logs Panel */}
-        {showDebugLogs && (
-          <div className="debug-logs-panel">
-            <div className="debug-logs-header">
-              <h4>🐛 Debug Logs ({debugLogs.length})</h4>
-              <button 
-                onClick={() => setDebugLogs([])}
-                style={{ 
-                  padding: '5px 10px', 
-                  background: '#ff4444', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
-              >
-                Xóa
-              </button>
-            </div>
-            <div className="debug-logs-content">
-              {debugLogs.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
-                  Chưa có logs. Các logs sẽ hiển thị ở đây...
-                </div>
-              ) : (
-                debugLogs.map((log, index) => (
-                  <div 
-                    key={index} 
-                    className={`debug-log-item ${log.type}`}
-                    style={{
-                      padding: '8px 12px',
-                      marginBottom: '4px',
-                      borderRadius: '4px',
-                      fontSize: '0.85rem',
-                      fontFamily: 'monospace',
-                      background: log.type === 'error' ? 'rgba(255, 68, 68, 0.1)' :
-                                  log.type === 'success' ? 'rgba(76, 175, 80, 0.1)' :
-                                  log.type === 'warn' ? 'rgba(255, 152, 0, 0.1)' :
-                                  'rgba(255, 255, 255, 0.05)',
-                      color: log.type === 'error' ? '#ff4444' :
-                             log.type === 'success' ? '#4caf50' :
-                             log.type === 'warn' ? '#ff9800' :
-                             '#fff',
-                      borderLeft: `3px solid ${
-                        log.type === 'error' ? '#ff4444' :
-                        log.type === 'success' ? '#4caf50' :
-                        log.type === 'warn' ? '#ff9800' :
-                        '#667eea'
-                      }`
-                    }}
-                  >
-                    <span style={{ color: '#999', marginRight: '8px' }}>{log.timestamp}</span>
-                    {log.message}
-                  </div>
-                ))
-              )}
-            </div>
           </div>
         )}
 
@@ -1407,26 +1324,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
           <p className="status-indicator">
             {isConnected ? '🟢 Đã kết nối' : '🟡 Đang kết nối...'}
           </p>
-          {/* Debug button for mobile - always visible */}
-          <button
-            onClick={() => setShowDebugLogs(!showDebugLogs)}
-            style={{
-              marginTop: '10px',
-              padding: '8px 15px',
-              background: showDebugLogs ? '#667eea' : 'rgba(255, 152, 0, 0.8)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '20px',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}
-          >
-            🐛 {showDebugLogs ? 'Ẩn Logs' : 'Xem Logs'}
-          </button>
         </div>
       </motion.div>
     </AnimatePresence>
