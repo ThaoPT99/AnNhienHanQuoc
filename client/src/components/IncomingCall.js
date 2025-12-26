@@ -44,27 +44,36 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
     };
   }, []);
   
-  const handleAccept = () => {
+  const handleAccept = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('✅ IncomingCall: Accept button clicked', { onAccept, roomLink });
     if (onAccept) {
       onAccept();
     } else if (roomLink) {
+      console.log('✅ IncomingCall: Redirecting to roomLink:', roomLink);
       window.location.href = roomLink;
     }
   };
-  
-  const handleDecline = () => {
+
+  const handleDecline = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('❌ IncomingCall: Decline button clicked', { onDecline });
     if (onDecline) {
       onDecline();
     }
   };
   
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
+        key="incoming-call"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.8 }}
         className="incoming-call-overlay"
+        style={{ position: 'fixed', zIndex: 9999 }}
       >
         <motion.div
           initial={{ y: 50 }}
@@ -85,14 +94,18 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
             <button
               className="accept-btn"
               onClick={handleAccept}
+              onMouseDown={(e) => e.preventDefault()}
               title="Chấp nhận"
+              type="button"
             >
               <span className="btn-icon">📞</span>
             </button>
             <button
               className="decline-btn"
               onClick={handleDecline}
+              onMouseDown={(e) => e.preventDefault()}
               title="Từ chối"
+              type="button"
             >
               <span className="btn-icon">📴</span>
             </button>

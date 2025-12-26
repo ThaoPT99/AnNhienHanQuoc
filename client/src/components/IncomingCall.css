@@ -148,6 +148,10 @@
   font-size: 2rem;
   transition: all 0.3s;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .accept-btn {
