@@ -112,19 +112,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     }
   }, [remoteStream]);
 
-  // Ensure video elements are updated when refs become available
-  useEffect(() => {
-    if (localStreamRef.current && localVideoRef.current && !localVideoRef.current.srcObject) {
-      console.log('📹 Video element mounted, setting local stream');
-      localVideoRef.current.srcObject = localStreamRef.current;
-      localVideoRef.current.setAttribute('playsinline', 'true');
-      localVideoRef.current.setAttribute('autoplay', 'true');
-      localVideoRef.current.muted = true;
-      localVideoRef.current.play().catch(err => {
-        console.error('❌ Error playing local video on mount:', err);
-      });
-    }
-  }, [localVideoRef.current, localStreamRef.current]);
 
   const initializeCall = async () => {
     try {
