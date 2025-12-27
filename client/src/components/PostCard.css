@@ -210,17 +210,26 @@
   justify-content: space-around;
   padding: 8px 0;
   border-top: 1px solid var(--fb-border);
+  border-bottom: 1px solid var(--fb-border);
   margin-top: 12px;
   margin-bottom: 0;
+  gap: 2px;
+  overflow: visible;
+}
+
+.post-actions > * {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .post-action-btn {
-  flex: 1;
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 0;
+  gap: 4px;
+  padding: 8px 4px;
   border: none;
   background: transparent;
   border-radius: 4px;
@@ -230,7 +239,9 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   min-width: 0;
-  width: 100%;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .post-action-btn:hover {
@@ -249,4 +260,112 @@
   margin-top: 0;
   padding-top: 0;
   border-top: 1px solid var(--fb-border);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .main-feed .post-card,
+  .post-card {
+    width: 100% !important;
+    max-width: calc(100vw - 32px) !important; /* Viewport width - main-feed padding (8px * 2) - post-card padding (8px * 2) */
+    min-width: 0 !important;
+    padding: 8px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+  
+  .main-feed .post-card *,
+  .post-card * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  .main-feed .post-header,
+  .post-header {
+    padding: 12px 8px 0 8px !important;
+    max-width: 100% !important;
+  }
+  
+  .main-feed .post-title,
+  .post-title {
+    padding: 8px 8px 0 8px !important;
+    font-size: 14px !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  .main-feed .post-content,
+  .post-content {
+    padding: 8px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  .main-feed .post-stats,
+  .post-stats {
+    padding: 6px 8px !important;
+    max-width: 100% !important;
+  }
+  
+  .main-feed .post-actions,
+  .post-actions {
+    padding: 6px 2px !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    gap: 0 !important;
+  }
+  
+  .main-feed .post-actions > *,
+  .post-actions > * {
+    flex: 1 1 33.33% !important;
+    min-width: 0 !important;
+    max-width: 33.33% !important;
+  }
+  
+  .main-feed .post-action-btn,
+  .post-action-btn {
+    font-size: 13px !important;
+    gap: 3px !important;
+    padding: 6px 2px !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+  
+  .main-feed .post-action-icon,
+  .post-action-icon {
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .main-feed .reactions-picker-wrapper,
+  .reactions-picker-wrapper {
+    flex: 1 1 33.33% !important;
+    min-width: 0 !important;
+    max-width: 33.33% !important;
+  }
+  
+  .main-feed .reaction-button.an-nhien-style,
+  .reaction-button.an-nhien-style {
+    font-size: 13px !important;
+    gap: 3px !important;
+    padding: 6px 2px !important;
+  }
+  
+  .main-feed .reaction-icon,
+  .reaction-icon {
+    font-size: 16px !important;
+  }
+  
+  .main-feed .reaction-label,
+  .reaction-label {
+    font-size: 13px !important;
+  }
 }

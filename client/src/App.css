@@ -31,6 +31,15 @@
   margin: revert !important;
 }
 
+/* Allow mobile responsive styles to override - remove revert on mobile */
+@media (max-width: 768px) {
+  #main-content .community-facebook-page .post-card,
+  #main-content .community-facebook-page .create-post-box {
+    padding: unset !important;
+    margin: unset !important;
+  }
+}
+
 /* Allow main-feed to use its own margin from CommunityFacebook.css for proper centering */
 #main-content .community-facebook-page .main-feed {
   /* Don't revert margin - let CommunityFacebook.css handle it for centering */

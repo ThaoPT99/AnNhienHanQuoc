@@ -265,16 +265,16 @@ const CommunityAnNhien = () => {
             <Link to="/community" className="menu-icon-fb active" title="Trang chủ">
               <span className="menu-icon-symbol">🏠</span>
             </Link>
-            <div className="menu-icon-fb" title="Video">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Video">
               <span className="menu-icon-symbol">📹</span>
             </div>
-            <div className="menu-icon-fb" title="Marketplace">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Marketplace">
               <span className="menu-icon-symbol">🛒</span>
             </div>
-            <div className="menu-icon-fb" title="Nhóm">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Nhóm">
               <span className="menu-icon-symbol">👥</span>
             </div>
-            <div className="menu-icon-fb" title="Trò chơi">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Trò chơi">
               <span className="menu-icon-symbol">🎮</span>
             </div>
           </div>

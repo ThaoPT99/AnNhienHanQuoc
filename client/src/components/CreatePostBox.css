@@ -155,3 +155,36 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .create-post-box {
+    width: 100%;
+    max-width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  
+  .create-post-box * {
+    max-width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .create-post-avatar {
+    margin-left: 8px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .create-post-input-wrapper {
+    padding: 6px 12px;
+  }
+  
+  .create-post-input {
+    font-size: 14px;
+  }
+}
