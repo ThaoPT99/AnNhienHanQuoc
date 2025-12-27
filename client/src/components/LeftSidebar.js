@@ -1,87 +1,99 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './LeftSidebar.css';
 
-const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate }) => {
-  const userAvatar = userProfile?.avatar_url || null;
-  const displayName = userProfile?.display_name || userName;
+const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate, activeTab, setActiveTab, searchQuery, setSearchQuery, followingCount, followersCount }) => {
+  const displayName = userName || userEmail?.split('@')[0] || 'User';
+  const location = useLocation();
+  const isFriendsPage = location.pathname === '/community/friends';
 
   return (
-    <aside className="left-sidebar-content">
-      {/* Profile Shortcut */}
-      <Link to={`/community/profile/${encodeURIComponent(userEmail)}`} className="sidebar-profile-link">
-        <div className="sidebar-profile">
-          {userAvatar ? (
-            <img src={userAvatar} alt={displayName} className="sidebar-avatar" />
-          ) : (
-            <div className="sidebar-avatar-placeholder">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <span className="sidebar-profile-name">{displayName}</span>
+    <div className="left-sidebar-content">
+      {/* User Profile */}
+      <Link 
+        to={`/community/profile/${encodeURIComponent(userEmail || '')}`} 
+        className="sidebar-user-profile"
+      >
+        <div className="sidebar-user-avatar">
+          {displayName.charAt(0).toUpperCase()}
         </div>
+        <span className="sidebar-user-name">{displayName}</span>
       </Link>
 
-      {/* Friends Section */}
-      <div className="sidebar-section">
-        <div className="sidebar-section-header">
-          <span className="sidebar-icon">👥</span>
-          <h3>Bạn bè</h3>
-        </div>
-        <Link to="/friends" className="sidebar-menu-item">
-          <span className="sidebar-icon">👤</span>
-          <span>Tìm bạn bè</span>
-        </Link>
-        <Link to="/friends" className="sidebar-menu-item">
-          <span className="sidebar-icon">👥</span>
-          <span>Đang follow ({friends.length})</span>
-        </Link>
-        <Link to="/friends?tab=followers" className="sidebar-menu-item">
-          <span className="sidebar-icon">👥</span>
-          <span>Followers</span>
-        </Link>
-      </div>
+      {/* Friends Section - Only show on friends page */}
+      {isFriendsPage && (
+        <>
+          <div className="sidebar-friends-title">Bạn bè</div>
+          <div className="sidebar-friends-tabs">
+            <button
+              className={`sidebar-friends-tab ${activeTab === 'following' ? 'active' : ''}`}
+              onClick={() => setActiveTab('following')}
+            >
+              <span className="sidebar-friends-tab-icon">👥</span>
+              <span className="sidebar-friends-tab-label">Bạn bè đang theo dõi ({followingCount || 0})</span>
+            </button>
+            <button
+              className={`sidebar-friends-tab ${activeTab === 'followers' ? 'active' : ''}`}
+              onClick={() => setActiveTab('followers')}
+            >
+              <span className="sidebar-friends-tab-icon">👥</span>
+              <span className="sidebar-friends-tab-label">Người theo dõi ({followersCount || 0})</span>
+            </button>
+          </div>
+          <div className="sidebar-friends-search">
+            <input
+              type="text"
+              placeholder="Tìm kiếm bạn bè..."
+              value={searchQuery || ''}
+              onChange={(e) => setSearchQuery?.(e.target.value)}
+              className="sidebar-friends-search-input"
+            />
+          </div>
+        </>
+      )}
 
-      {/* Groups Section */}
-      <div className="sidebar-section">
-        <div className="sidebar-section-header">
-          <span className="sidebar-icon">👥</span>
-          <h3>Nhóm</h3>
+      {/* Menu Items - Chỉ hiển thị những item có chức năng thật */}
+      {!isFriendsPage && (
+        <Link to="/community/friends" className="sidebar-menu-item">
+          <div className="sidebar-menu-icon">👥</div>
+          <span className="sidebar-menu-label">Bạn bè</span>
+        </Link>
+      )}
+      
+      {/* TODO: Thêm các menu items khác khi có chức năng thật */}
+      {/* <Link to="/ai" className="sidebar-menu-item">
+        <div className="sidebar-menu-icon">🤖</div>
+        <span className="sidebar-menu-label">Meta AI</span>
+      </Link> */}
+      
+      {/* Shortcuts Section - Ẩn đi vì chưa có dữ liệu thật */}
+      {/* TODO: Load shortcuts từ API hoặc database khi có */}
+      {false && (
+        <div className="sidebar-shortcuts">
+          <div className="sidebar-shortcuts-title">Lối tắt của bạn</div>
         </div>
-        <div className="sidebar-menu-item">
-          <span className="sidebar-icon">🏫</span>
-          <span>Du học Hàn Quốc</span>
-        </div>
-        <div className="sidebar-menu-item">
-          <span className="sidebar-icon">📚</span>
-          <span>Học bổng</span>
-        </div>
-        <div className="sidebar-menu-item">
-          <span className="sidebar-icon">🏠</span>
-          <span>Cuộc sống Hàn Quốc</span>
-        </div>
-      </div>
+      )}
 
-      {/* Shortcuts */}
-      <div className="sidebar-section">
-        <div className="sidebar-section-header">
-          <span className="sidebar-icon">⚡</span>
-          <h3>Lối tắt</h3>
+      {/* Footer - Ẩn đi vì chưa có chức năng thật */}
+      {/* TODO: Thêm footer links khi có các trang chính sách */}
+      {false && (
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-links">
+            <a href="#" className="sidebar-footer-link">Quyền riêng tư</a>
+            <span> · </span>
+            <a href="#" className="sidebar-footer-link">Điều khoản</a>
+            <span> · </span>
+            <a href="#" className="sidebar-footer-link">Quảng cáo</a>
+            <span> · </span>
+            <a href="#" className="sidebar-footer-link">Lựa chọn quảng cáo</a>
+            <span> · </span>
+            <a href="#" className="sidebar-footer-link">Cookie</a>
+            <span> · </span>
+            <a href="#" className="sidebar-footer-link">Xem thêm</a>
+          </div>
         </div>
-        <Link to="/video-call" className="sidebar-menu-item">
-          <span className="sidebar-icon">📞</span>
-          <span>Video Call</span>
-        </Link>
-        <Link to="/dashboard" className="sidebar-menu-item">
-          <span className="sidebar-icon">📊</span>
-          <span>Dashboard</span>
-        </Link>
-        <Link to="/ai-matching" className="sidebar-menu-item">
-          <span className="sidebar-icon">🤖</span>
-          <span>AI Matching</span>
-        </Link>
-      </div>
-    </aside>
+      )}
+    </div>
   );
 };
 

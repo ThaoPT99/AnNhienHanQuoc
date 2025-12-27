@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getRelativeTime } from '../utils/timezone';
 import './NotificationCenterFacebook.css';
 
-const NotificationCenterFacebook = () => {
+const NotificationCenterAnNhien = () => {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -112,7 +112,7 @@ const NotificationCenterFacebook = () => {
   };
 
   return (
-    <div className="notification-center-facebook" ref={dropdownRef}>
+    <div className="notification-center-an-nhien" ref={dropdownRef}>
       <button
         className="notification-icon-btn"
         onClick={() => setIsOpen(!isOpen)}
@@ -202,4 +202,4 @@ export const showNotification = (title, message, type = 'info', icon = '🔔', a
   }));
 };
 
-export default NotificationCenterFacebook;
+export default NotificationCenterAnNhien;

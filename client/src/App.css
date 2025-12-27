@@ -12,21 +12,38 @@
   padding: 0;
 }
 
-/* Remove spacing for Community page */
-#main-content .community-facebook-page,
-#main-content .community-facebook-page * {
+/* Remove spacing for Community page - but preserve card padding */
+#main-content .community-an-nhien-page {
   margin: 0 !important;
   padding: 0 !important;
+  position: relative;
+}
+
+#main-content .community-facebook-page > * {
+  margin-top: 0 !important;
+}
+
+/* Don't override padding for cards and important elements */
+#main-content .community-facebook-page .post-card,
+#main-content .community-facebook-page .create-post-box,
+#main-content .community-facebook-page .posts-feed {
+  padding: revert !important;
+  margin: revert !important;
+}
+
+/* Allow main-feed to use its own margin from CommunityFacebook.css for proper centering */
+#main-content .community-facebook-page .main-feed {
+  /* Don't revert margin - let CommunityFacebook.css handle it for centering */
 }
 
 /* Ensure body/html don't add white background */
-body:has(.community-facebook-page) {
+body:has(.community-an-nhien-page) {
   margin: 0;
   padding: 0;
   background: #f0f2f5 !important;
 }
 
-html:has(.community-facebook-page) {
+html:has(.community-an-nhien-page) {
   margin: 0;
   padding: 0;
   background: #f0f2f5 !important;

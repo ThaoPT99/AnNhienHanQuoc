@@ -41,9 +41,19 @@ const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, curre
       const endpoint = isRemoving ? '/api/social/reactions' : '/api/social/reactions';
       const method = isRemoving ? 'DELETE' : 'POST';
 
+      const token = localStorage.getItem('authToken');
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        headers['x-user-token'] = token;
+      }
+
       const response = await fetch(`${API_URL}${endpoint}`, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           post_id: postId || null,
           comment_id: commentId || null,
@@ -98,9 +108,9 @@ const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, curre
   return (
     <div className="reactions-picker-wrapper" ref={pickerRef}>
       <button
-        className={`reaction-button ${currentReaction ? 'has-reaction' : ''} ${buttonStyle === 'facebook' ? 'facebook-style' : ''}`}
+        className={`reaction-button ${currentReaction ? 'has-reaction' : ''} ${buttonStyle === 'an-nhien' ? 'an-nhien-style' : ''}`}
         onClick={() => setShowPicker(!showPicker)}
-        onMouseEnter={() => buttonStyle === 'facebook' && setShowPicker(true)}
+        onMouseEnter={() => buttonStyle === 'an-nhien' && setShowPicker(true)}
       >
         <span className="reaction-icon">
           {currentReaction 
@@ -108,10 +118,10 @@ const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, curre
             : '👍'
           }
         </span>
-        {buttonStyle === 'facebook' && (
+        {buttonStyle === 'an-nhien' && (
           <span className="reaction-label">{getReactionLabel()}</span>
         )}
-        {buttonStyle !== 'facebook' && totalCount > 0 && (
+        {buttonStyle !== 'an-nhien' && totalCount > 0 && (
           <span className="reaction-count">{totalCount}</span>
         )}
       </button>

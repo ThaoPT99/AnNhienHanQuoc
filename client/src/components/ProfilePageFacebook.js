@@ -1,66 +1,101 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
-import { getPoints } from '../utils/pointsSystem';
 import { showNotification } from './NotificationCenterFacebook';
 import CreatePostBox from './CreatePostBox';
 import PostCard from './PostCard';
 import './ProfilePageFacebook.css';
+import './CommunityFacebook.css';
 
-const ProfilePageFacebook = () => {
+const ProfilePageAnNhien = () => {
   const { email } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [followCounts, setFollowCounts] = useState({ followers_count: 0, following_count: 0 });
+  const [followCounts, setFollowCounts] = useState({ followers_count: 156, following_count: 89 });
   const [isFollowing, setIsFollowing] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({});
-  const [activeTab, setActiveTab] = useState('posts'); // posts, about, friends, photos, dashboard
-  const [stats, setStats] = useState({
-    points: 0,
-    level: 1,
-    rank: null,
-    badges: []
-  });
+  const [activeTab, setActiveTab] = useState('posts');
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const currentUserEmail = getUserEmail() || '';
   const profileEmail = email ? decodeURIComponent(email) : currentUserEmail;
 
+  // Demo data
+  const getDemoProfile = () => ({
+    email: profileEmail,
+    display_name: profileEmail?.split('@')[0] || 'User',
+    bio: 'Du học sinh Hàn Quốc | Yêu thích văn hóa và ngôn ngữ Hàn | Đang theo đuổi ước mơ học tập tại Seoul ✨',
+    location: 'Seoul, Hàn Quốc',
+    interests: 'Du học, Tiếng Hàn, K-Pop, Ẩm thực Hàn Quốc'
+  });
+
+  const getDemoPosts = () => {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+    
+    return [
+      {
+        id: 'demo-post-1',
+        title: 'Kinh nghiệm apply học bổng tại Hàn Quốc',
+        content: 'Mình vừa nhận được học bổng 100% tại đại học Seoul! Chia sẻ với các bạn một số tips:\n\n1. Chuẩn bị hồ sơ thật kỹ\n2. Viết essay hay và chân thành\n3. Chuẩn bị phỏng vấn tốt\n\nGood luck các bạn! 🎓✨',
+        author_name: profileEmail?.split('@')[0] || 'User',
+        author_email: profileEmail,
+        created_at: oneHourAgo.toISOString(),
+        likes_count: 245,
+        comments_count: 18,
+        _demo: true
+      },
+      {
+        id: 'demo-post-2',
+        title: 'Cuộc sống du học sinh tại Seoul',
+        content: 'Đã 6 tháng rồi kể từ ngày mình đặt chân đến Hàn Quốc. Cuộc sống ở đây thật sự rất thú vị! Ẩm thực, văn hóa, con người... tất cả đều tuyệt vời. Dù có những lúc nhớ nhà nhưng mình không hối hận về quyết định này. Các bạn đang có ý định du học thì cứ mạnh dạn lên nhé! 💪🇰🇷',
+        author_name: profileEmail?.split('@')[0] || 'User',
+        author_email: profileEmail,
+        created_at: twoDaysAgo.toISOString(),
+        likes_count: 189,
+        comments_count: 25,
+        _demo: true
+      },
+      {
+        id: 'demo-post-3',
+        title: 'Topik 6 đạt được sau 1 năm học tiếng Hàn',
+        content: 'Cuối cùng cũng đạt được mục tiêu! TOPIK 6 không dễ nhưng nếu bạn chăm chỉ và có phương pháp đúng thì chắc chắn làm được. Mình sẽ chia sẻ lộ trình học trong bài viết tiếp theo. Các bạn muốn biết gì thì comment nhé! 📚🎯',
+        author_name: profileEmail?.split('@')[0] || 'User',
+        author_email: profileEmail,
+        created_at: fiveDaysAgo.toISOString(),
+        likes_count: 312,
+        comments_count: 42,
+        _demo: true
+      }
+    ];
+  };
+
   useEffect(() => {
     setIsOwnProfile(profileEmail === currentUserEmail);
     loadProfile();
-    if (isOwnProfile) {
-      loadDashboardData();
-    }
   }, [email, profileEmail]);
 
   const loadProfile = async () => {
     setLoading(true);
     try {
-      // Load profile
       const profileRes = await fetch(`${API_URL}/api/social/profile/${encodeURIComponent(profileEmail)}`);
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setProfile(profileData);
-        setEditForm(profileData);
-      } else if (profileRes.status === 404) {
-        setProfile({ email: profileEmail });
-        setEditForm({ email: profileEmail });
+      } else {
+        setProfile(getDemoProfile());
       }
 
-      // Load follow counts
       const countsRes = await fetch(`${API_URL}/api/social/follow-counts/${encodeURIComponent(profileEmail)}`);
       if (countsRes.ok) {
         const counts = await countsRes.json();
         setFollowCounts(counts);
       }
 
-      // Check follow status
       if (currentUserEmail && profileEmail !== currentUserEmail) {
         const followRes = await fetch(
           `${API_URL}/api/social/follow-status/${encodeURIComponent(currentUserEmail)}/${encodeURIComponent(profileEmail)}`
@@ -71,10 +106,10 @@ const ProfilePageFacebook = () => {
         }
       }
 
-      // Load user posts
       loadUserPosts();
     } catch (error) {
       console.error('Error loading profile:', error);
+      setProfile(getDemoProfile());
     } finally {
       setLoading(false);
     }
@@ -85,35 +120,17 @@ const ProfilePageFacebook = () => {
       const res = await fetch(`${API_URL}/api/community/posts?author_email=${encodeURIComponent(profileEmail)}&limit=20`);
       if (res.ok) {
         const data = await res.json();
-        setPosts(data || []);
+        let postsData = Array.isArray(data) ? data : [];
+        if (postsData.length === 0) {
+          postsData = getDemoPosts();
+        }
+        setPosts(postsData);
+      } else {
+        setPosts(getDemoPosts());
       }
     } catch (error) {
       console.error('Error loading posts:', error);
-    }
-  };
-
-  const loadDashboardData = async () => {
-    try {
-      const points = getPoints();
-      const level = Math.floor(points / 500) + 1;
-      const badges = JSON.parse(localStorage.getItem('userBadges') || '[]');
-      
-      let rank = null;
-      if (profileEmail) {
-        try {
-          const rankResponse = await fetch(`${API_URL}/api/leaderboard/rank/${encodeURIComponent(profileEmail)}`);
-          if (rankResponse.ok) {
-            const rankData = await rankResponse.json();
-            rank = rankData?.rank || null;
-          }
-        } catch (err) {
-          console.error('Error loading rank:', err);
-        }
-      }
-
-      setStats({ points, level, rank, badges });
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      setPosts(getDemoPosts());
     }
   };
 
@@ -122,7 +139,6 @@ const ProfilePageFacebook = () => {
       showNotification('Lỗi', 'Vui lòng đăng nhập để follow', 'error');
       return;
     }
-
     try {
       const endpoint = isFollowing ? '/api/social/unfollow' : '/api/social/follow';
       const res = await fetch(`${API_URL}${endpoint}`, {
@@ -133,34 +149,12 @@ const ProfilePageFacebook = () => {
           following_email: profileEmail
         })
       });
-
       if (res.ok) {
         setIsFollowing(!isFollowing);
         loadProfile();
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
-    }
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/social/profile`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
-      });
-
-      if (res.ok) {
-        const updated = await res.json();
-        setProfile(updated);
-        setEditForm(updated);
-        setEditing(false);
-        showNotification('Thành công', 'Đã cập nhật profile', 'success');
-      }
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      showNotification('Lỗi', 'Không thể lưu profile', 'error');
     }
   };
 
@@ -180,97 +174,110 @@ const ProfilePageFacebook = () => {
   const avatarInitial = (profile?.display_name || profileEmail || 'U').charAt(0).toUpperCase();
 
   return (
-    <div className="profile-page-facebook">
-      {/* Cover Photo */}
-      <div className="profile-cover">
-        {profile?.cover_photo ? (
-          <img src={profile.cover_photo} alt="Cover" />
-        ) : (
+    <div className="profile-page-an-nhien">
+      {/* Header */}
+      <header className="community-header-fb">
+        <div className="community-header-fb-container">
+          <Link to="/community" className="community-logo-fb">
+            <span>Du Học An Nhiên</span>
+          </Link>
+          <div className="community-search-fb">
+            <div className="search-input-fb">
+              <span className="search-icon-fb">🔍</span>
+              <input type="text" placeholder="Tìm kiếm trên An Nhiên" className="search-input-field" />
+            </div>
+          </div>
+          <div className="community-menu-fb">
+            <Link to="/community" className="menu-icon-fb" title="Trang chủ">
+              <span className="menu-icon-symbol">🏠</span>
+            </Link>
+            <Link to="/community/friends" className="menu-icon-fb" title="Bạn bè">
+              <span className="menu-icon-symbol">👥</span>
+            </Link>
+            <div className="menu-icon-fb" title="Video"><span className="menu-icon-symbol">📹</span></div>
+            <div className="menu-icon-fb" title="Marketplace"><span className="menu-icon-symbol">🛒</span></div>
+            <div className="menu-icon-fb" title="Nhóm"><span className="menu-icon-symbol">👥</span></div>
+            <div className="menu-icon-fb" title="Trò chơi"><span className="menu-icon-symbol">🎮</span></div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <div className="profile-main-container">
+        {/* Cover Photo */}
+        <div className="profile-cover">
           <div className="cover-placeholder"></div>
-        )}
-        {isOwnProfile && (
-          <button className="edit-cover-btn" onClick={() => showNotification('Thông báo', 'Tính năng đang phát triển', 'info')}>
-            📷 Thêm ảnh bìa
-          </button>
-        )}
-      </div>
+          {isOwnProfile && (
+            <button className="edit-cover-btn" onClick={() => showNotification('Thông báo', 'Tính năng đang phát triển', 'info')}>
+              📷 Thêm ảnh bìa
+            </button>
+          )}
+        </div>
 
-      {/* Profile Header */}
-      <div className="profile-header-container">
+        {/* Profile Info */}
         <div className="profile-info-section">
-          <div className="profile-picture-container">
-            <div className="profile-picture">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt={displayName} />
-              ) : (
-                <div className="profile-picture-placeholder">{avatarInitial}</div>
-              )}
-              {isOwnProfile && (
-                <button className="edit-profile-pic-btn" onClick={() => showNotification('Thông báo', 'Tính năng đang phát triển', 'info')}>
-                  📷
-                </button>
-              )}
-            </div>
+          <div className="profile-avatar-large">
+            <div className="profile-avatar-circle">{avatarInitial}</div>
+            {isOwnProfile && (
+              <button className="edit-avatar-btn" onClick={() => showNotification('Thông báo', 'Tính năng đang phát triển', 'info')}>
+                📷
+              </button>
+            )}
           </div>
 
-          <div className="profile-name-section">
-            <h1>{displayName}</h1>
+          <div className="profile-details">
+            <h1 className="profile-name">{displayName}</h1>
             {profile?.bio && <p className="profile-bio">{profile.bio}</p>}
-            <div className="profile-stats-fb">
-              <span>{posts.length} bài viết</span>
-              <span>{followCounts.followers_count || 0} người theo dõi</span>
-              <span>{followCounts.following_count || 0} đang theo dõi</span>
+            
+            <div className="profile-stats-row">
+              <div className="stat-item">
+                <span className="stat-number">{posts.length}</span>
+                <span className="stat-label">Bài viết</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{followCounts.followers_count || 0}</span>
+                <span className="stat-label">Người theo dõi</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">{followCounts.following_count || 0}</span>
+                <span className="stat-label">Đang theo dõi</span>
+              </div>
             </div>
-          </div>
 
-          <div className="profile-actions-fb">
-            {isOwnProfile ? (
-              <>
-                <button className="btn-edit-profile" onClick={() => setEditing(!editing)}>
-                  ✏️ Chỉnh sửa trang cá nhân
-                </button>
-                <Link to="/community" className="btn-view-activity">
-                  🏠 Trang chủ
+            <div className="profile-actions-row">
+              {isOwnProfile ? (
+                <Link to="/community" className="btn-primary-action">
+                  🏠 Về trang chủ
                 </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/community" className="btn-view-activity" style={{ marginRight: '8px' }}>
-                  🏠 Trang chủ
-                </Link>
-                <button
-                  className={`btn-follow-fb ${isFollowing ? 'following' : ''}`}
-                  onClick={handleFollow}
-                >
-                  {isFollowing ? '✓ Đang theo dõi' : '+ Theo dõi'}
-                </button>
-                <button 
-                  className="btn-message" 
-                  onClick={() => {
-                    if (window.startMessengerTextChat) {
-                      window.startMessengerTextChat(profileEmail, displayName);
-                    }
-                  }}
-                >
-                  💬 Nhắn tin
-                </button>
-                <button 
-                  className="btn-video-call" 
-                  onClick={() => {
-                    if (window.startMessengerVideoCall) {
-                      window.startMessengerVideoCall(profileEmail, displayName);
-                    }
-                  }}
-                >
-                  📞 Video call
-                </button>
-              </>
+              ) : (
+                <>
+                  <button className={`btn-follow ${isFollowing ? 'following' : ''}`} onClick={handleFollow}>
+                    {isFollowing ? '✓ Đang theo dõi' : '+ Theo dõi'}
+                  </button>
+                  <Link to="/community" className="btn-secondary-action">
+                    🏠 Trang chủ
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {profile?.location && (
+              <div className="profile-info-item">
+                <span className="info-icon">📍</span>
+                <span>{profile.location}</span>
+              </div>
+            )}
+            {profile?.interests && (
+              <div className="profile-info-item">
+                <span className="info-icon">❤️</span>
+                <span>{profile.interests}</span>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Tabs - Facebook Style */}
-        <div className="profile-tabs">
+        {/* Tabs */}
+        <div className="profile-tabs-container">
           <button
             className={`profile-tab ${activeTab === 'posts' ? 'active' : ''}`}
             onClick={() => setActiveTab('posts')}
@@ -283,93 +290,12 @@ const ProfilePageFacebook = () => {
           >
             Giới thiệu
           </button>
-          <button
-            className={`profile-tab ${activeTab === 'friends' ? 'active' : ''}`}
-            onClick={() => setActiveTab('friends')}
-          >
-            Bạn bè
-          </button>
-          {isOwnProfile && (
-            <>
-              <button
-                className={`profile-tab ${activeTab === 'photos' ? 'active' : ''}`}
-                onClick={() => setActiveTab('photos')}
-              >
-                Ảnh
-              </button>
-              <button
-                className={`profile-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                Dashboard
-              </button>
-            </>
-          )}
-          <div className="profile-tabs-more">
-            <button className="profile-tab-more">
-              Xem thêm ▼
-            </button>
-          </div>
         </div>
-      </div>
 
-      {/* Content Section - Facebook Style 2 Column Layout */}
-      <div className="profile-content-wrapper-fb">
-        {/* Sidebar - Left */}
-        <aside className="profile-sidebar-fb">
-          <div className="sidebar-card-fb">
-            <h3>Giới thiệu</h3>
-            {profile?.bio && (
-              <p className="sidebar-bio">{profile.bio}</p>
-            )}
-            {profile?.location && (
-              <div className="info-item-fb">
-                <span className="info-icon-fb">📍</span>
-                <span>{profile.location}</span>
-              </div>
-            )}
-            {profile?.interests && (
-              <div className="info-item-fb">
-                <span className="info-icon-fb">❤️</span>
-                <span>Sở thích: {profile.interests}</span>
-              </div>
-            )}
-            {isOwnProfile && stats.points > 0 && (
-              <div className="info-item-fb">
-                <span className="info-icon-fb">⭐</span>
-                <span>Điểm: {stats.points.toLocaleString()}</span>
-              </div>
-            )}
-            {isOwnProfile && stats.level > 0 && (
-              <div className="info-item-fb">
-                <span className="info-icon-fb">🏆</span>
-                <span>Level: {stats.level}</span>
-              </div>
-            )}
-            {(!profile?.bio && !profile?.location && !profile?.interests && !isOwnProfile) && (
-              <p className="no-info-text">Chưa có thông tin</p>
-            )}
-          </div>
-
-          {isOwnProfile && stats.badges.length > 0 && (
-            <div className="sidebar-card-fb">
-              <h3>Badges</h3>
-              <div className="badges-list-fb">
-                {stats.badges.map((badge, i) => (
-                  <div key={i} className="badge-item-fb">
-                    <span className="badge-icon-fb">{badge.icon || '🏆'}</span>
-                    <span className="badge-name-fb">{badge.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
-
-        {/* Main Content - Right */}
-        <main className="profile-main-content-fb">
+        {/* Content */}
+        <div className="profile-content-area">
           {activeTab === 'posts' && (
-            <div className="posts-tab">
+            <div className="posts-section">
               {isOwnProfile && (
                 <CreatePostBox
                   userEmail={currentUserEmail}
@@ -378,8 +304,9 @@ const ProfilePageFacebook = () => {
                   onPostCreated={handlePostCreated}
                 />
               )}
+              
               {posts.length === 0 ? (
-                <div className="no-posts">
+                <div className="no-posts-message">
                   <p>Chưa có bài viết nào</p>
                 </div>
               ) : (
@@ -400,153 +327,39 @@ const ProfilePageFacebook = () => {
           )}
 
           {activeTab === 'about' && (
-            <div className="about-tab">
-              {editing ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="edit-profile-form"
-                >
-                  <h2>Chỉnh sửa thông tin</h2>
-                  <div className="form-group">
-                    <label>Tên hiển thị</label>
-                    <input
-                      type="text"
-                      value={editForm.display_name || ''}
-                      onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
-                      placeholder="Tên hiển thị"
-                    />
+            <div className="about-section">
+              <div className="about-card">
+                <h2>Giới thiệu</h2>
+                {profile?.bio ? (
+                  <p className="about-bio">{profile.bio}</p>
+                ) : (
+                  <p className="no-info">Chưa có thông tin giới thiệu</p>
+                )}
+              </div>
+
+              {profile?.location && (
+                <div className="about-card">
+                  <h3>📍 Địa điểm</h3>
+                  <p>{profile.location}</p>
+                </div>
+              )}
+
+              {profile?.interests && (
+                <div className="about-card">
+                  <h3>❤️ Sở thích</h3>
+                  <div className="interests-tags">
+                    {profile.interests.split(',').map((interest, i) => (
+                      <span key={i} className="interest-tag">{interest.trim()}</span>
+                    ))}
                   </div>
-                  <div className="form-group">
-                    <label>Bio</label>
-                    <textarea
-                      value={editForm.bio || ''}
-                      onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                      placeholder="Giới thiệu về bản thân"
-                      rows="3"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Địa điểm</label>
-                    <input
-                      type="text"
-                      value={editForm.location || ''}
-                      onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                      placeholder="Ví dụ: Hà Nội, Việt Nam"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Sở thích</label>
-                    <input
-                      type="text"
-                      value={editForm.interests || ''}
-                      onChange={(e) => setEditForm({ ...editForm, interests: e.target.value })}
-                      placeholder="Ví dụ: Du học, Tiếng Hàn, K-Pop"
-                    />
-                  </div>
-                  <div className="form-actions">
-                    <button className="btn-save" onClick={handleSaveProfile}>
-                      💾 Lưu
-                    </button>
-                    <button className="btn-cancel" onClick={() => setEditing(false)}>
-                      Hủy
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <div className="about-content">
-                  <h2>Giới thiệu</h2>
-                  {profile?.bio && (
-                    <div className="about-section">
-                      <h3>Tiểu sử</h3>
-                      <p>{profile.bio}</p>
-                    </div>
-                  )}
-                  {profile?.location && (
-                    <div className="about-section">
-                      <h3>Địa điểm</h3>
-                      <p>📍 {profile.location}</p>
-                    </div>
-                  )}
-                  {profile?.interests && (
-                    <div className="about-section">
-                      <h3>Sở thích</h3>
-                      <div className="interests-list">
-                        {profile.interests.split(',').map((interest, i) => (
-                          <span key={i} className="interest-tag">{interest.trim()}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {!profile?.bio && !profile?.location && !profile?.interests && (
-                    <p className="no-info">Chưa có thông tin</p>
-                  )}
                 </div>
               )}
             </div>
           )}
-
-          {activeTab === 'friends' && (
-            <div className="friends-tab">
-              <div className="friends-stats">
-                <h2>Bạn bè ({followCounts.following_count || 0})</h2>
-                <Link to={`/friends?user=${encodeURIComponent(profileEmail)}`} className="see-all-friends">
-                  Xem tất cả
-                </Link>
-              </div>
-              {/* Friends list will be loaded here */}
-            </div>
-          )}
-
-          {activeTab === 'photos' && (
-            <div className="photos-tab">
-              <div className="no-posts">
-                <p>Tính năng Ảnh đang phát triển</p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'dashboard' && isOwnProfile && (
-            <div className="dashboard-tab">
-              <h2>Dashboard của tôi</h2>
-              <div className="dashboard-stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">⭐</div>
-                  <div className="stat-info">
-                    <div className="stat-value">{stats.points.toLocaleString()}</div>
-                    <div className="stat-label">Điểm</div>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon">🏆</div>
-                  <div className="stat-info">
-                    <div className="stat-value">Level {stats.level}</div>
-                    <div className="stat-label">Cấp độ</div>
-                  </div>
-                </div>
-                {stats.rank && (
-                  <div className="stat-card">
-                    <div className="stat-icon">📊</div>
-                    <div className="stat-info">
-                      <div className="stat-value">#{stats.rank}</div>
-                      <div className="stat-label">Xếp hạng</div>
-                    </div>
-                  </div>
-                )}
-                <div className="stat-card">
-                  <div className="stat-icon">🏅</div>
-                  <div className="stat-info">
-                    <div className="stat-value">{stats.badges.length}</div>
-                    <div className="stat-label">Badges</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
+        </div>
       </div>
     </div>
   );
 };
 
-export default ProfilePageFacebook;
+export default ProfilePageAnNhien;

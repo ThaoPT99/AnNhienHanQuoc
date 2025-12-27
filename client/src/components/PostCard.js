@@ -1,66 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { getRelativeTime } from '../utils/timezone';
 import { authenticatedFetch } from '../utils/auth';
-import { showNotification } from './NotificationCenter';
 import ReactionsPicker from './ReactionsPicker';
 import CommentsSection from './CommentsSection';
-import { getRelativeTime } from '../utils/timezone';
 import './PostCard.css';
 
 const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
-  const [showComments, setShowComments] = useState(false);
-  const [postLikes, setPostLikes] = useState(post.likes_count || 0);
-  const [postComments, setPostComments] = useState(post.comments_count || 0);
   const [currentReaction, setCurrentReaction] = useState(null);
-  const [isLiked, setIsLiked] = useState(false);
-  const [comments, setComments] = useState([]);
   const [reactionsCount, setReactionsCount] = useState([]);
+  const [postLikes, setPostLikes] = useState(post.likes_count || 0);
+  const [postComments, setPostComments] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  const MAX_LENGTH = 300; // Maximum characters before showing "Xem thêm"
+  const MAX_LENGTH = 300;
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const authorName = post.author_name || post.author_email?.split('@')[0] || 'Unknown';
   const timeAgo = getRelativeTime(post.created_at);
 
-  // Load post reactions and comments
-  React.useEffect(() => {
-    loadPostReaction();
-    if (showComments) {
-      loadComments();
+  useEffect(() => {
+    // For demo posts, use demo data
+    if (post._demo) {
+      setReactionsCount(post._demoReactions || []);
+      setPostLikes(post.likes_count || 0);
+      setPostComments(post._demoComments || 0);
+    } else {
+      loadPostReaction();
+      loadCommentsCount();
     }
-  }, [post.id, showComments]);
+  }, [post.id, userEmail, post._demo]);
 
   const loadPostReaction = async () => {
-    if (!userEmail) return;
     try {
-      // Get user's reaction
-      const userRes = await fetch(
-        `${API_URL}/api/social/reactions/user/${post.id}/null/${encodeURIComponent(userEmail)}`
-      );
-      if (userRes.ok) {
-        const userData = await userRes.json();
-        if (userData?.reaction) {
-          setCurrentReaction(userData.reaction.reaction_type);
-          setIsLiked(true);
+      // Load user's reaction if logged in
+      if (userEmail) {
+        try {
+          const userRes = await fetch(
+            `${API_URL}/api/social/reactions/user/${post.id}/null/${encodeURIComponent(userEmail)}`
+          );
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            if (userData?.reaction) {
+              setCurrentReaction(userData.reaction.reaction_type);
+            }
+          }
+        } catch (err) {
+          console.error('Error loading user reaction:', err);
         }
       }
       
-      // Get reactions count
-      const countRes = await fetch(
-        `${API_URL}/api/social/reactions/${post.id}`
-      );
+      // Load all reactions count
+      const countRes = await fetch(`${API_URL}/api/social/reactions/${post.id}`);
       if (countRes.ok) {
         const countData = await countRes.json();
-        // CountData should be an array of reactions with counts
         if (Array.isArray(countData)) {
           setReactionsCount(countData);
-          const likesCount = countData
-            .filter(r => r.reaction_type === 'like')
+          const totalReactions = countData
             .reduce((sum, r) => sum + (parseInt(r.count) || 0), 0);
-          setPostLikes(likesCount);
-        } else {
-          setReactionsCount([]);
+          setPostLikes(totalReactions);
+        } else if (countData && typeof countData === 'object') {
+          // Handle different API response formats
+          const reactionsArray = Object.entries(countData).map(([type, count]) => ({
+            reaction_type: type,
+            count: parseInt(count) || 0
+          }));
+          setReactionsCount(reactionsArray);
+          const totalReactions = reactionsArray
+            .reduce((sum, r) => sum + r.count, 0);
+          setPostLikes(totalReactions);
         }
       }
     } catch (error) {
@@ -68,42 +75,46 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
     }
   };
 
-  const loadComments = async () => {
+  const loadCommentsCount = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/community/posts/${post.id}/comments`);
+      // Use the correct endpoint - GET /api/community/posts/:id returns post with comments
+      const res = await fetch(`${API_URL}/api/community/posts/${post.id}`);
       if (res.ok) {
-        const data = await res.json();
-        setComments(data || []);
-        setPostComments(data?.length || 0);
+        const postData = await res.json();
+        if (postData.comments && Array.isArray(postData.comments)) {
+          setPostComments(postData.comments.length);
+        } else if (postData.comments_count !== undefined) {
+          setPostComments(postData.comments_count);
+        }
+      } else if (res.status === 404) {
+        // Post not found, set to 0
+        setPostComments(0);
       }
     } catch (error) {
       console.error('Error loading comments:', error);
+      // On error, try to use comments_count from post object if available
+      if (post.comments_count !== undefined) {
+        setPostComments(post.comments_count);
+      }
     }
   };
 
   const handleReactionChange = async (reactionType) => {
-    const wasLiked = isLiked;
     const oldReaction = currentReaction;
     
     if (oldReaction === reactionType) {
-      // Remove reaction
       setCurrentReaction(null);
-      setIsLiked(false);
       setPostLikes(prev => Math.max(0, prev - 1));
     } else {
-      // Change reaction
-      if (!wasLiked) {
+      if (!oldReaction) {
         setPostLikes(prev => prev + 1);
       }
       setCurrentReaction(reactionType);
-      setIsLiked(true);
     }
 
     try {
       const method = oldReaction === reactionType ? 'DELETE' : 'POST';
-      const endpoint = '/api/social/reactions';
-      
-      await authenticatedFetch(endpoint, {
+      await authenticatedFetch('/api/social/reactions', {
         method,
         body: JSON.stringify({
           post_id: post.id,
@@ -112,26 +123,25 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
       });
 
       onUpdate?.(post.id, {
-        likes_count: postLikes + (oldReaction === reactionType ? -1 : wasLiked ? 0 : 1)
+        likes_count: postLikes + (oldReaction === reactionType ? -1 : oldReaction ? 0 : 1)
       });
+      
+      loadPostReaction();
     } catch (error) {
       console.error('Error updating reaction:', error);
-      // Revert on error
       setCurrentReaction(oldReaction);
-      setIsLiked(wasLiked);
       setPostLikes(post.likes_count || 0);
     }
   };
 
   const handleCommentAdded = () => {
-    loadComments();
     setPostComments(prev => prev + 1);
+    loadCommentsCount();
     onUpdate?.(post.id, { comments_count: postComments + 1 });
   };
 
   const formatContent = (content) => {
     if (!content) return '';
-    // Simple formatting - can be enhanced with markdown or rich text
     return content.split('\n').map((line, i) => (
       <React.Fragment key={i}>
         {line}
@@ -140,146 +150,129 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
     ));
   };
 
+  const displayContent = post.content || '';
+  const fullContentLength = post.title ? (post.title.length + (post.content || '').length + 2) : (post.content || '').length;
+
   return (
     <div className="post-card">
       {/* Post Header */}
       <div className="post-header">
         <Link
-          to={`/profile/${encodeURIComponent(post.author_email)}`}
-          className="post-author"
+          to={`/community/profile/${encodeURIComponent(post.author_email)}`}
+          className="post-author-info"
         >
           <div className="post-author-avatar">
             {authorName.charAt(0).toUpperCase()}
           </div>
-          <div className="post-author-info">
-            <div className="post-author-name">{authorName}</div>
-            <div className="post-time">{timeAgo}</div>
+          <div className="post-author-details">
+            <span className="post-author-name">{authorName}</span>
+            <div className="post-time">
+              {timeAgo}
+              <span className="post-time-icon">🌐</span>
+            </div>
           </div>
         </Link>
         <button className="post-menu-btn">⋯</button>
       </div>
 
-      {/* Post Content */}
+      {/* Post Title */}
       {post.title && (
-        <div className="post-title">{post.title}</div>
+        <div className="post-title">
+          {post.title}
+        </div>
       )}
+
+      {/* Post Content */}
       <div className="post-content">
-        {expanded || !post.content || post.content.length <= MAX_LENGTH ? (
-          formatContent(post.content)
+        {expanded || !displayContent || fullContentLength <= MAX_LENGTH ? (
+          formatContent(post.content || '')
         ) : (
           <>
-            {formatContent(post.content.substring(0, MAX_LENGTH))}
+            {formatContent((post.content || '').substring(0, Math.max(0, MAX_LENGTH - (post.title ? post.title.length + 2 : 0))))}
             <span className="post-content-ellipsis">...</span>
           </>
         )}
-        {post.content && post.content.length > MAX_LENGTH && (
-          <button 
-            className="post-see-more-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded(!expanded);
-            }}
+        {fullContentLength > MAX_LENGTH && (
+          <span 
+            className="post-see-more"
+            onClick={() => setExpanded(!expanded)}
+            style={{ marginLeft: '4px' }}
           >
             {expanded ? 'Xem ít hơn' : 'Xem thêm'}
-          </button>
+          </span>
         )}
       </div>
 
-      {/* Post Images */}
-      {/* Note: You'll need to add image_url field to posts table if not exists */}
-      
-      {/* Post Stats - Facebook Style */}
-      {(() => {
-        const totalReactions = reactionsCount?.reduce((sum, r) => sum + (r.count || 0), 0) || postLikes || 0;
-        const hasReactions = totalReactions > 0;
-        const hasComments = postComments > 0;
-        
-        if (!hasReactions && !hasComments) return null;
-        
-        return (
-          <div className="post-stats">
-            {hasReactions && (
-              <div className="post-stats-left">
-                <div className="post-reactions-icons">
-                  {reactionsCount?.slice(0, 3).map((r, idx) => {
-                    const reactionTypes = { 'like': '👍', 'love': '❤️', 'haha': '😂', 'wow': '😮', 'sad': '😢', 'angry': '😠' };
+      {/* Post Stats - Reactions and Comments Count */}
+      {(postLikes > 0 || postComments > 0) && (
+        <div className="post-stats">
+          {postLikes > 0 && (
+            <div className="post-stats-reactions">
+              <div className="post-reactions-icons">
+                {reactionsCount
+                  .filter(r => parseInt(r.count) > 0)
+                  .slice(0, 3)
+                  .map((reaction, index) => {
+                    const emojiMap = {
+                      'like': '👍',
+                      'love': '❤️',
+                      'haha': '😂',
+                      'wow': '😮',
+                      'sad': '😢',
+                      'angry': '😠'
+                    };
                     return (
-                      <span key={r.reaction_type} className="reaction-icon-small" style={{ marginLeft: idx > 0 ? '-4px' : 0 }}>
-                        {reactionTypes[r.reaction_type] || '👍'}
+                      <span key={index} className="reaction-icon-small">
+                        {emojiMap[reaction.reaction_type] || '👍'}
                       </span>
                     );
                   })}
-                </div>
-                <span className="post-stats-text">
-                  {currentReaction ? 'Bạn' : ''}
-                  {currentReaction && totalReactions > 1 ? ' và ' : ''}
-                  {totalReactions > (currentReaction ? 1 : 0) ? `${totalReactions - (currentReaction ? 1 : 0)} người khác` : ''}
-                  {!currentReaction && totalReactions > 0 ? `${totalReactions} người` : ''}
-                </span>
               </div>
-            )}
-            {hasComments && (
-              <div className="post-stats-right">
-                <span className="post-stats-text">{postComments} bình luận</span>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      {/* Post Actions - Facebook Style */}
-      <div className="post-actions">
-        <div className="post-action-btn-wrapper">
-          <ReactionsPicker
-            postId={post.id}
-            userEmail={userEmail}
-            onReactionChange={handleReactionChange}
-            currentReaction={currentReaction}
-            reactionsCount={reactionsCount}
-            buttonStyle="facebook"
-          />
+              <span className="post-stats-text">
+                {postLikes}
+              </span>
+            </div>
+          )}
+          {postComments > 0 && (
+            <div className="post-stats-comments">
+              <span className="post-stats-text">
+                {postComments} bình luận
+              </span>
+            </div>
+          )}
         </div>
-        <button
-          className="post-action-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowComments(!showComments);
-          }}
-        >
+      )}
+
+      {/* Post Actions */}
+      <div className="post-actions">
+        <ReactionsPicker
+          postId={post.id}
+          userEmail={userEmail}
+          onReactionChange={handleReactionChange}
+          currentReaction={currentReaction}
+          reactionsCount={reactionsCount}
+          buttonStyle="an-nhien"
+        />
+        <button className="post-action-btn">
           <span className="post-action-icon">💬</span>
-          <span className="post-action-label">Bình luận</span>
+          <span>Bình luận</span>
         </button>
-        <button 
-          className="post-action-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            // Share functionality can be added here
-          }}
-        >
+        <button className="post-action-btn">
           <span className="post-action-icon">🔗</span>
-          <span className="post-action-label">Chia sẻ</span>
+          <span>Chia sẻ</span>
         </button>
       </div>
 
       {/* Comments Section */}
-      <AnimatePresence>
-        {showComments && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="post-comments-wrapper"
-          >
-            <CommentsSection
-              postId={post.id}
-              comments={comments}
-              userEmail={userEmail}
-              userName={userName}
-              onCommentAdded={handleCommentAdded}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="post-comments-wrapper">
+        <CommentsSection
+          postId={post.id}
+          comments={[]}
+          userEmail={userEmail}
+          userName={userName}
+          onCommentAdded={handleCommentAdded}
+        />
+      </div>
     </div>
   );
 };

@@ -1,6 +1,9 @@
 .reactions-picker-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
 }
 
 .reaction-button {
@@ -25,17 +28,27 @@
   color: var(--fb-primary, #1877f2);
 }
 
-/* Facebook Style Button */
-.reaction-button.facebook-style {
-  padding: 8px 4px;
-  border-radius: 8px;
+/* An Nhiên Style Button */
+.reaction-button.an-nhien-style {
+  padding: 8px;
+  border-radius: 4px;
   width: 100%;
   justify-content: center;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--fb-text-secondary, #65676b);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .reaction-button.facebook-style:hover {
-  background: var(--fb-hover, #f2f2f2);
+  background-color: var(--fb-hover-bg, #f2f3f5);
+  color: var(--fb-text-primary, #050505);
 }
 
 .reaction-icon {

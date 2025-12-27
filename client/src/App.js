@@ -57,7 +57,7 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 function AppContent() {
   const location = useLocation();
-  const isCommunityPage = location.pathname.startsWith('/community');
+  const isCommunityPage = location.pathname.startsWith('/community') || location.pathname.startsWith('/friends');
 
   return (
     <ErrorBoundary>
@@ -85,6 +85,7 @@ function AppContent() {
                 <Route path="/events" element={<Events />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/community" element={<Community />} />
+                <Route path="/community/friends" element={<Community />} />
                 <Route path="/community/profile/:email" element={<Community />} />
                 <Route path="/progress-tracker" element={<ProgressTracker />} />
                 <Route path="/referral" element={<ReferralProgram />} />
@@ -103,7 +104,7 @@ function AppContent() {
                 <Route path="/profile/:email" element={<UserProfile />} />
                 <Route path="/ai-matching" element={<AIMatching />} />
                 <Route path="/video-call" element={<VideoCallBooking />} />
-                <Route path="/friends" element={<Friends />} />
+                <Route path="/friends" element={<Community />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 </Routes>

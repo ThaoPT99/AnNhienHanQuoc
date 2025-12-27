@@ -218,6 +218,6 @@ const NotificationCenter = () => {
 
 export default NotificationCenter;
 
-// Re-export showNotification from NotificationCenterFacebook for backward compatibility
+// Re-export showNotification from NotificationCenterAnNhien for backward compatibility
 export { showNotification } from './NotificationCenterFacebook';
 

@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
-import { authenticatedFetch } from '../utils/auth';
 import { showNotification } from './NotificationCenter';
 import AuthModal from './AuthModal';
-import CreatePostBox from './CreatePostBox';
-import PostCard from './PostCard';
 import LeftSidebar from './LeftSidebar';
 import RightSidebar from './RightSidebar';
-// MessengerChat is now rendered globally in App.js to maintain WebSocket connection
-// import MessengerChat from './MessengerChat';
+import CreatePostBox from './CreatePostBox';
+import PostCard from './PostCard';
 import './CommunityFacebook.css';
 
-const CommunityFacebook = () => {
+const CommunityAnNhien = () => {
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [authMode, setAuthMode] = useState('login');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -51,12 +47,10 @@ const CommunityFacebook = () => {
         const profile = await res.json();
         setUserProfile(profile);
       } else if (res.status === 404) {
-        // Profile doesn't exist yet, create empty one
         setUserProfile({ email: userEmail });
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      // Set empty profile on error
       setUserProfile({ email: userEmail });
     }
   };
@@ -74,18 +68,6 @@ const CommunityFacebook = () => {
       console.error('Error loading friends:', error);
     }
   };
-
-  // Listen for friend request accepted event
-  useEffect(() => {
-    const handleFriendRequestAccepted = () => {
-      loadFriends();
-    };
-    
-    window.addEventListener('friendRequestAccepted', handleFriendRequestAccepted);
-    return () => {
-      window.removeEventListener('friendRequestAccepted', handleFriendRequestAccepted);
-    };
-  }, [userEmail]);
 
   // Load posts
   const loadPosts = async (reset = false) => {
@@ -105,20 +87,101 @@ const CommunityFacebook = () => {
       const res = await fetch(`${API_URL}/api/community/posts?${params}`);
       if (res.ok) {
         const data = await res.json();
+        let postsData = data || [];
+        
+        // Only add demo posts if no real posts exist
+        if (reset && postsData.length === 0) {
+          postsData = getDemoPosts();
+        }
+        
         if (reset) {
-          setPosts(data || []);
+          setPosts(postsData);
         } else {
-          setPosts(prev => [...prev, ...(data || [])]);
+          setPosts(prev => [...prev, ...(postsData || [])]);
         }
         setHasMore(data && data.length === 10);
+      } else {
+        // If API fails, use demo posts only if reset
+        if (reset) {
+          setPosts(getDemoPosts());
+        }
       }
     } catch (error) {
       console.error('Error loading posts:', error);
-      showNotification('Lỗi', 'Không thể tải bài viết', 'error');
+      // On error, use demo posts
+      if (reset) {
+        setPosts(getDemoPosts());
+      } else {
+        showNotification('Lỗi', 'Không thể tải bài viết', 'error');
+      }
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
+  };
+
+  // Demo posts with reactions and comments
+  const getDemoPosts = () => {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    
+    return [
+      {
+        id: 'demo-1',
+        title: 'Hàn Lập mất mấy giây để đánh bại Vưu đạo hữu đây các đạo hữu',
+        content: 'Các bạn có thấy không, Hàn Lập đã thể hiện sức mạnh tuyệt đối trong trận đấu này. Tôi nghĩ đây là một trong những khoảnh khắc đáng nhớ nhất của series! 😎',
+        author_name: 'Zinn Tiên Vực',
+        author_email: 'demo1@example.com',
+        created_at: oneHourAgo.toISOString(),
+        likes_count: 107,
+        comments_count: 34,
+        category: 'Tất cả',
+        type: 'discussion',
+        _demo: true,
+        _demoReactions: [
+          { reaction_type: 'like', count: 65 },
+          { reaction_type: 'haha', count: 42 }
+        ],
+        _demoComments: 34
+      },
+      {
+        id: 'demo-2',
+        title: 'Có nên đi du học Hàn Quốc năm 2026? Góc nhìn thực tế cho người mới bắt đầu',
+        content: 'Chào mọi người,\n\nTôi muốn chia sẻ một góc nhìn thực tế về việc du học Hàn Quốc năm 2026, đặc biệt là dành cho những người đang phân vân chưa quyết định được.\n\nĐầu tiên, về chi phí...',
+        author_name: 'dthuytrang3139',
+        author_email: 'demo2@example.com',
+        created_at: twoDaysAgo.toISOString(),
+        likes_count: 45,
+        comments_count: 12,
+        category: 'Tất cả',
+        type: 'experience',
+        _demo: true,
+        _demoReactions: [
+          { reaction_type: 'like', count: 30 },
+          { reaction_type: 'love', count: 15 }
+        ],
+        _demoComments: 12
+      },
+      {
+        id: 'demo-3',
+        title: 'Du học An Nhiên tư vấn nhiệt tình',
+        content: 'Mình vừa được tư vấn tại Du học An Nhiên và thấy rất hài lòng. Các bạn tư vấn viên giải thích rất rõ ràng về lộ trình du học, cách chọn trường phù hợp, chuẩn bị hồ sơ và chi phí minh bạch. Cảm ơn team An Nhiên rất nhiều!',
+        author_name: 'phantruongthao199',
+        author_email: 'demo3@example.com',
+        created_at: twoDaysAgo.toISOString(),
+        likes_count: 28,
+        comments_count: 8,
+        category: 'Tất cả',
+        type: 'discussion',
+        _demo: true,
+        _demoReactions: [
+          { reaction_type: 'like', count: 20 },
+          { reaction_type: 'love', count: 8 }
+        ],
+        _demoComments: 8
+      }
+    ];
   };
 
   // Load more posts on scroll
@@ -145,7 +208,7 @@ const CommunityFacebook = () => {
     showNotification('Thành công', 'Đã đăng bài viết', 'success');
   };
 
-  // Handle post update (like, comment, etc)
+  // Handle post update
   const handlePostUpdate = (postId, updates) => {
     setPosts(prev => prev.map(post => 
       post.id === postId ? { ...post, ...updates } : post
@@ -163,7 +226,7 @@ const CommunityFacebook = () => {
   // Show login modal if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="community-facebook-page">
+      <div className="community-an-nhien-page">
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => {}}
@@ -177,58 +240,52 @@ const CommunityFacebook = () => {
 
   return (
     <div className="community-facebook-page">
-      {/* Facebook-style Header Menu */}
+      {/* Header - Fixed ở top */}
       <header className="community-header-fb">
         <div className="community-header-fb-container">
-          {/* Left: Logo */}
+          {/* Logo */}
           <Link to="/community" className="community-logo-fb">
-            <div className="community-logo-icon-fb">🇰🇷</div>
-            <span className="community-logo-text-fb">Du học An Nhiên</span>
+            <span>Du Học An Nhiên</span>
           </Link>
 
-          {/* Center: Search (placeholder for now) */}
+          {/* Search bar */}
           <div className="community-search-fb">
             <div className="search-input-fb">
               <span className="search-icon-fb">🔍</span>
               <input 
                 type="text" 
-                placeholder="Tìm kiếm trên Cộng đồng" 
+                placeholder="Tìm kiếm trên An Nhiên" 
                 className="search-input-field"
-                disabled
               />
             </div>
           </div>
 
-          {/* Right: Menu Icons */}
+          {/* Menu icons */}
           <div className="community-menu-fb">
-            <Link 
-              to="/community" 
-              className="menu-icon-fb active"
-              title="Trang chủ"
-            >
+            <Link to="/community" className="menu-icon-fb active" title="Trang chủ">
               <span className="menu-icon-symbol">🏠</span>
             </Link>
-            {/* Placeholder for future menu items */}
-            <div className="menu-icon-fb" title="Video" style={{ opacity: 0.3 }}>
+            <div className="menu-icon-fb" title="Video">
               <span className="menu-icon-symbol">📹</span>
             </div>
-            <div className="menu-icon-fb" title="Marketplace" style={{ opacity: 0.3 }}>
+            <div className="menu-icon-fb" title="Marketplace">
               <span className="menu-icon-symbol">🛒</span>
             </div>
-            <div className="menu-icon-fb" title="Nhóm" style={{ opacity: 0.3 }}>
+            <div className="menu-icon-fb" title="Nhóm">
               <span className="menu-icon-symbol">👥</span>
             </div>
-            <div className="menu-icon-fb" title="Menu" style={{ opacity: 0.3 }}>
-              <span className="menu-icon-symbol">☰</span>
+            <div className="menu-icon-fb" title="Trò chơi">
+              <span className="menu-icon-symbol">🎮</span>
             </div>
           </div>
         </div>
       </header>
-      
-      <div className="community-facebook-container">
+
+      {/* Main Container */}
+      <div className="community-an-nhien-container">
         {/* Left Sidebar */}
         <aside className="left-sidebar">
-          <LeftSidebar
+          <LeftSidebar 
             userEmail={userEmail}
             userName={userName}
             userProfile={userProfile}
@@ -239,7 +296,6 @@ const CommunityFacebook = () => {
 
         {/* Main Feed */}
         <main className="main-feed">
-          {/* Create Post Box */}
           <CreatePostBox
             userEmail={userEmail}
             userName={userName}
@@ -249,16 +305,34 @@ const CommunityFacebook = () => {
 
           {/* Posts Feed */}
           {loading && posts.length === 0 ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Đang tải bài viết...</p>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '60px 20px', 
+              color: 'var(--fb-text-secondary)',
+              fontSize: '15px'
+            }}>
+              <div style={{ 
+                width: '40px', 
+                height: '40px', 
+                border: '3px solid var(--fb-border)',
+                borderTopColor: 'var(--fb-primary)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto 16px'
+              }}></div>
+              Đang tải bài viết...
             </div>
           ) : posts.length === 0 ? (
-            <div className="empty-feed">
-              <p>Chưa có bài viết nào. Hãy bắt đầu chia sẻ!</p>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '60px 20px', 
+              color: 'var(--fb-text-secondary)',
+              fontSize: '15px'
+            }}>
+              Chưa có bài viết nào. Hãy bắt đầu chia sẻ! ✨
             </div>
           ) : (
-            <div className="posts-feed">
+            <div>
               {posts.map((post) => (
                 <PostCard
                   key={post.id}
@@ -270,14 +344,13 @@ const CommunityFacebook = () => {
                 />
               ))}
               {loadingMore && (
-                <div className="loading-more">
-                  <div className="loading-spinner"></div>
-                  <span>Đang tải thêm...</span>
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--fb-text-secondary)', fontSize: '15px' }}>
+                  Đang tải thêm...
                 </div>
               )}
               {!hasMore && posts.length > 0 && (
-                <div className="no-more-posts">
-                  <p>Đã hiển thị tất cả bài viết</p>
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--fb-text-secondary)', fontSize: '15px' }}>
+                  Đã hiển thị tất cả bài viết 🎉
                 </div>
               )}
             </div>
@@ -294,7 +367,7 @@ const CommunityFacebook = () => {
         </aside>
       </div>
 
-      {/* Auth Modal - hidden if authenticated */}
+      {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal && !isAuthenticated}
         onClose={() => setShowAuthModal(false)}
@@ -303,9 +376,13 @@ const CommunityFacebook = () => {
         requireAuth={true}
       />
 
-      {/* Messenger Chat - now rendered globally in App.js to maintain WebSocket connection */}
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
 
-export default CommunityFacebook;
+export default CommunityAnNhien;

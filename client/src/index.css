@@ -104,7 +104,7 @@ body {
 }
 
 /* Override for Community page */
-body:has(.community-facebook-page) {
+body:has(.community-an-nhien-page) {
   background-color: #f0f2f5 !important;
 }
 

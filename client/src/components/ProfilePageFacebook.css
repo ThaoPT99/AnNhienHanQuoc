@@ -1,7 +1,8 @@
-.profile-page-facebook {
+/* Profile Page - Modern Clean Design */
+.profile-page-an-nhien {
   background: #f0f2f5;
   min-height: 100vh;
-  padding-top: 60px;
+  padding-top: 56px;
 }
 
 .profile-page-loading {
@@ -25,19 +26,127 @@
   to { transform: rotate(360deg); }
 }
 
+/* Header Styles */
+.profile-page-an-nhien .community-header-fb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 56px;
+  background-color: var(--fb-bg-primary);
+  border-bottom: 1px solid var(--fb-border);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-page-an-nhien .community-header-fb-container {
+  max-width: 1312px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  margin: 0 auto;
+}
+
+.profile-page-an-nhien .community-logo-fb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--fb-primary) 0%, #42b72a 100%);
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.profile-page-an-nhien .community-logo-fb:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.profile-page-an-nhien .community-search-fb {
+  flex: 1;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.profile-page-an-nhien .search-input-fb {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border-radius: 20px;
+  padding: 8px 16px;
+  width: 100%;
+}
+
+.profile-page-an-nhien .search-icon-fb {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.profile-page-an-nhien .search-input-field {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--fb-text-primary);
+}
+
+.profile-page-an-nhien .community-menu-fb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-page-an-nhien .menu-icon-fb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--fb-bg-secondary);
+  color: var(--fb-text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.profile-page-an-nhien .menu-icon-fb:hover {
+  background-color: var(--fb-hover-bg);
+}
+
+.profile-page-an-nhien .menu-icon-fb.active {
+  background-color: var(--fb-primary);
+  color: white;
+}
+
+/* Main Container */
+.profile-main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+}
+
 /* Cover Photo */
 .profile-cover {
   width: 100%;
-  height: 200px;
+  height: 350px;
   position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
-}
-
-.profile-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  border-radius: 0 0 12px 12px;
 }
 
 .cover-placeholder {
@@ -50,363 +159,250 @@
   position: absolute;
   bottom: 16px;
   right: 16px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
   padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  transition: all 0.2s ease;
 }
 
 .edit-cover-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-/* Profile Header */
-.profile-header-container {
   background: white;
-  border-bottom: 1px solid #e4e6eb;
-  position: relative;
-  padding-bottom: 100px; /* Add space to prevent profile picture from overlapping tabs */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Profile Info Section */
 .profile-info-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 24px 0;
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-  position: relative;
-  flex-wrap: wrap;
-}
-
-.profile-picture-container {
-  position: relative;
-  margin-bottom: -84px;
-  z-index: 1;
-}
-
-.profile-picture {
-  width: 168px;
-  height: 168px;
-  border-radius: 50%;
-  border: 4px solid white;
   background: white;
-  overflow: hidden;
+  border-radius: 12px;
+  padding: 24px;
+  margin: -80px 20px 20px 20px;
   position: relative;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.profile-picture img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.profile-avatar-large {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
 }
 
-.profile-picture-placeholder {
-  width: 100%;
-  height: 100%;
+.profile-avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 72px;
-  color: white;
-  font-weight: 600;
+  font-size: 48px;
+  font-weight: 700;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.edit-profile-pic-btn {
+.edit-avatar-btn {
   position: absolute;
   bottom: 0;
   right: 0;
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #e4e6eb;
+  background: var(--fb-primary);
   border: 3px solid white;
+  color: white;
   font-size: 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.edit-profile-pic-btn:hover {
-  background: #d8dadf;
+.edit-avatar-btn:hover {
+  transform: scale(1.1);
+  background: var(--fb-primary-hover);
 }
 
-.profile-name-section {
-  flex: 1;
-  padding-left: 16px;
-  padding-bottom: 16px;
+.profile-details {
+  margin-top: 16px;
 }
 
-.profile-name-section h1 {
+.profile-name {
   font-size: 32px;
   font-weight: 700;
-  color: #050505;
+  color: var(--fb-text-primary);
   margin: 0 0 8px 0;
 }
 
 .profile-bio {
-  font-size: 17px;
-  color: #65676b;
-  margin: 0 0 12px 0;
-}
-
-.profile-stats-fb {
-  display: flex;
-  gap: 20px;
   font-size: 15px;
-  color: #65676b;
+  color: var(--fb-text-secondary);
+  margin: 0 0 16px 0;
+  line-height: 1.5;
 }
 
-.profile-stats-fb span {
-  cursor: pointer;
-}
-
-.profile-stats-fb span:hover {
-  text-decoration: underline;
-}
-
-.profile-actions-fb {
+.profile-stats-row {
   display: flex;
-  gap: 8px;
-  padding-bottom: 16px;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--fb-border);
 }
 
-.btn-edit-profile,
-.btn-view-activity,
-.btn-follow-fb,
-.btn-message {
-  padding: 8px 16px;
-  border-radius: 6px;
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fb-text-primary);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--fb-text-secondary);
+}
+
+.profile-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-primary-action,
+.btn-secondary-action {
+  padding: 10px 24px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-edit-profile {
-  background: #e4e6eb;
-  color: #050505;
-}
-
-.btn-edit-profile:hover {
-  background: #d8dadf;
-}
-
-.btn-view-activity {
-  background: #e4e6eb;
-  color: #050505;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
 }
 
-.btn-view-activity:hover {
-  background: #d8dadf;
-}
-
-.btn-follow-fb {
-  background: #1877f2;
+.btn-primary-action {
+  background: var(--fb-primary);
   color: white;
 }
 
-.btn-follow-fb:hover {
-  background: #166fe5;
+.btn-primary-action:hover {
+  background: var(--fb-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
 }
 
-.btn-follow-fb.following {
-  background: #e4e6eb;
-  color: #050505;
+.btn-secondary-action {
+  background: var(--fb-bg-secondary);
+  color: var(--fb-text-primary);
 }
 
-.btn-follow-fb.following:hover {
-  background: #d8dadf;
+.btn-secondary-action:hover {
+  background: var(--fb-hover-bg);
 }
 
-.btn-message {
-  background: #e4e6eb;
-  color: #050505;
-}
-
-.btn-message:hover {
-  background: #d8dadf;
-}
-
-.btn-video-call {
-  background: #1877f2;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
+.btn-follow {
+  padding: 10px 24px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
   border: none;
-  transition: all 0.2s;
+  background: var(--fb-primary);
+  color: white;
 }
 
-.btn-video-call:hover {
-  background: #166fe5;
+.btn-follow:hover {
+  background: var(--fb-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.btn-follow.following {
+  background: var(--fb-bg-secondary);
+  color: var(--fb-text-primary);
+}
+
+.btn-follow.following:hover {
+  background: var(--fb-hover-bg);
+}
+
+.profile-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--fb-text-secondary);
+  margin-top: 8px;
+}
+
+.info-icon {
+  font-size: 18px;
 }
 
 /* Tabs */
-.profile-tabs {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  padding: 0 24px;
-  border-top: 1px solid #e4e6eb;
-  margin-top: 0; /* No margin needed, spacing handled by padding-bottom of header */
+.profile-tabs-container {
   background: white;
-  overflow-x: auto;
-  position: relative;
-  z-index: 1; /* Ensure tabs are above profile picture */
-}
-
-.profile-tabs::-webkit-scrollbar {
-  display: none;
+  border-radius: 12px;
+  padding: 0 20px;
+  margin: 0 20px 20px 20px;
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--fb-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .profile-tab {
-  padding: 16px 32px;
-  background: none;
+  padding: 16px 24px;
   border: none;
-  border-bottom: 3px solid transparent;
+  background: transparent;
   font-size: 15px;
   font-weight: 600;
-  color: #65676b;
+  color: var(--fb-text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  top: 1px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s ease;
 }
 
 .profile-tab:hover {
-  background: #f2f3f5;
+  color: var(--fb-primary);
+  background-color: var(--fb-hover-bg);
 }
 
 .profile-tab.active {
-  color: #1877f2;
-  border-bottom-color: #1877f2;
+  color: var(--fb-primary);
+  border-bottom-color: var(--fb-primary);
 }
 
-/* Content Wrapper - Facebook Style */
-.profile-content-wrapper-fb {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 24px 24px;
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 16px;
-  align-items: start;
+/* Content Area */
+.profile-content-area {
+  padding: 0 20px 20px 20px;
 }
 
-/* Sidebar - Left Column */
-.profile-sidebar-fb {
+.posts-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: sticky;
-  top: 80px;
-  align-self: start;
 }
 
-.sidebar-card-fb {
+.no-posts-message {
   background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.sidebar-card-fb h3 {
-  font-size: 17px;
-  font-weight: 600;
-  color: #050505;
-  margin: 0 0 12px 0;
-}
-
-.sidebar-bio {
-  font-size: 15px;
-  color: #050505;
-  line-height: 1.5;
-  margin: 0 0 12px 0;
-}
-
-.info-item-fb {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 0;
-  font-size: 15px;
-  color: #050505;
-}
-
-.info-icon-fb {
-  font-size: 18px;
-  width: 20px;
+  border-radius: 12px;
+  padding: 60px 20px;
   text-align: center;
-}
-
-.no-info-text {
-  font-size: 15px;
-  color: #65676b;
-  font-style: italic;
-  margin: 0;
-}
-
-.badges-list-fb {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.badge-item-fb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 6px;
-  background: #f2f3f5;
-}
-
-.badge-icon-fb {
-  font-size: 24px;
-}
-
-.badge-name-fb {
-  font-size: 15px;
-  color: #050505;
-}
-
-/* Main Content - Right Column */
-.profile-main-content-fb {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0; /* Prevent overflow */
-}
-
-.posts-tab {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.no-posts {
-  background: white;
-  border-radius: 8px;
-  padding: 40px;
-  text-align: center;
-  color: #65676b;
+  color: var(--fb-text-secondary);
   font-size: 15px;
 }
 
@@ -416,114 +412,41 @@
   gap: 16px;
 }
 
-/* About Tab */
-.about-tab {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.edit-profile-form {
+/* About Section */
+.about-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.edit-profile-form h2 {
-  font-size: 24px;
+.about-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.about-card h2,
+.about-card h3 {
+  font-size: 20px;
   font-weight: 700;
-  color: #050505;
+  color: var(--fb-text-primary);
   margin: 0 0 16px 0;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
+.about-bio {
   font-size: 15px;
-  font-weight: 600;
-  color: #050505;
-}
-
-.form-group input,
-.form-group textarea {
-  padding: 10px;
-  border: 1px solid #ccd0d5;
-  border-radius: 6px;
-  font-size: 15px;
-  font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #1877f2;
-}
-
-.form-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.btn-save,
-.btn-cancel {
-  padding: 8px 24px;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-}
-
-.btn-save {
-  background: #1877f2;
-  color: white;
-}
-
-.btn-save:hover {
-  background: #166fe5;
-}
-
-.btn-cancel {
-  background: #e4e6eb;
-  color: #050505;
-}
-
-.btn-cancel:hover {
-  background: #d8dadf;
-}
-
-.about-content h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #050505;
-  margin: 0 0 24px 0;
-}
-
-.about-section {
-  margin-bottom: 24px;
-}
-
-.about-section h3 {
-  font-size: 17px;
-  font-weight: 600;
-  color: #050505;
-  margin: 0 0 8px 0;
-}
-
-.about-section p {
-  font-size: 15px;
-  color: #050505;
+  color: var(--fb-text-primary);
+  line-height: 1.6;
   margin: 0;
-  line-height: 1.5;
 }
 
-.interests-list {
+.no-info {
+  color: var(--fb-text-secondary);
+  font-style: italic;
+}
+
+.interests-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -531,163 +454,44 @@
 
 .interest-tag {
   padding: 6px 12px;
-  background: #e4e6eb;
-  border-radius: 16px;
-  font-size: 15px;
-  color: #050505;
-}
-
-.no-info {
-  color: #65676b;
-  font-size: 15px;
-}
-
-/* Friends Tab */
-.friends-tab {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.friends-stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.friends-stats h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #050505;
-  margin: 0;
-}
-
-.see-all-friends {
-  color: #1877f2;
-  text-decoration: none;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.see-all-friends:hover {
-  text-decoration: underline;
-}
-
-/* Dashboard Tab */
-.dashboard-tab {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.dashboard-tab h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #050505;
-  margin: 0 0 24px 0;
-}
-
-.dashboard-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.stat-card {
-  background: #f2f3f5;
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stat-icon {
-  font-size: 40px;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #050505;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 15px;
-  color: #65676b;
+  background: var(--fb-bg-secondary);
+  border-radius: 20px;
+  font-size: 14px;
+  color: var(--fb-text-primary);
+  font-weight: 500;
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .profile-content-wrapper {
-    grid-template-columns: 1fr;
-  }
-  
-  .profile-sidebar {
-    order: 2;
-  }
-}
-
 @media (max-width: 768px) {
-  .profile-cover {
-    height: 150px;
-  }
-  
   .profile-info-section {
-    flex-direction: column;
-    align-items: flex-start;
-    padding-bottom: 16px;
-  }
-  
-  .profile-picture-container {
-    margin-bottom: 0;
-    align-self: center;
-  }
-  
-  .profile-name-section {
-    padding-left: 0;
-    text-align: center;
-    width: 100%;
-  }
-  
-  .profile-actions-fb {
-    width: 100%;
-    flex-direction: column;
-  }
-  
-  .profile-tabs {
-    overflow-x: auto;
-  }
-  
-  .profile-tab {
-    padding: 12px 16px;
-    white-space: nowrap;
-  }
-  
-  .profile-content-wrapper {
-    padding: 16px;
+    margin: -60px 12px 16px 12px;
+    padding: 20px;
   }
 
-  .profile-content-wrapper-fb {
-    grid-template-columns: 1fr;
-    padding: 16px;
+  .profile-avatar-circle {
+    width: 100px;
+    height: 100px;
+    font-size: 40px;
+  }
+
+  .profile-name {
+    font-size: 24px;
+  }
+
+  .profile-stats-row {
     gap: 16px;
   }
 
-  .profile-sidebar-fb {
-    position: static;
-    order: 2;
+  .profile-tabs-container {
+    margin: 0 12px 16px 12px;
+    padding: 0 12px;
   }
 
-  .profile-main-content-fb {
-    order: 1;
+  .profile-content-area {
+    padding: 0 12px 12px 12px;
+  }
+
+  .profile-cover {
+    height: 250px;
   }
 }
