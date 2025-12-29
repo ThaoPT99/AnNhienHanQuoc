@@ -362,10 +362,15 @@ const MessengerChat = () => {
       wsOpen: ws ? ws.readyState === WebSocket.OPEN : false
     });
     
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      // Ensure we're registered (send register-messaging if not already done)
-      console.log(`📞 [DEBUG] MessengerChat: WebSocket is OPEN, preparing to send incoming-call notification`);
-      
+    const sendCallNotification = (websocket) => {
+      if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+        console.error('❌ [DEBUG] MessengerChat: Cannot send - WebSocket not open', {
+          wsExists: !!websocket,
+          wsReadyState: websocket ? websocket.readyState : 'null'
+        });
+        return false;
+      }
+
       const callNotification = {
         type: 'incoming-call',
         roomId: roomId,
@@ -378,34 +383,81 @@ const MessengerChat = () => {
       
       console.log('📞 [DEBUG] MessengerChat: Call notification payload:', JSON.stringify(callNotification, null, 2));
       
-      // Wait a small delay to ensure registration is complete, then send call notification
+      try {
+        websocket.send(JSON.stringify(callNotification));
+        console.log('✅ [DEBUG] MessengerChat: Successfully sent incoming-call notification');
+        return true;
+      } catch (error) {
+        console.error('❌ [DEBUG] MessengerChat: Error sending notification:', error);
+        showNotification('Lỗi', 'Không thể gửi thông báo cuộc gọi', 'error');
+        return false;
+      }
+    };
+    
+    // Try to use existing WebSocket connection
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      console.log(`📞 [DEBUG] MessengerChat: WebSocket is OPEN, sending incoming-call notification`);
+      // Small delay to ensure registration is complete
       setTimeout(() => {
+        sendCallNotification(ws);
+      }, 100);
+    } else if (ws && ws.readyState === WebSocket.CONNECTING) {
+      // WebSocket is connecting, wait for it to open
+      console.log(`⏳ [DEBUG] MessengerChat: WebSocket is CONNECTING, waiting for open...`);
+      const checkConnection = setInterval(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
-          console.log(`📞 [DEBUG] MessengerChat: Sending incoming-call notification to ${targetEmail}...`);
-          try {
-            ws.send(JSON.stringify(callNotification));
-            console.log('✅ [DEBUG] MessengerChat: Successfully sent incoming-call notification');
-          } catch (error) {
-            console.error('❌ [DEBUG] MessengerChat: Error sending notification:', error);
-            showNotification('Lỗi', 'Không thể gửi thông báo cuộc gọi', 'error');
-          }
-        } else {
-          console.error('⚠️ [DEBUG] MessengerChat: WebSocket closed before sending call notification. State:', ws ? ws.readyState : 'null');
+          clearInterval(checkConnection);
+          sendCallNotification(ws);
+        } else if (ws && ws.readyState === WebSocket.CLOSED) {
+          clearInterval(checkConnection);
+          console.error('❌ [DEBUG] MessengerChat: WebSocket closed while waiting');
         }
-      }, 100); // Small delay to ensure registration
+      }, 100);
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        clearInterval(checkConnection);
+        if (ws && ws.readyState !== WebSocket.OPEN) {
+          console.error('❌ [DEBUG] MessengerChat: WebSocket connection timeout');
+          showNotification('Lỗi', 'Kết nối WebSocket quá lâu. Vui lòng thử lại.', 'error');
+        }
+      }, 5000);
     } else {
-      console.error('❌ [DEBUG] MessengerChat: WebSocket not connected!', {
-        wsExists: !!ws,
-        wsReadyState: ws ? ws.readyState : 'null',
-        expectedState: WebSocket.OPEN,
-        wsStates: {
-          CONNECTING: 0,
-          OPEN: 1,
-          CLOSING: 2,
-          CLOSED: 3
-        }
-      });
-      showNotification('Lỗi', 'Không thể kết nối. Vui lòng thử lại.', 'error');
+      // No WebSocket or it's closed - create a temporary connection just for this call
+      console.log(`🔌 [DEBUG] MessengerChat: Creating temporary WebSocket connection for call notification`);
+      
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = API_URL.replace(/^https?:\/\//, '').replace(/^wss?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${wsHost}/webrtc-signaling`;
+      
+      const tempWs = new WebSocket(wsUrl);
+      
+      tempWs.onopen = () => {
+        console.log('✅ [DEBUG] MessengerChat: Temporary WebSocket connected, sending call notification');
+        // Register first, then send call
+        tempWs.send(JSON.stringify({
+          type: 'register-messaging',
+          userId: userEmail
+        }));
+        
+        // Wait a bit then send call notification
+        setTimeout(() => {
+          if (sendCallNotification(tempWs)) {
+            // Close temporary connection after sending
+            setTimeout(() => {
+              tempWs.close();
+            }, 1000);
+          }
+        }, 200);
+      };
+      
+      tempWs.onerror = (error) => {
+        console.error('❌ [DEBUG] MessengerChat: Temporary WebSocket error:', error);
+        showNotification('Lỗi', 'Không thể kết nối. Vui lòng thử lại.', 'error');
+      };
+      
+      tempWs.onclose = () => {
+        console.log('🔌 [DEBUG] MessengerChat: Temporary WebSocket closed');
+      };
     }
   };
 
