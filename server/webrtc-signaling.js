@@ -143,60 +143,107 @@ class WebRTCSignalingServer {
               
           case 'incoming-call':
               // Notify specific user about incoming call
+              console.log('📞 [DEBUG] Server: Received incoming-call request:', JSON.stringify(data, null, 2));
+              
               const targetUserId = data.targetUserId;
               const callerName = data.callerName;
               const callerEmail = data.callerEmail || userId || data.from;
               const callerId = userId || data.from || callerEmail;
+              
+              console.log('📞 [DEBUG] Server: Parsed incoming-call data:', {
+                targetUserId,
+                callerName,
+                callerEmail,
+                callerId,
+                roomId: data.roomId,
+                roomLink: data.roomLink,
+                currentUserId: userId,
+                wsUserId: ws.userId,
+                dataFrom: data.from
+              });
               
               // Ensure caller is registered (if userId not set, use from field)
               if (!userId || !ws.userId) {
                 userId = data.from || callerEmail || userId || `user_${Date.now()}`;
                 ws.userId = userId;
                 this.userConnections.set(userId, ws);
-                console.log(`📞 Server: Auto-registered caller ${userId} for incoming-call`);
+                console.log(`📞 [DEBUG] Server: Auto-registered caller ${userId} for incoming-call`);
               }
               
-              console.log(`📞 Incoming call request: target=${targetUserId}, caller=${callerId}, roomId=${data.roomId}`);
-              console.log(`📊 Available users in userConnections: ${Array.from(this.userConnections.keys()).join(', ')}`);
-              console.log(`📊 Caller userId: ${userId}, ws.userId: ${ws.userId}`);
+              console.log(`📞 [DEBUG] Server: Incoming call request: target=${targetUserId}, caller=${callerId}, roomId=${data.roomId}`);
+              
+              // List all registered users
+              const allUsers = Array.from(this.userConnections.keys());
+              console.log(`📊 [DEBUG] Server: Total registered users: ${this.userConnections.size}`);
+              console.log(`📊 [DEBUG] Server: Registered users list:`, allUsers);
               
               // Try to find target user's connection (whether in room or not)
               const targetConnection = this.userConnections.get(targetUserId);
               
+              console.log(`🔍 [DEBUG] Server: Looking for target user ${targetUserId}:`, {
+                found: !!targetConnection,
+                connectionState: targetConnection ? targetConnection.readyState : 'null',
+                isOpen: targetConnection ? targetConnection.readyState === WebSocket.OPEN : false
+              });
+              
               if (targetConnection && targetConnection.readyState === WebSocket.OPEN) {
                 // User is online, send notification
-                targetConnection.send(JSON.stringify({
+                const notificationPayload = {
                   type: 'incoming-call',
                   roomId: data.roomId,
                   roomLink: data.roomLink,
                   callerName,
                   callerEmail,
                   from: callerId
-                }));
-                console.log(`✅ Incoming call notification sent to ${targetUserId} from ${callerId}`);
+                };
+                
+                console.log(`📤 [DEBUG] Server: Sending notification to ${targetUserId}:`, JSON.stringify(notificationPayload, null, 2));
+                
+                try {
+                  targetConnection.send(JSON.stringify(notificationPayload));
+                  console.log(`✅ [DEBUG] Server: Successfully sent incoming call notification to ${targetUserId} from ${callerId}`);
+                } catch (error) {
+                  console.error(`❌ [DEBUG] Server: Error sending notification to ${targetUserId}:`, error);
+                }
               } else {
                 // User not online, try to send via room (if they're in the room)
+                console.log(`⚠️ [DEBUG] Server: Target user ${targetUserId} not found in userConnections, trying room...`);
                 const targetRoom = this.rooms.get(data.roomId);
                 let sent = false;
+                
                 if (targetRoom) {
+                  console.log(`🔍 [DEBUG] Server: Found room ${data.roomId} with ${targetRoom.size} users`);
                   targetRoom.forEach(client => {
+                    console.log(`🔍 [DEBUG] Server: Checking room client: userId=${client.userId}, state=${client.readyState}, matches=${client.userId === targetUserId}`);
                     if (client.userId === targetUserId && client.readyState === WebSocket.OPEN) {
-                      client.send(JSON.stringify({
+                      const notificationPayload = {
                         type: 'incoming-call',
                         roomId: data.roomId,
                         roomLink: data.roomLink,
                         callerName,
                         callerEmail,
                         from: callerId
-                      }));
-                      sent = true;
-                      console.log(`✅ Incoming call notification sent to ${targetUserId} via room from ${callerId}`);
+                      };
+                      
+                      console.log(`📤 [DEBUG] Server: Sending notification via room to ${targetUserId}:`, JSON.stringify(notificationPayload, null, 2));
+                      
+                      try {
+                        client.send(JSON.stringify(notificationPayload));
+                        sent = true;
+                        console.log(`✅ [DEBUG] Server: Successfully sent incoming call notification to ${targetUserId} via room from ${callerId}`);
+                      } catch (error) {
+                        console.error(`❌ [DEBUG] Server: Error sending notification via room to ${targetUserId}:`, error);
+                      }
                     }
                   });
+                } else {
+                  console.log(`⚠️ [DEBUG] Server: Room ${data.roomId} not found`);
                 }
                 
                 if (!sent) {
-                  console.log(`⚠️ User ${targetUserId} is not online (connection not found in userConnections map)`);
+                  console.log(`❌ [DEBUG] Server: User ${targetUserId} is not online and not in room. Call notification failed.`);
+                  console.log(`📊 [DEBUG] Server: Available users:`, allUsers);
+                  console.log(`📊 [DEBUG] Server: Available rooms:`, Array.from(this.rooms.keys()));
                 }
               }
               break;

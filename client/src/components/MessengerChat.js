@@ -350,29 +350,61 @@ const MessengerChat = () => {
     
     // Send incoming-call notification to target user via WebSocket
     // First ensure we're registered for messaging
+    console.log('🔍 [DEBUG] MessengerChat.startVideoCall called:', {
+      targetEmail,
+      targetName,
+      roomId,
+      roomLink,
+      userEmail,
+      userName,
+      wsExists: !!ws,
+      wsReadyState: ws ? ws.readyState : 'N/A',
+      wsOpen: ws ? ws.readyState === WebSocket.OPEN : false
+    });
+    
     if (ws && ws.readyState === WebSocket.OPEN) {
       // Ensure we're registered (send register-messaging if not already done)
-      console.log(`📞 MessengerChat: Preparing to send incoming-call notification to ${targetEmail}`);
+      console.log(`📞 [DEBUG] MessengerChat: WebSocket is OPEN, preparing to send incoming-call notification`);
+      
+      const callNotification = {
+        type: 'incoming-call',
+        roomId: roomId,
+        roomLink: roomLink,
+        targetUserId: targetEmail,
+        callerName: userName,
+        callerEmail: userEmail,
+        from: userEmail
+      };
+      
+      console.log('📞 [DEBUG] MessengerChat: Call notification payload:', JSON.stringify(callNotification, null, 2));
       
       // Wait a small delay to ensure registration is complete, then send call notification
       setTimeout(() => {
         if (ws && ws.readyState === WebSocket.OPEN) {
-          console.log(`📞 MessengerChat: Sending incoming-call notification to ${targetEmail}`);
-          ws.send(JSON.stringify({
-            type: 'incoming-call',
-            roomId: roomId,
-            roomLink: roomLink,
-            targetUserId: targetEmail,
-            callerName: userName,
-            callerEmail: userEmail,
-            from: userEmail
-          }));
+          console.log(`📞 [DEBUG] MessengerChat: Sending incoming-call notification to ${targetEmail}...`);
+          try {
+            ws.send(JSON.stringify(callNotification));
+            console.log('✅ [DEBUG] MessengerChat: Successfully sent incoming-call notification');
+          } catch (error) {
+            console.error('❌ [DEBUG] MessengerChat: Error sending notification:', error);
+            showNotification('Lỗi', 'Không thể gửi thông báo cuộc gọi', 'error');
+          }
         } else {
-          console.error('⚠️ MessengerChat: WebSocket closed before sending call notification');
+          console.error('⚠️ [DEBUG] MessengerChat: WebSocket closed before sending call notification. State:', ws ? ws.readyState : 'null');
         }
       }, 100); // Small delay to ensure registration
     } else {
-      console.error('⚠️ MessengerChat: WebSocket not connected, cannot send call notification');
+      console.error('❌ [DEBUG] MessengerChat: WebSocket not connected!', {
+        wsExists: !!ws,
+        wsReadyState: ws ? ws.readyState : 'null',
+        expectedState: WebSocket.OPEN,
+        wsStates: {
+          CONNECTING: 0,
+          OPEN: 1,
+          CLOSING: 2,
+          CLOSED: 3
+        }
+      });
       showNotification('Lỗi', 'Không thể kết nối. Vui lòng thử lại.', 'error');
     }
   };

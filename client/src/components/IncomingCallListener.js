@@ -58,32 +58,56 @@ const IncomingCallListener = () => {
 
         ws.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data);
+            const rawData = event.data;
+            console.log('📨 [DEBUG] IncomingCallListener: Raw message received:', rawData);
+            
+            const data = JSON.parse(rawData);
+            console.log('📨 [DEBUG] IncomingCallListener: Parsed message:', JSON.stringify(data, null, 2));
             
             // Only handle incoming-call messages
             if (data.type === 'incoming-call') {
-              console.log('📞 IncomingCallListener: Received incoming call notification', data);
+              console.log('📞 [DEBUG] IncomingCallListener: Received incoming call notification');
+              console.log('📞 [DEBUG] IncomingCallListener: Call data:', {
+                roomLink: data.roomLink,
+                roomId: data.roomId,
+                callerName: data.callerName,
+                callerEmail: data.callerEmail,
+                from: data.from,
+                myEmail: userEmail
+              });
+              
+              // Verify this call is for me (check targetUserId if present)
+              if (data.targetUserId && data.targetUserId !== userEmail) {
+                console.log(`⚠️ [DEBUG] IncomingCallListener: Call not for me. Target: ${data.targetUserId}, My email: ${userEmail}`);
+                return;
+              }
               
               // Use functional update to check current state
               setIncomingCall(prevCall => {
                 // Only show notification if we're not already in a call
                 if (!prevCall) {
-                  console.log('✅ IncomingCallListener: Setting incoming call state');
-                  return {
+                  console.log('✅ [DEBUG] IncomingCallListener: Setting incoming call state');
+                  const callState = {
                     roomLink: data.roomLink,
                     roomId: data.roomId,
                     callerName: data.callerName || data.callerEmail,
                     callerEmail: data.callerEmail,
                     from: data.from
                   };
+                  console.log('✅ [DEBUG] IncomingCallListener: Call state set to:', JSON.stringify(callState, null, 2));
+                  return callState;
                 } else {
-                  console.log('⚠️ IncomingCallListener: Already have incoming call, ignoring');
+                  console.log('⚠️ [DEBUG] IncomingCallListener: Already have incoming call, ignoring new one');
+                  console.log('⚠️ [DEBUG] IncomingCallListener: Previous call:', prevCall);
                   return prevCall;
                 }
               });
+            } else {
+              console.log(`ℹ️ [DEBUG] IncomingCallListener: Received non-call message type: ${data.type}`);
             }
           } catch (error) {
-            console.error('IncomingCallListener: Error parsing message:', error);
+            console.error('❌ [DEBUG] IncomingCallListener: Error parsing message:', error);
+            console.error('❌ [DEBUG] IncomingCallListener: Raw message was:', event.data);
           }
         };
 
