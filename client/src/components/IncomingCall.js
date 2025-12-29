@@ -77,6 +77,8 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
     }
   };
   
+  console.log('📞 [DEBUG] IncomingCall: Rendering modal with:', { callerName, callerEmail, roomId, roomLink });
+  
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -85,7 +87,24 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.8 }}
         className="incoming-call-overlay"
-        style={{ position: 'fixed', zIndex: 9999 }}
+        style={{ 
+          position: 'fixed', 
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 20000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)'
+        }}
+        onClick={(e) => {
+          // Prevent closing when clicking overlay
+          e.stopPropagation();
+        }}
       >
         <motion.div
           initial={{ y: 50 }}
