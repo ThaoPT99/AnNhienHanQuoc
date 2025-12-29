@@ -424,13 +424,18 @@ const MessengerChat = () => {
 
   // Expose functions globally for other components
   useEffect(() => {
-    window.startMessengerVideoCall = startVideoCall;
-    window.startMessengerTextChat = startTextChat;
+    // Wrapper to ensure functions have access to latest state
+    window.startMessengerVideoCall = (targetEmail, targetName) => {
+      startVideoCall(targetEmail, targetName);
+    };
+    window.startMessengerTextChat = (targetEmail, targetName) => {
+      startTextChat(targetEmail, targetName);
+    };
     return () => {
       delete window.startMessengerVideoCall;
       delete window.startMessengerTextChat;
     };
-  }, []);
+  }, [activeChats, selectedChat]); // Include dependencies to update functions when state changes
 
   // Always maintain WebSocket connection (even when not on Community page)
   // But only show UI when:
@@ -494,6 +499,26 @@ const MessengerChat = () => {
                 </div>
               </div>
               <div className="chat-header-actions">
+                {!selectedChat.isVideoCall && (
+                  <button
+                    className="chat-action-btn video-call-btn"
+                    onClick={() => {
+                      if (window.startMessengerVideoCall && selectedChat.userEmail) {
+                        window.startMessengerVideoCall(selectedChat.userEmail, selectedChat.userName);
+                      }
+                    }}
+                    title="Video call"
+                    style={{
+                      backgroundColor: '#1877f2',
+                      color: 'white',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    📹 Video
+                  </button>
+                )}
                 <button
                   className="chat-action-btn"
                   onClick={() => setIsMinimized(!isMinimized)}

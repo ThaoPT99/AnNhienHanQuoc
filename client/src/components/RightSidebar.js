@@ -50,17 +50,24 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
         {contacts.length > 0 ? (
           <div className="sidebar-contact-list">
             {contacts.map((contact, index) => (
-              <Link 
-                key={index} 
-                to={`/community/profile/${encodeURIComponent(contact.email || contact.name)}`}
+              <div
+                key={index}
                 className="sidebar-contact-item"
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Open chat with this contact
+                  if (window.startMessengerTextChat && contact.email) {
+                    window.startMessengerTextChat(contact.email, contact.name);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="sidebar-contact-avatar">
                   {contact.name.charAt(0).toUpperCase()}
                   {contact.online && <div className="sidebar-contact-online"></div>}
                 </div>
                 <span className="sidebar-contact-name">{contact.name}</span>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (
