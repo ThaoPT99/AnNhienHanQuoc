@@ -1,21 +1,23 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import SITE_CONFIG, { getSiteUrl, getLogoUrl } from '../config/site';
 
 const SEO = ({ 
-  title = 'Du học Hàn Quốc - Tư vấn du học Hàn Quốc uy tín | Du học An Nhiên',
-  description = 'Du học Hàn Quốc chuyên nghiệp tại Du học An Nhiên. Tư vấn du học Hàn Quốc uy tín, hỗ trợ làm hồ sơ, xin visa, tìm trường và học bổng. Đồng hành cùng bạn trên hành trình du học tại xứ sở Kim Chi.',
-  keywords = 'du học Hàn Quốc, tư vấn du học Hàn Quốc, du học Seoul, học bổng Hàn Quốc, visa Hàn Quốc, du học An Nhiên, làm hồ sơ du học Hàn Quốc, chi phí du học Hàn Quốc, điều kiện du học Hàn Quốc, trường đại học Hàn Quốc',
-  image = 'https://res.cloudinary.com/dy84xpayv/image/upload/v1766546723/og-images/auny11reshcxxfnze0cj.jpg',
-  url = 'https://duhocannhien.vercel.app',
+  title = SITE_CONFIG.seo.defaultTitle,
+  description = SITE_CONFIG.seo.defaultDescription,
+  keywords = SITE_CONFIG.seo.defaultKeywords,
+  image = SITE_CONFIG.seo.defaultImage,
+  url = getSiteUrl(),
   type = 'website',
   structuredData = null,
   article = null,
   noindex = false
 }) => {
-  const fullTitle = title.includes('Du học An Nhiên') ? title : `${title} | Du học An Nhiên`;
-  const siteName = 'Du học An Nhiên';
-  const defaultImage = 'https://res.cloudinary.com/dy84xpayv/image/upload/v1766546723/og-images/auny11reshcxxfnze0cj.jpg';
+  const fullTitle = title.includes(SITE_CONFIG.siteName) ? title : `${title} | ${SITE_CONFIG.siteName}`;
+  const siteName = SITE_CONFIG.siteName;
+  const defaultImage = SITE_CONFIG.seo.defaultImage;
   const finalImage = image || defaultImage;
+  const logoUrl = getLogoUrl();
 
   return (
     <Helmet>
@@ -24,17 +26,17 @@ const SEO = ({
       <meta name="title" content={fullTitle} />
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
-      <meta name="author" content="Du học An Nhiên" />
+      <meta name="author" content={siteName} />
       <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
       <meta name="language" content="Vietnamese" />
       <meta name="revisit-after" content="7 days" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
       <meta name="rating" content="general" />
       <meta name="distribution" content="global" />
-      <meta name="copyright" content="Du học An Nhiên" />
+      <meta name="copyright" content={siteName} />
       
       {/* Google Site Verification */}
-      <meta name="google-site-verification" content="F0A1Q6LrWaMj9HPKuvPeBE22BEg74qbaOVHIfBKIPU4" />
+      <meta name="google-site-verification" content={SITE_CONFIG.seo.googleSiteVerification} />
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
@@ -50,7 +52,7 @@ const SEO = ({
       <meta property="og:locale" content="vi_VN" />
       <meta property="og:locale:alternate" content="en_US" />
       {/* Organization logo for Open Graph */}
-      <meta property="og:logo" content="https://duhocannhien.vercel.app/favicon.svg" />
+      <meta property="og:logo" content={logoUrl} />
       
       {/* Article specific tags */}
       {article && (
@@ -85,10 +87,10 @@ const SEO = ({
       <meta name="mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-      <meta name="apple-mobile-web-app-title" content="Du học An Nhiên" />
+      <meta name="apple-mobile-web-app-title" content={siteName} />
       
       {/* Application Name - Important for Google to recognize site name */}
-      <meta name="application-name" content="Du học An Nhiên" />
+      <meta name="application-name" content={siteName} />
       
       {/* Canonical URL */}
       <link rel="canonical" href={url} />
@@ -107,23 +109,21 @@ const SEO = ({
       )}
       
       {/* Default WebSite structured data if not provided */}
+      {/* Important: Links to Organization via @id to reinforce brand name */}
       {!structuredData && (
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": "Du học An Nhiên",
+            "@id": `${url}/#website`,
+            "name": siteName,
             "alternateName": "An Nhien Study Abroad",
             "url": url,
             "description": description,
             "publisher": {
-              "@type": "Organization",
-              "name": "Du học An Nhiên",
-              "logo": {
-                "@type": "ImageObject",
-                "url": "https://duhocannhien.vercel.app/favicon.svg"
-              }
+              "@id": `${url}/#organization`
             },
+            "inLanguage": "vi-VN",
             "potentialAction": {
               "@type": "SearchAction",
               "target": {
@@ -144,58 +144,72 @@ const SEO = ({
           "itemListElement": [{
             "@type": "ListItem",
             "position": 1,
-            "name": "Du học An Nhiên",
+            "name": siteName,
             "item": url
           }]
         })}
       </script>
       
       {/* Organization structured data - Enhanced for Google Knowledge Graph */}
+      {/* Critical: @id and brand property help Google recognize brand name instead of "Vercel" */}
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "Du học An Nhiên",
-          "legalName": "Du học An Nhiên",
-          "alternateName": "An Nhien Study Abroad",
-          "url": "https://duhocannhien.vercel.app",
+          "@id": `${url}/#organization`,
+          "name": siteName,
+          "legalName": siteName,
+          "alternateName": ["An Nhien Study Abroad", "Du Học An Nhiên", siteName],
+          "url": url,
           "logo": {
             "@type": "ImageObject",
-            "url": "https://duhocannhien.vercel.app/favicon.svg",
+            "@id": `${url}/#logo`,
+            "url": logoUrl,
+            "contentUrl": logoUrl,
             "width": 512,
-            "height": 512
+            "height": 512,
+            "caption": siteName
           },
-          "image": "https://duhocannhien.vercel.app/favicon.svg",
-          "description": "Du học Hàn Quốc chuyên nghiệp tại Du học An Nhiên. Tư vấn du học Hàn Quốc uy tín, hỗ trợ làm hồ sơ, xin visa, tìm trường và học bổng. Đồng hành cùng bạn trên hành trình du học tại xứ sở Kim Chi.",
+          "image": {
+            "@id": `${url}/#logo`
+          },
+          "description": description,
           "foundingDate": "2020",
+          "brand": {
+            "@type": "Brand",
+            "name": siteName,
+            "logo": {
+              "@id": `${url}/#logo`
+            }
+          },
           "address": {
             "@type": "PostalAddress",
-            "streetAddress": "Tòa nhà Central Point, tháp C/219 P. Trung Kính, Yên Hòa",
-            "addressLocality": "Cầu Giấy",
-            "addressRegion": "Hà Nội",
-            "postalCode": "100000",
-            "addressCountry": "VN"
+            "streetAddress": SITE_CONFIG.contact.address.street,
+            "addressLocality": SITE_CONFIG.contact.address.district,
+            "addressRegion": SITE_CONFIG.contact.address.city,
+            "postalCode": SITE_CONFIG.contact.address.postalCode,
+            "addressCountry": SITE_CONFIG.contact.address.country
           },
           "contactPoint": [
             {
               "@type": "ContactPoint",
-              "telephone": "+84-961-321-930",
+              "telephone": SITE_CONFIG.contact.phone,
               "contactType": "customer service",
-              "email": "annhienduhochan@gmail.com",
+              "email": SITE_CONFIG.contact.email,
               "areaServed": "VN",
               "availableLanguage": ["Vietnamese", "Korean"]
             },
             {
               "@type": "ContactPoint",
-              "telephone": "+84-961-321-930",
+              "telephone": SITE_CONFIG.contact.phone,
               "contactType": "sales",
-              "email": "annhienduhochan@gmail.com",
+              "email": SITE_CONFIG.contact.email,
               "areaServed": "VN"
             }
           ],
           "sameAs": [
-            "https://www.facebook.com/duhocannhien/",
-            "https://www.tiktok.com/@hoanghannhat"
+            SITE_CONFIG.social.facebook,
+            SITE_CONFIG.social.tiktok
           ],
           "areaServed": {
             "@type": "Country",
@@ -209,14 +223,10 @@ const SEO = ({
             "Du học Seoul"
           ],
           "publisher": {
-            "@type": "Organization",
-            "name": "Du học An Nhiên",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://duhocannhien.vercel.app/favicon.svg",
-              "width": 512,
-              "height": 512
-            }
+            "@id": `${url}/#organization`
+          },
+          "copyrightHolder": {
+            "@id": `${url}/#organization`
           }
         })}
       </script>
