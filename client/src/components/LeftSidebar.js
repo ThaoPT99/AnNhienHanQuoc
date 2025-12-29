@@ -60,22 +60,24 @@ const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate, acti
         </Link>
       )}
       
-      {/* TODO: Thêm các menu items khác khi có chức năng thật */}
-      {/* <Link to="/ai" className="sidebar-menu-item">
+      {/* Additional menu items can be added here when features are implemented */}
+      {/* Example:
+      <Link to="/ai" className="sidebar-menu-item">
         <div className="sidebar-menu-icon">🤖</div>
         <span className="sidebar-menu-label">Meta AI</span>
-      </Link> */}
+      </Link>
+      */}
       
-      {/* Shortcuts Section - Ẩn đi vì chưa có dữ liệu thật */}
-      {/* TODO: Load shortcuts từ API hoặc database khi có */}
+      {/* Shortcuts Section - Hidden until API endpoint is ready */}
+      {/* Future: Load shortcuts from API or database */}
       {false && (
         <div className="sidebar-shortcuts">
           <div className="sidebar-shortcuts-title">Lối tắt của bạn</div>
         </div>
       )}
 
-      {/* Footer - Ẩn đi vì chưa có chức năng thật */}
-      {/* TODO: Thêm footer links khi có các trang chính sách */}
+      {/* Footer - Hidden until policy pages are created */}
+      {/* Future: Add footer links when privacy/terms pages are available */}
       {false && (
         <div className="sidebar-footer">
           <div className="sidebar-footer-links">

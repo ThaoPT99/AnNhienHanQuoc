@@ -6,14 +6,12 @@ import Footer from './components/Footer';
 import ConditionalComponents from './components/ConditionalComponents';
 import PWAInstall from './components/PWAInstall';
 // NotificationCenter moved to Navbar for Facebook-style integration
-import IncomingCall from './components/IncomingCall';
 import IncomingCallListener from './components/IncomingCallListener';
 import MessengerChat from './components/MessengerChat';
 import PageViewTracker from './components/PageViewTracker';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 import SkipToContent from './components/SkipToContent';
-import { registerServiceWorker } from './utils/pushNotifications';
 import './App.css';
 
 // Lazy load pages for better performance
@@ -51,7 +49,6 @@ const TestNotifications = lazy(() => import('./pages/TestNotifications'));
 const UserProfile = lazy(() => import('./pages/UserProfile'));
 const AIMatching = lazy(() => import('./pages/AIMatching'));
 const VideoCallBooking = lazy(() => import('./pages/VideoCallBooking'));
-const Friends = lazy(() => import('./pages/Friends'));
 const Login = lazy(() => import('./pages/Login'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 

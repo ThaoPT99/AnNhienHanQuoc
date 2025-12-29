@@ -7,6 +7,7 @@ import ReactionsPicker from './ReactionsPicker';
 import FollowButton from './FollowButton';
 import { showNotification } from './NotificationCenter';
 import { isLoggedIn, getUserEmail } from '../utils/auth';
+import logger from '../utils/logger';
 import './Community.css';
 
 const Community = () => {
@@ -35,13 +36,6 @@ const Community = () => {
   const categories = ['Tất cả', 'Học bổng', 'Cuộc sống', 'Học tiếng', 'Visa', 'Tuyển dụng'];
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-  
-  // Log API URL on mount for debugging
-  useEffect(() => {
-    console.log('🔗 Community Component mounted');
-    console.log('🔗 API URL:', API_URL);
-    console.log('🔗 Environment:', process.env.NODE_ENV);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load posts from API when filters change
   useEffect(() => {
@@ -96,14 +90,14 @@ const Community = () => {
       });
       
       const url = `${API_URL}/api/community/posts?${params}`;
-      console.log('📤 Loading posts from:', url);
+      logger.debug('Loading posts from:', url);
       
       const response = await fetch(url);
       console.log('📥 Response status:', response.status, response.statusText);
       
       if (response.ok) {
         let data = await response.json();
-        console.log('✅ Loaded posts:', data.length, 'items');
+        logger.debug('Loaded posts:', data.length, 'items');
         
         // Client-side search filtering
         if (searchQuery.trim()) {
@@ -123,8 +117,8 @@ const Community = () => {
         setPosts([]);
       }
     } catch (error) {
-      console.error('❌ Error loading posts:', error);
-      console.error('API_URL:', API_URL);
+      logger.error('Error loading posts:', error);
+      logger.debug('API_URL:', API_URL);
       // Don't show alert, just log and show empty state
       setPosts([]);
     } finally {

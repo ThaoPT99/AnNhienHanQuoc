@@ -19,8 +19,8 @@ const RightSidebar = ({ userEmail, friends, navigate }) => {
 
   return (
     <div className="right-sidebar-content">
-      {/* Birthday Section - Ẩn đi vì chưa có API */}
-      {/* TODO: Thêm API endpoint để lấy birthdays từ friends */}
+      {/* Birthday Section - Hidden until API endpoint is ready */}
+      {/* Future: Add API endpoint to fetch birthdays from friends list */}
       {false && (
         <div className="sidebar-birthday">
           <div className="sidebar-birthday-header">
