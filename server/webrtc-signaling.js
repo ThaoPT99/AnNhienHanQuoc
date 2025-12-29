@@ -89,56 +89,102 @@ class WebRTCSignalingServer {
               roomId = data.roomId;
               userId = data.userId || `user_${Date.now()}`;
               
+              // Clean up any old connections for this user first
+              const oldConnection = this.userConnections.get(userId);
+              if (oldConnection && oldConnection !== ws) {
+                console.log(`🧹 [DEBUG] Server: Cleaning up old connection for user ${userId}`);
+                // Remove old connection from any rooms
+                if (oldConnection.roomId) {
+                  const oldRoom = this.rooms.get(oldConnection.roomId);
+                  if (oldRoom) {
+                    oldRoom.delete(oldConnection);
+                    if (oldRoom.size === 0) {
+                      this.rooms.delete(oldConnection.roomId);
+                    }
+                  }
+                }
+                // Close old connection if still open
+                if (oldConnection.readyState === WebSocket.OPEN) {
+                  oldConnection.close(1000, 'Replaced by new connection');
+                }
+              }
+              
               // Store user connection for notifications (ALWAYS, even if in notification-only room)
               ws.userId = userId;
               this.userConnections.set(userId, ws);
-              console.log(`👤 Registered user connection: ${userId} (room: ${data.roomId})`);
-              console.log(`📊 Total registered users: ${this.userConnections.size}`);
+              console.log(`👤 [DEBUG] Server: Registered user connection: ${userId} (room: ${data.roomId})`);
+              console.log(`📊 [DEBUG] Server: Total registered users: ${this.userConnections.size}`);
               
               if (!this.rooms.has(roomId)) {
                 this.rooms.set(roomId, new Set());
               }
               
-              this.rooms.get(roomId).add(ws);
-              ws.roomId = roomId;
+              // Remove from old room if exists
+              if (ws.roomId && ws.roomId !== roomId) {
+                const oldRoom = this.rooms.get(ws.roomId);
+                if (oldRoom) {
+                  oldRoom.delete(ws);
+                  if (oldRoom.size === 0) {
+                    this.rooms.delete(ws.roomId);
+                  }
+                }
+              }
               
-              // Get list of existing users BEFORE adding new user
-              const usersInRoom = Array.from(this.rooms.get(roomId))
-                .filter(client => client !== ws && client.readyState === WebSocket.OPEN)
-                .map(client => client.userId);
+              // Check if already in this room (avoid duplicates)
+              const room = this.rooms.get(roomId);
+              if (room && room.has(ws)) {
+                console.log(`⚠️ [DEBUG] Server: User ${userId} already in room ${roomId}, skipping duplicate join`);
+                // Still send room-joined response for consistency
+                const usersInRoom = Array.from(room)
+                  .filter(client => client !== ws && client.readyState === WebSocket.OPEN)
+                  .map(client => client.userId)
+                  .filter((uid, index, self) => self.indexOf(uid) === index); // Remove duplicates
+                ws.send(JSON.stringify({
+                  type: 'room-joined',
+                  roomId,
+                  userId,
+                  usersInRoom
+                }));
+              } else {
+                room.add(ws);
+                ws.roomId = roomId;
+                
+                // Get list of existing users BEFORE adding new user
+                const usersInRoom = Array.from(room)
+                  .filter(client => client !== ws && client.readyState === WebSocket.OPEN)
+                  .map(client => client.userId)
+                  .filter((uid, index, self) => self.indexOf(uid) === index); // Remove duplicates
               
-              // Add new user to room
-              this.rooms.get(roomId).add(ws);
-              ws.roomId = roomId;
-              ws.userId = userId;
+                // Notify others in room about new user
+                this.broadcastToRoom(roomId, ws, {
+                  type: 'user-joined',
+                  userId,
+                  roomId
+                });
               
-              // Notify others in room about new user
-              this.broadcastToRoom(roomId, ws, {
-                type: 'user-joined',
-                userId,
-                roomId
-              });
+                // Send list of existing users to new user
+                ws.send(JSON.stringify({
+                  type: 'room-joined',
+                  roomId,
+                  userId,
+                  usersInRoom
+                }));
               
-              // Send list of existing users to new user
-              ws.send(JSON.stringify({
-                type: 'room-joined',
-                roomId,
-                userId,
-                usersInRoom
-              }));
+                // Also broadcast updated participants list to all users in room
+                const allUsersInRoom = Array.from(this.rooms.get(roomId))
+                  .filter(client => client.readyState === WebSocket.OPEN)
+                  .map(client => client.userId)
+                  .filter((uid, index, self) => self.indexOf(uid) === index); // Remove duplicates
               
-              // Also broadcast updated participants list to all users in room
-              const allUsersInRoom = Array.from(this.rooms.get(roomId))
-                .filter(client => client.readyState === WebSocket.OPEN)
-                .map(client => client.userId);
+                this.broadcastToRoom(roomId, null, {
+                  type: 'participants-updated',
+                  roomId,
+                  participants: allUsersInRoom
+                });
               
-              this.broadcastToRoom(roomId, null, {
-                type: 'participants-updated',
-                roomId,
-                participants: allUsersInRoom
-              });
-              
-              console.log(`✅ User ${userId} joined room ${roomId}. Total users: ${allUsersInRoom.length}`);
+                console.log(`✅ [DEBUG] Server: User ${userId} joined room ${roomId}. Total users: ${allUsersInRoom.length}`);
+                console.log(`📊 [DEBUG] Server: Users in room: ${allUsersInRoom.join(', ')}`);
+              }
               break;
               
           case 'incoming-call':
@@ -275,9 +321,21 @@ class WebRTCSignalingServer {
       });
       
       ws.on('close', () => {
-        console.log('🔌 WebRTC signaling connection closed');
-        if (roomId) {
-          this.leaveRoom(ws, roomId);
+        console.log('🔌 [DEBUG] Server: WebRTC signaling connection closed', {
+          userId: userId || ws.userId,
+          roomId: roomId || ws.roomId
+        });
+        if (roomId || ws.roomId) {
+          this.leaveRoom(ws, roomId || ws.roomId);
+        }
+        // Clean up user connection
+        if (userId || ws.userId) {
+          const uid = userId || ws.userId;
+          const userConn = this.userConnections.get(uid);
+          if (userConn === ws) {
+            this.userConnections.delete(uid);
+            console.log(`🗑️ [DEBUG] Server: Cleaned up user connection for ${uid}`);
+          }
         }
       });
       
