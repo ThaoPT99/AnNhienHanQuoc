@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
 import { showNotification } from './NotificationCenter';
 import AuthModal from './AuthModal';
@@ -20,6 +21,11 @@ const CommunityAnNhien = () => {
   const [page, setPage] = useState(1);
   const [friends, setFriends] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  
+  // Mobile menu states
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [mobileMenuTab, setMobileMenuTab] = useState('menu'); // 'menu' or 'contacts'
+  const location = useLocation();
 
   const userEmail = getUserEmail();
   const userName = getUserName() || userEmail?.split('@')[0] || 'User';
@@ -262,8 +268,23 @@ const CommunityAnNhien = () => {
 
           {/* Menu icons */}
           <div className="community-menu-fb">
+            {/* Mobile Menu Button - In header */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="menu-icon-fb mobile-menu-btn"
+              title="Menu"
+              style={{
+                backgroundColor: showMobileMenu ? '#1877f2' : 'transparent',
+                color: showMobileMenu ? 'white' : 'inherit'
+              }}
+            >
+              <span className="menu-icon-symbol">☰</span>
+            </button>
             <Link to="/community" className="menu-icon-fb active" title="Trang chủ">
               <span className="menu-icon-symbol">🏠</span>
+            </Link>
+            <Link to="/community/friends" className="menu-icon-fb" title="Bạn bè">
+              <span className="menu-icon-symbol">👥</span>
             </Link>
             <div className="menu-icon-fb menu-icon-hidden-mobile" title="Video">
               <span className="menu-icon-symbol">📹</span>
@@ -296,6 +317,206 @@ const CommunityAnNhien = () => {
 
         {/* Main Feed */}
         <main className="main-feed">
+          {/* Mobile Menu Modal */}
+          <AnimatePresence>
+            {showMobileMenu && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="mobile-menu-overlay"
+                onClick={() => setShowMobileMenu(false)}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  zIndex: 9999
+                }}
+              >
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: 'fixed',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: '280px',
+                    maxWidth: '80%',
+                    backgroundColor: 'white',
+                    zIndex: 10000,
+                    overflowY: 'auto',
+                    boxShadow: '2px 0 10px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  <div style={{ padding: '16px', borderBottom: '1px solid #e4e6eb' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Menu</h3>
+                      <button
+                        onClick={() => setShowMobileMenu(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '24px',
+                          cursor: 'pointer',
+                          padding: '0',
+                          width: '30px',
+                          height: '30px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tabs */}
+                  <div style={{ display: 'flex', borderBottom: '1px solid #e4e6eb' }}>
+                    <button
+                      onClick={() => setMobileMenuTab('menu')}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        border: 'none',
+                        borderBottom: mobileMenuTab === 'menu' ? '3px solid #1877f2' : '3px solid transparent',
+                        backgroundColor: 'transparent',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        color: mobileMenuTab === 'menu' ? '#1877f2' : '#65676b',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      📋 Menu
+                    </button>
+                    <button
+                      onClick={() => setMobileMenuTab('contacts')}
+                      style={{
+                        flex: 1,
+                        padding: '12px',
+                        border: 'none',
+                        borderBottom: mobileMenuTab === 'contacts' ? '3px solid #1877f2' : '3px solid transparent',
+                        backgroundColor: 'transparent',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        color: mobileMenuTab === 'contacts' ? '#1877f2' : '#65676b',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      👥 Liên hệ
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div style={{ padding: '16px' }}>
+                    {mobileMenuTab === 'menu' ? (
+                      <div>
+                        <Link
+                          to="/community"
+                          onClick={() => setShowMobileMenu(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            color: location.pathname === '/community' ? '#1877f2' : '#333',
+                            backgroundColor: location.pathname === '/community' ? '#e7f3ff' : '#f0f2f5',
+                            marginBottom: '8px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <span>🏠</span>
+                          <span>Trang chủ</span>
+                        </Link>
+                        <Link
+                          to="/community/friends"
+                          onClick={() => setShowMobileMenu(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            color: location.pathname === '/community/friends' ? '#1877f2' : '#333',
+                            backgroundColor: location.pathname === '/community/friends' ? '#e7f3ff' : '#f0f2f5',
+                            marginBottom: '8px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <span>👥</span>
+                          <span>Bạn bè</span>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div>
+                        {/* Contacts list */}
+                        <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600' }}>
+                          Người liên hệ ({friends.length})
+                        </h4>
+                        {friends.length > 0 ? (
+                          <div>
+                            {friends.slice(0, 10).map((friend, index) => (
+                              <div
+                                key={index}
+                                onClick={() => {
+                                  if (window.startMessengerTextChat && friend.email) {
+                                    window.startMessengerTextChat(friend.email, friend.name || friend.email.split('@')[0]);
+                                    setShowMobileMenu(false);
+                                  }
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '10px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  marginBottom: '8px',
+                                  backgroundColor: '#f0f2f5'
+                                }}
+                              >
+                                <div style={{
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '50%',
+                                  backgroundColor: '#667eea',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: 'white',
+                                  fontSize: '16px',
+                                  fontWeight: '600'
+                                }}>
+                                  {(friend.name || friend.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <span style={{ fontSize: '15px', color: '#333' }}>
+                                  {friend.name || friend.email?.split('@')[0] || 'Unknown'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ textAlign: 'center', padding: '20px', color: '#65676b' }}>
+                            Chưa có bạn bè
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <CreatePostBox
             userEmail={userEmail}
             userName={userName}

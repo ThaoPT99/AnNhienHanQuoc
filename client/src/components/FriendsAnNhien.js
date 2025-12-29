@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
 import { showNotification } from './NotificationCenter';
 import AuthModal from './AuthModal';
@@ -30,6 +31,7 @@ const FriendsAnNhien = () => {
   // Mobile menu states
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [mobileMenuTab, setMobileMenuTab] = useState('friends'); // 'friends' or 'contacts'
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
 
   const userEmail = getUserEmail();
   const userName = getUserName() || userEmail?.split('@')[0] || 'User';
@@ -47,6 +49,20 @@ const FriendsAnNhien = () => {
       loadFollowingAndFollowers();
     }
   }, [isAuthenticated, activeTab]);
+
+  // Update isMobile on resize and on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 900);
+    };
+    
+    // Check on mount
+    checkMobile();
+    
+    // Check on resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load user profile
   const loadUserProfile = async () => {
@@ -349,22 +365,34 @@ const FriendsAnNhien = () => {
 
           {/* Menu icons */}
           <div className="community-menu-fb">
+            {/* Mobile Menu Button - In header */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="menu-icon-fb mobile-menu-btn"
+              title="Menu"
+              style={{
+                backgroundColor: showMobileMenu ? '#1877f2' : 'transparent',
+                color: showMobileMenu ? 'white' : 'inherit'
+              }}
+            >
+              <span className="menu-icon-symbol">☰</span>
+            </button>
             <Link to="/community" className="menu-icon-fb" title="Trang chủ">
               <span className="menu-icon-symbol">🏠</span>
             </Link>
             <Link to="/community/friends" className="menu-icon-fb active" title="Bạn bè">
               <span className="menu-icon-symbol">👥</span>
             </Link>
-            <div className="menu-icon-fb" title="Video">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Video">
               <span className="menu-icon-symbol">📹</span>
             </div>
-            <div className="menu-icon-fb" title="Marketplace">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Marketplace">
               <span className="menu-icon-symbol">🛒</span>
             </div>
-            <div className="menu-icon-fb" title="Nhóm">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Nhóm">
               <span className="menu-icon-symbol">👥</span>
             </div>
-            <div className="menu-icon-fb" title="Trò chơi">
+            <div className="menu-icon-fb menu-icon-hidden-mobile" title="Trò chơi">
               <span className="menu-icon-symbol">🎮</span>
             </div>
           </div>
@@ -392,31 +420,14 @@ const FriendsAnNhien = () => {
 
         {/* Main Feed - Friends List */}
         <main className="main-feed">
-          {/* Mobile Menu Button - Only show on mobile */}
-          <div className="mobile-menu-toggle">
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                marginBottom: '12px',
-                backgroundColor: '#1877f2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              <span>☰</span>
-              <span>Menu</span>
-            </button>
-          </div>
+          {/* Mobile Menu Button - Large button for mobile */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="mobile-menu-button-large"
+          >
+            <span style={{ fontSize: '20px' }}>☰</span>
+            <span>Menu - Tìm kiếm bạn bè & Danh sách liên hệ</span>
+          </button>
 
           {/* Mobile Menu Modal */}
           {showMobileMenu && (
