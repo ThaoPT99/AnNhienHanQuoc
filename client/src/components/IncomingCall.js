@@ -6,6 +6,18 @@ import './IncomingCall.css';
 const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onDecline }) => {
   const navigate = useNavigate();
   
+  // Debug log when component renders
+  useEffect(() => {
+    console.log('📞 [DEBUG] IncomingCall component rendered:', {
+      callerName,
+      callerEmail,
+      roomId,
+      roomLink,
+      hasOnAccept: !!onAccept,
+      hasOnDecline: !!onDecline
+    });
+  }, [callerName, callerEmail, roomId, roomLink, onAccept, onDecline]);
+  
   // Play ringtone
   useEffect(() => {
     // Create audio context for ringtone

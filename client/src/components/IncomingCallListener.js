@@ -25,10 +25,34 @@ const IncomingCallListener = () => {
       return;
     }
     
+    // Listen for incoming-call events from MessengerChat
+    const handleIncomingCallEvent = (event) => {
+      console.log('📞 [DEBUG] IncomingCallListener: Received incoming-call event from MessengerChat:', event.detail);
+      const { callerEmail, callerName, roomId, roomLink } = event.detail;
+      
+      setIncomingCall(prevCall => {
+        if (!prevCall) {
+          console.log('✅ [DEBUG] IncomingCallListener: Setting incoming call state from event');
+          return {
+            roomLink: roomLink,
+            roomId: roomId,
+            callerName: callerName || callerEmail,
+            callerEmail: callerEmail,
+            from: event.detail.from
+          };
+        }
+        return prevCall;
+      });
+    };
+    
+    window.addEventListener('incoming-call-notification', handleIncomingCallEvent);
+    
     // Don't reconnect if already connected
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       console.log('✅ IncomingCallListener: WebSocket already connected, skipping');
-      return;
+      return () => {
+        window.removeEventListener('incoming-call-notification', handleIncomingCallEvent);
+      };
     }
 
     const connectWebSocket = () => {
@@ -153,6 +177,7 @@ const IncomingCallListener = () => {
 
     // Cleanup on unmount
     return () => {
+      window.removeEventListener('incoming-call-notification', handleIncomingCallEvent);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }

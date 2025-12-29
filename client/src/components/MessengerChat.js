@@ -136,9 +136,26 @@ const MessengerChat = () => {
             return updatedChats;
           });
         } else if (data.type === 'incoming-call') {
-          // Handle incoming video call (existing logic)
-          const { callerEmail, callerName, roomId } = data;
+          // Handle incoming video call
+          console.log('📞 [DEBUG] MessengerChat: Received incoming-call notification:', data);
+          const { callerEmail, callerName, roomId, roomLink } = data;
           
+          // Also dispatch event for IncomingCallListener to handle
+          // This ensures the modal is shown even if MessengerChat is minimized
+          if (roomLink) {
+            console.log('📞 [DEBUG] MessengerChat: Dispatching incoming-call event for IncomingCallListener');
+            window.dispatchEvent(new CustomEvent('incoming-call-notification', {
+              detail: {
+                callerEmail,
+                callerName,
+                roomId,
+                roomLink,
+                from: data.from
+              }
+            }));
+          }
+          
+          // Add to active chats for MessengerChat UI
           setActiveChats(prev => {
             const existingChat = prev.find(chat => 
               chat.userEmail === callerEmail && chat.isVideoCall
