@@ -49,11 +49,13 @@ const IncomingCallListener = () => {
           
           // Register user with a special "notification-only" room
           // This allows the server to know this user is online and can receive notifications
-          ws.send(JSON.stringify({
+          const joinRoomMsg = {
             type: 'join-room',
             roomId: `notifications_${userEmail}`,
             userId: userEmail
-          }));
+          };
+          console.log('📤 [DEBUG] IncomingCallListener: Sending join-room:', JSON.stringify(joinRoomMsg, null, 2));
+          ws.send(JSON.stringify(joinRoomMsg));
         };
 
         ws.onmessage = (event) => {

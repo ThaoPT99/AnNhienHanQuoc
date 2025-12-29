@@ -22,8 +22,12 @@ class WebRTCSignalingServer {
       
       ws.on('message', (message) => {
         try {
-          const data = JSON.parse(message);
-          console.log('📨 Received message:', data.type);
+          const rawMessage = message.toString();
+          console.log('📨 [DEBUG] Server: Raw message received:', rawMessage);
+          
+          const data = JSON.parse(rawMessage);
+          console.log('📨 [DEBUG] Server: Parsed message type:', data.type);
+          console.log('📨 [DEBUG] Server: Full message data:', JSON.stringify(data, null, 2));
           
           switch (data.type) {
             case 'register-messaging':
