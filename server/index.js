@@ -1941,6 +1941,55 @@ app.get('/api/social/profile/:email', (req, res) => {
   });
 });
 
+// Search user by email - Public endpoint to find users
+app.get('/api/social/search/user', (req, res) => {
+  const email = req.query.email;
+  
+  if (!email || !email.trim()) {
+    return res.status(400).json({ error: 'Email parameter is required' });
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  const searchEmail = email.trim().toLowerCase();
+
+  // Get user basic info
+  dbHelpers.getUserByEmail(searchEmail, (err, user) => {
+    if (err) {
+      console.error('Error searching user:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get user profile if exists
+    dbHelpers.getUserProfile(searchEmail, (err, profile) => {
+      if (err) {
+        console.error('Error getting user profile:', err);
+      }
+
+      // Return public user info (don't expose password or sensitive data)
+      const publicUserInfo = {
+        email: user.email,
+        name: profile?.name || user.email.split('@')[0],
+        avatar: profile?.avatar || null,
+        bio: profile?.bio || null,
+        created_at: user.created_at,
+        email_verified: user.email_verified || false,
+        // Don't expose: password_hash, verification_token, etc.
+      };
+
+      res.json(publicUserInfo);
+    });
+  });
+});
+
 // Reactions
 app.post('/api/social/reactions', verifyUserToken, (req, res) => {
   const { post_id, comment_id, reaction_type } = req.body;

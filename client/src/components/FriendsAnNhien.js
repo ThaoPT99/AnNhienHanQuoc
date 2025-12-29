@@ -20,6 +20,12 @@ const FriendsAnNhien = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [friends, setFriends] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  
+  // User search states
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchForm, setShowSearchForm] = useState(false);
 
   const userEmail = getUserEmail();
   const userName = getUserName() || userEmail?.split('@')[0] || 'User';
@@ -209,6 +215,88 @@ const FriendsAnNhien = () => {
     loadFollowingAndFollowers();
   };
 
+  // Search user by email
+  const handleSearchUser = async (e) => {
+    e.preventDefault();
+    
+    if (!searchEmail.trim()) {
+      showNotification('Lỗi', 'Vui lòng nhập email để tìm kiếm', 'error');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(searchEmail.trim())) {
+      showNotification('Lỗi', 'Email không hợp lệ', 'error');
+      return;
+    }
+
+    // Check if searching self
+    if (searchEmail.trim().toLowerCase() === userEmail.toLowerCase()) {
+      showNotification('Thông báo', 'Đây là email của bạn', 'info');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchResult(null);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/social/search/user?email=${encodeURIComponent(searchEmail.trim())}`);
+      
+      if (res.ok) {
+        const userData = await res.json();
+        setSearchResult(userData);
+      } else {
+        const data = await res.json();
+        showNotification('Không tìm thấy', data.error || 'Không tìm thấy user với email này', 'info');
+        setSearchResult(null);
+      }
+    } catch (error) {
+      console.error('Error searching user:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+      setSearchResult(null);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Follow user from search result
+  const handleFollowFromSearch = async (email) => {
+    // Check if already following
+    const isAlreadyFollowing = following.some(
+      f => f.email?.toLowerCase() === email.toLowerCase()
+    );
+    if (isAlreadyFollowing) {
+      showNotification('Thông báo', 'Bạn đã follow user này rồi', 'info');
+      return;
+    }
+
+    try {
+      const res = await authenticatedFetch('/api/social/follow', {
+        method: 'POST',
+        body: JSON.stringify({
+          following_email: email
+        })
+      });
+
+      if (res.ok) {
+        showNotification('Thành công', `Đã follow ${email}`, 'success');
+        setSearchResult(null);
+        setSearchEmail('');
+        setShowSearchForm(false);
+        // Refresh friends list
+        loadFollowingAndFollowers();
+        loadFriends();
+      } else {
+        const data = await res.json();
+        showNotification('Lỗi', data.error || 'Không thể follow user này', 'error');
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+    }
+  };
+
   // Filter friends based on search query
   const filteredFriends = (activeTab === 'following' ? following : followers).filter(friend => {
     if (!searchQuery.trim()) return true;
@@ -300,6 +388,141 @@ const FriendsAnNhien = () => {
 
         {/* Main Feed - Friends List */}
         <main className="main-feed">
+          {/* Search User Section */}
+          <div style={{ 
+            marginBottom: '20px', 
+            padding: '16px',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+          }}>
+            <button
+              onClick={() => setShowSearchForm(!showSearchForm)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: showSearchForm ? '#667eea' : '#f0f2f5',
+                color: showSearchForm ? 'white' : '#333',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>🔍</span>
+              <span>{showSearchForm ? 'Ẩn tìm kiếm' : 'Tìm kiếm người dùng bằng email'}</span>
+            </button>
+
+            {showSearchForm && (
+              <div style={{ marginTop: '16px' }}>
+                <form onSubmit={handleSearchUser} style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="email"
+                      placeholder="Nhập email để tìm kiếm (ví dụ: user@example.com)"
+                      value={searchEmail}
+                      onChange={(e) => setSearchEmail(e.target.value)}
+                      disabled={isSearching}
+                      style={{
+                        flex: 1,
+                        padding: '10px 16px',
+                        border: '1px solid #ccd0d5',
+                        borderRadius: '20px',
+                        fontSize: '15px',
+                        outline: 'none'
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSearching || !searchEmail.trim()}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '20px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: isSearching || !searchEmail.trim() ? 'not-allowed' : 'pointer',
+                        opacity: isSearching || !searchEmail.trim() ? 0.6 : 1
+                      }}
+                    >
+                      {isSearching ? 'Đang tìm...' : 'Tìm'}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Search Result */}
+                {searchResult && (
+                  <div style={{
+                    padding: '16px',
+                    backgroundColor: '#f0f2f5',
+                    borderRadius: '8px',
+                    border: '1px solid #ccd0d5'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        backgroundColor: '#667eea',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '20px',
+                        fontWeight: 'bold'
+                      }}>
+                        {searchResult.name ? searchResult.name.charAt(0).toUpperCase() : searchResult.email.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '16px', fontWeight: '600', color: '#333', marginBottom: '4px' }}>
+                          {searchResult.name || searchResult.email.split('@')[0]}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#65676b' }}>
+                          {searchResult.email}
+                        </div>
+                        {searchResult.bio && (
+                          <div style={{ fontSize: '13px', color: '#8a8d91', marginTop: '4px' }}>
+                            {searchResult.bio}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleFollowFromSearch(searchResult.email)}
+                        disabled={following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())}
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase()) 
+                            ? '#e4e6eb' 
+                            : '#1877f2',
+                          color: following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())
+                            ? '#65676b'
+                            : 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '15px',
+                          fontWeight: '600',
+                          cursor: following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())
+                            ? 'not-allowed'
+                            : 'pointer'
+                        }}
+                      >
+                        {following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())
+                          ? 'Đã follow'
+                          : 'Follow'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Friends List */}
           {loading ? (

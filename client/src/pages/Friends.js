@@ -16,6 +16,12 @@ const Friends = () => {
   const [friendEmail, setFriendEmail] = useState('');
   const [addingFriend, setAddingFriend] = useState(false);
   const [showAddFriendForm, setShowAddFriendForm] = useState(false);
+  
+  // User search states
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchForm, setShowSearchForm] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
   const userEmail = localStorage.getItem('userEmail') || '';
@@ -203,6 +209,89 @@ const Friends = () => {
     }
   };
 
+  // Search user by email
+  const handleSearchUser = async (e) => {
+    e.preventDefault();
+    
+    if (!searchEmail.trim()) {
+      showNotification('Lỗi', 'Vui lòng nhập email để tìm kiếm', 'error');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(searchEmail.trim())) {
+      showNotification('Lỗi', 'Email không hợp lệ', 'error');
+      return;
+    }
+
+    // Check if searching self
+    if (searchEmail.trim().toLowerCase() === userEmail.toLowerCase()) {
+      showNotification('Thông báo', 'Đây là email của bạn', 'info');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchResult(null);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/social/search/user?email=${encodeURIComponent(searchEmail.trim())}`);
+      
+      if (res.ok) {
+        const userData = await res.json();
+        setSearchResult(userData);
+      } else {
+        const data = await res.json();
+        showNotification('Không tìm thấy', data.error || 'Không tìm thấy user với email này', 'info');
+        setSearchResult(null);
+      }
+    } catch (error) {
+      console.error('Error searching user:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+      setSearchResult(null);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Follow user from search result
+  const handleFollowFromSearch = async (email) => {
+    // Check if already following
+    const isAlreadyFollowing = following.some(
+      f => f.email?.toLowerCase() === email.toLowerCase()
+    );
+    if (isAlreadyFollowing) {
+      showNotification('Thông báo', 'Bạn đã follow user này rồi', 'info');
+      return;
+    }
+
+    setAddingFriend(true);
+    try {
+      const res = await authenticatedFetch('/api/social/follow', {
+        method: 'POST',
+        body: JSON.stringify({
+          following_email: email
+        })
+      });
+
+      if (res.ok) {
+        showNotification('Thành công', `Đã follow ${email}`, 'success');
+        setSearchResult(null);
+        setSearchEmail('');
+        // Refresh friends list
+        loadFriends();
+      } else {
+        const data = await res.json();
+        showNotification('Lỗi', data.error || 'Không thể follow user này', 'error');
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+      showNotification('Lỗi', 'Không thể kết nối đến server', 'error');
+    } finally {
+      setAddingFriend(false);
+    }
+  };
+
   const filteredList = activeTab === 'following' 
     ? following.filter(f => 
         f.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -248,10 +337,24 @@ const Friends = () => {
         <div className="friends-actions">
           <button
             className="btn-add-friend"
-            onClick={() => setShowAddFriendForm(!showAddFriendForm)}
+            onClick={() => {
+              setShowAddFriendForm(!showAddFriendForm);
+              setShowSearchForm(false);
+            }}
           >
             <span>➕</span>
             <span>Thêm bạn bè bằng email</span>
+          </button>
+          <button
+            className="btn-add-friend"
+            onClick={() => {
+              setShowSearchForm(!showSearchForm);
+              setShowAddFriendForm(false);
+            }}
+            style={{ marginLeft: '10px' }}
+          >
+            <span>🔍</span>
+            <span>Tìm kiếm người dùng</span>
           </button>
         </div>
 
@@ -296,6 +399,124 @@ const Friends = () => {
                 Hủy
               </button>
             </form>
+          </motion.div>
+        )}
+
+        {/* User Search Form */}
+        {showSearchForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="add-friend-form-container"
+          >
+            <form onSubmit={handleSearchUser} className="add-friend-form">
+              <div className="form-group">
+                <label htmlFor="search-email">🔍 Tìm kiếm người dùng bằng email:</label>
+                <div className="input-with-button">
+                  <input
+                    id="search-email"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={searchEmail}
+                    onChange={(e) => setSearchEmail(e.target.value)}
+                    className="friend-email-input"
+                    disabled={isSearching}
+                  />
+                  <button
+                    type="submit"
+                    className="btn-submit-add"
+                    disabled={isSearching || !searchEmail.trim()}
+                  >
+                    {isSearching ? 'Đang tìm...' : 'Tìm kiếm'}
+                  </button>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-cancel-add"
+                onClick={() => {
+                  setShowSearchForm(false);
+                  setSearchEmail('');
+                  setSearchResult(null);
+                }}
+                disabled={isSearching}
+              >
+                Hủy
+              </button>
+            </form>
+
+            {/* Search Result */}
+            {searchResult && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="search-result-card"
+                style={{
+                  marginTop: '20px',
+                  padding: '20px',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '12px',
+                  border: '1px solid #e0e0e0'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      backgroundColor: '#667eea',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '24px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {searchResult.name ? searchResult.name.charAt(0).toUpperCase() : searchResult.email.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: '600' }}>
+                      {searchResult.name || searchResult.email.split('@')[0]}
+                    </h3>
+                    <p style={{ margin: '0', color: '#666', fontSize: '14px' }}>
+                      {searchResult.email}
+                    </p>
+                    {searchResult.bio && (
+                      <p style={{ margin: '5px 0 0 0', color: '#888', fontSize: '13px' }}>
+                        {searchResult.bio}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleFollowFromSearch(searchResult.email)}
+                    disabled={addingFriend || following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())}
+                    style={{
+                      padding: '8px 20px',
+                      backgroundColor: following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase()) 
+                        ? '#ccc' 
+                        : '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: addingFriend || following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())
+                        ? 'not-allowed'
+                        : 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {following.some(f => f.email?.toLowerCase() === searchResult.email.toLowerCase())
+                      ? 'Đã follow'
+                      : addingFriend
+                      ? 'Đang thêm...'
+                      : 'Follow'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         )}
 
