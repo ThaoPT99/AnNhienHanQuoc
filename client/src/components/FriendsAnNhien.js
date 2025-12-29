@@ -525,6 +525,49 @@ const FriendsAnNhien = () => {
                 <div style={{ padding: '16px' }}>
                   {mobileMenuTab === 'friends' ? (
                     <div>
+                      {/* User Profile Link */}
+                      <Link
+                        to={`/community/profile/${encodeURIComponent(userEmail || '')}`}
+                        onClick={() => setShowMobileMenu(false)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          color: '#333',
+                          backgroundColor: '#f0f2f5',
+                          marginBottom: '16px',
+                          fontWeight: '600',
+                          border: '1px solid #e4e6eb'
+                        }}
+                      >
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          backgroundColor: '#667eea',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '16px',
+                          fontWeight: 'bold',
+                          flexShrink: 0
+                        }}>
+                          {(userName || userEmail?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '15px', fontWeight: '600' }}>
+                            {userName || userEmail?.split('@')[0] || 'Trang cá nhân'}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#65676b' }}>
+                            Xem trang cá nhân
+                          </div>
+                        </div>
+                      </Link>
+                      
                       {/* Friends tabs */}
                       <div style={{ marginBottom: '16px' }}>
                         <button

@@ -417,6 +417,51 @@ const CommunityAnNhien = () => {
                   <div style={{ padding: '16px' }}>
                     {mobileMenuTab === 'menu' ? (
                       <div>
+                        {/* User Profile Link */}
+                        <Link
+                          to={`/community/profile/${encodeURIComponent(userEmail || '')}`}
+                          onClick={() => setShowMobileMenu(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            textDecoration: 'none',
+                            color: location.pathname === `/community/profile/${encodeURIComponent(userEmail || '')}` ? '#1877f2' : '#333',
+                            backgroundColor: location.pathname === `/community/profile/${encodeURIComponent(userEmail || '')}` ? '#e7f3ff' : '#f0f2f5',
+                            marginBottom: '8px',
+                            fontWeight: '600',
+                            border: '1px solid #e4e6eb'
+                          }}
+                        >
+                          <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            backgroundColor: '#667eea',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            flexShrink: 0
+                          }}>
+                            {(userName || userEmail?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '15px', fontWeight: '600' }}>
+                              {userName || userEmail?.split('@')[0] || 'Trang cá nhân'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#65676b' }}>
+                              Xem trang cá nhân
+                            </div>
+                          </div>
+                        </Link>
+                        
+                        <div style={{ height: '8px' }}></div>
+                        
                         <Link
                           to="/community"
                           onClick={() => setShowMobileMenu(false)}
