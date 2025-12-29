@@ -322,6 +322,7 @@ const MessengerChat = () => {
   // Start new video call
   const startVideoCall = (targetEmail, targetName) => {
     const roomId = `room_${Date.now()}_${userEmail}_${targetEmail}`;
+    const roomLink = `${window.location.origin}/video-call?room=${roomId}`;
     
     setActiveChats(prev => {
       const existingChat = prev.find(chat => chat.userEmail === targetEmail);
@@ -346,6 +347,34 @@ const MessengerChat = () => {
       setIsMinimized(false);
       return updatedChats;
     });
+    
+    // Send incoming-call notification to target user via WebSocket
+    // First ensure we're registered for messaging
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      // Ensure we're registered (send register-messaging if not already done)
+      console.log(`📞 MessengerChat: Preparing to send incoming-call notification to ${targetEmail}`);
+      
+      // Wait a small delay to ensure registration is complete, then send call notification
+      setTimeout(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          console.log(`📞 MessengerChat: Sending incoming-call notification to ${targetEmail}`);
+          ws.send(JSON.stringify({
+            type: 'incoming-call',
+            roomId: roomId,
+            roomLink: roomLink,
+            targetUserId: targetEmail,
+            callerName: userName,
+            callerEmail: userEmail,
+            from: userEmail
+          }));
+        } else {
+          console.error('⚠️ MessengerChat: WebSocket closed before sending call notification');
+        }
+      }, 100); // Small delay to ensure registration
+    } else {
+      console.error('⚠️ MessengerChat: WebSocket not connected, cannot send call notification');
+      showNotification('Lỗi', 'Không thể kết nối. Vui lòng thử lại.', 'error');
+    }
   };
 
   // Start new text chat

@@ -148,8 +148,17 @@ class WebRTCSignalingServer {
               const callerEmail = data.callerEmail || userId || data.from;
               const callerId = userId || data.from || callerEmail;
               
+              // Ensure caller is registered (if userId not set, use from field)
+              if (!userId || !ws.userId) {
+                userId = data.from || callerEmail || userId || `user_${Date.now()}`;
+                ws.userId = userId;
+                this.userConnections.set(userId, ws);
+                console.log(`📞 Server: Auto-registered caller ${userId} for incoming-call`);
+              }
+              
               console.log(`📞 Incoming call request: target=${targetUserId}, caller=${callerId}, roomId=${data.roomId}`);
               console.log(`📊 Available users in userConnections: ${Array.from(this.userConnections.keys()).join(', ')}`);
+              console.log(`📊 Caller userId: ${userId}, ws.userId: ${ws.userId}`);
               
               // Try to find target user's connection (whether in room or not)
               const targetConnection = this.userConnections.get(targetUserId);
