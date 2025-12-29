@@ -286,6 +286,45 @@
   display: flex;
 }
 
+/* Mobile Menu Toggle - Only show on mobile */
+.mobile-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-menu-toggle {
+    display: block;
+    margin-bottom: 12px;
+  }
+  
+  .mobile-menu-toggle button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: #1877f2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .mobile-menu-overlay {
+    display: block !important;
+  }
+}
+
+@media (min-width: 901px) {
+  .mobile-menu-overlay {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .menu-icon-hidden-mobile {
     display: none !important;

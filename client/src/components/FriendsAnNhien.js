@@ -26,6 +26,10 @@ const FriendsAnNhien = () => {
   const [searchResult, setSearchResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchForm, setShowSearchForm] = useState(false);
+  
+  // Mobile menu states
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [mobileMenuTab, setMobileMenuTab] = useState('friends'); // 'friends' or 'contacts'
 
   const userEmail = getUserEmail();
   const userName = getUserName() || userEmail?.split('@')[0] || 'User';
@@ -388,6 +392,259 @@ const FriendsAnNhien = () => {
 
         {/* Main Feed - Friends List */}
         <main className="main-feed">
+          {/* Mobile Menu Button - Only show on mobile */}
+          <div className="mobile-menu-toggle">
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                marginBottom: '12px',
+                backgroundColor: '#1877f2',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>☰</span>
+              <span>Menu</span>
+            </button>
+          </div>
+
+          {/* Mobile Menu Modal */}
+          {showMobileMenu && (
+            <div
+              onClick={() => setShowMobileMenu(false)}
+              className="mobile-menu-overlay"
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 9999
+              }}
+            >
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: '280px',
+                  maxWidth: '80%',
+                  backgroundColor: 'white',
+                  zIndex: 10000,
+                  overflowY: 'auto',
+                  boxShadow: '2px 0 10px rgba(0,0,0,0.2)'
+                }}
+              >
+                <div style={{ padding: '16px', borderBottom: '1px solid #e4e6eb' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Menu</h3>
+                    <button
+                      onClick={() => setShowMobileMenu(false)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '24px',
+                        cursor: 'pointer',
+                        padding: '0',
+                        width: '30px',
+                        height: '30px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tabs */}
+                <div style={{ display: 'flex', borderBottom: '1px solid #e4e6eb' }}>
+                  <button
+                    onClick={() => setMobileMenuTab('friends')}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: 'none',
+                      borderBottom: mobileMenuTab === 'friends' ? '3px solid #1877f2' : '3px solid transparent',
+                      backgroundColor: 'transparent',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      color: mobileMenuTab === 'friends' ? '#1877f2' : '#65676b',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    👥 Bạn bè
+                  </button>
+                  <button
+                    onClick={() => setMobileMenuTab('contacts')}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: 'none',
+                      borderBottom: mobileMenuTab === 'contacts' ? '3px solid #1877f2' : '3px solid transparent',
+                      backgroundColor: 'transparent',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      color: mobileMenuTab === 'contacts' ? '#1877f2' : '#65676b',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📋 Liên hệ
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div style={{ padding: '16px' }}>
+                  {mobileMenuTab === 'friends' ? (
+                    <div>
+                      {/* Friends tabs */}
+                      <div style={{ marginBottom: '16px' }}>
+                        <button
+                          onClick={() => {
+                            setActiveTab('following');
+                            setShowMobileMenu(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            marginBottom: '8px',
+                            backgroundColor: activeTab === 'following' ? '#e7f3ff' : '#f0f2f5',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '15px',
+                            fontWeight: '600',
+                            color: activeTab === 'following' ? '#1877f2' : '#333',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <span>👥</span>
+                          <span>Đang theo dõi ({following.length})</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveTab('followers');
+                            setShowMobileMenu(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            backgroundColor: activeTab === 'followers' ? '#e7f3ff' : '#f0f2f5',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '15px',
+                            fontWeight: '600',
+                            color: activeTab === 'followers' ? '#1877f2' : '#333',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          <span>👥</span>
+                          <span>Người theo dõi ({followers.length})</span>
+                        </button>
+                      </div>
+
+                      {/* Search friends */}
+                      <div style={{ marginBottom: '16px' }}>
+                        <input
+                          type="text"
+                          placeholder="Tìm kiếm bạn bè..."
+                          value={searchQuery || ''}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid #ccd0d5',
+                            borderRadius: '20px',
+                            fontSize: '15px',
+                            outline: 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {/* Contacts list */}
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600' }}>
+                        Người liên hệ ({friends.length})
+                      </h4>
+                      {friends.length > 0 ? (
+                        <div>
+                          {friends.slice(0, 10).map((friend, index) => (
+                            <div
+                              key={index}
+                              onClick={() => {
+                                if (window.startMessengerTextChat && friend.email) {
+                                  window.startMessengerTextChat(friend.email, friend.name || friend.email.split('@')[0]);
+                                  setShowMobileMenu(false);
+                                }
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '10px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                marginBottom: '8px',
+                                backgroundColor: '#f0f2f5'
+                              }}
+                            >
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#667eea',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontSize: '16px',
+                                fontWeight: '600'
+                              }}>
+                                {(friend.name || friend.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+                              </div>
+                              <span style={{ fontSize: '15px', color: '#333' }}>
+                                {friend.name || friend.email?.split('@')[0] || 'Unknown'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '20px', color: '#65676b' }}>
+                          Chưa có bạn bè
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+
           {/* Search User Section */}
           <div style={{ 
             marginBottom: '20px', 
