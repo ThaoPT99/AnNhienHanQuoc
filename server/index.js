@@ -1308,16 +1308,20 @@ app.post('/api/resources/download', (req, res) => {
   console.log('📥 [DEBUG] File exists:', fileExists);
   
   if (!fileExists) {
+    console.log('❌ [DEBUG] File does not exist at path:', filePath);
     // Record download attempt even if file doesn't exist
     dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
       if (err) {
+        console.error('❌ [DEBUG] Error recording download:', err);
         res.status(500).json({ error: err.message });
         return;
       }
+      console.log('⚠️ [DEBUG] Returning 404 - File not found response');
       res.status(404).json({ 
         error: 'File not found',
         message: `File ${resourceFile.filename} does not exist. Please upload the file to server/uploads/resources/`,
-        download_id: download.id
+        file_path: filePath,
+        download_id: download ? download.id : null
       });
     });
     return;
