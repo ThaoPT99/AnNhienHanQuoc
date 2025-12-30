@@ -1279,15 +1279,24 @@ app.post('/api/resources/download', (req, res) => {
   const resourceId = parseInt(resource_id);
   const resourceFile = RESOURCE_FILES[resourceId];
   
+  console.log('📥 [DEBUG] Resource ID:', resourceId);
+  console.log('📥 [DEBUG] Resource file mapping:', resourceFile);
+  
   if (!resourceFile) {
+    console.log('❌ [DEBUG] Resource not found in RESOURCE_FILES');
     res.status(404).json({ error: 'Resource not found' });
     return;
   }
 
   const filePath = path.join(resourcesDir, resourceFile.filename);
+  console.log('📥 [DEBUG] File path:', filePath);
+  console.log('📥 [DEBUG] Resources directory:', resourcesDir);
   
   // Check if file exists
-  if (!fs.existsSync(filePath)) {
+  const fileExists = fs.existsSync(filePath);
+  console.log('📥 [DEBUG] File exists:', fileExists);
+  
+  if (!fileExists) {
     // Record download attempt even if file doesn't exist
     dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
       if (err) {
@@ -1304,11 +1313,15 @@ app.post('/api/resources/download', (req, res) => {
   }
 
   // Record download
+  console.log('📥 [DEBUG] Recording download in database...');
   dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
     if (err) {
+      console.error('❌ [DEBUG] Database error:', err);
       res.status(500).json({ error: err.message });
       return;
     }
+    
+    console.log('✅ [DEBUG] Download recorded in database:', download);
     
     // Determine content type based on file extension
     const ext = path.extname(resourceFile.filename).toLowerCase();
@@ -1319,15 +1332,20 @@ app.post('/api/resources/download', (req, res) => {
       contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     }
     
+    console.log('📥 [DEBUG] Content type:', contentType);
+    console.log('📥 [DEBUG] Sending file:', filePath);
+    
     // Send file with proper headers
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(resourceFile.name)}"`);
     res.sendFile(filePath, (err) => {
       if (err) {
-        console.error('Error sending file:', err);
+        console.error('❌ [DEBUG] Error sending file:', err);
         if (!res.headersSent) {
           res.status(500).json({ error: 'Error sending file' });
         }
+      } else {
+        console.log('✅ [DEBUG] File sent successfully');
       }
     });
   });
