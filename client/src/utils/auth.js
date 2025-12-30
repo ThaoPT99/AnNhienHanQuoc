@@ -54,7 +54,21 @@ export const authenticatedFetch = async (url, options = {}) => {
   });
 
   // If token expired or invalid, logout
-  if (response.status === 401) {
+  if (response.status === 401 || response.status === 403) {
+    // Check if user account was deleted
+    try {
+      const data = await response.clone().json();
+      if (data.account_deleted) {
+        logout();
+        if (typeof window !== 'undefined' && window.showNotification) {
+          window.showNotification('Tài khoản đã bị xóa', 'Tài khoản của bạn đã bị xóa bởi quản trị viên.', 'error');
+        }
+        throw new Error('Account has been deleted');
+      }
+    } catch (e) {
+      // If JSON parsing fails, just handle as normal auth error
+    }
+    
     logout();
     throw new Error('Session expired. Please login again.');
   }
