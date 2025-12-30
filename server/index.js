@@ -3175,6 +3175,7 @@ server.listen(PORT, () => {
   console.log(`   - POST /api/recruitment/apply`);
   console.log(`   - POST /api/events/register`);
   console.log(`   - POST /api/newsletter/subscribe`);
+  console.log(`   - GET /api/resources/test`);
   console.log(`   - POST /api/resources/download`);
   console.log(`   - GET /api/leaderboard`);
   console.log(`   - POST /api/leaderboard/sync`);
