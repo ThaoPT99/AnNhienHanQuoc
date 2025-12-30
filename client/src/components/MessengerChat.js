@@ -400,14 +400,18 @@ const MessengerChat = () => {
         return false;
       }
 
+      // Normalize emails to lowercase for consistent matching
+      const normalizedTargetEmail = targetEmail ? targetEmail.toLowerCase() : targetEmail;
+      const normalizedUserEmail = userEmail ? userEmail.toLowerCase() : userEmail;
+      
       const callNotification = {
         type: 'incoming-call',
         roomId: roomId,
         roomLink: roomLink,
-        targetUserId: targetEmail,
+        targetUserId: normalizedTargetEmail,
         callerName: userName,
-        callerEmail: userEmail,
-        from: userEmail
+        callerEmail: normalizedUserEmail,
+        from: normalizedUserEmail
       };
       
       console.log('📞 [DEBUG] MessengerChat: Call notification payload:', JSON.stringify(callNotification, null, 2));
