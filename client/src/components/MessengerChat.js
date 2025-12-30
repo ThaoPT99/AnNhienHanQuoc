@@ -509,7 +509,38 @@ const MessengerChat = () => {
   // Send text message
   const sendMessage = (e) => {
     e.preventDefault();
-    if (!messageInput.trim() || !selectedChat || selectedChat.isVideoCall || !ws) return;
+    console.log('💬 [DEBUG] MessengerChat.sendMessage called:', {
+      messageInput: messageInput.trim(),
+      hasSelectedChat: !!selectedChat,
+      isVideoCall: selectedChat?.isVideoCall,
+      hasWs: !!ws,
+      wsReadyState: ws?.readyState,
+      wsOpen: ws?.readyState === WebSocket.OPEN
+    });
+    
+    if (!messageInput.trim()) {
+      console.log('⚠️ [DEBUG] MessengerChat: Message input is empty');
+      return;
+    }
+    
+    if (!selectedChat) {
+      console.log('⚠️ [DEBUG] MessengerChat: No selected chat');
+      return;
+    }
+    
+    if (selectedChat.isVideoCall) {
+      console.log('⚠️ [DEBUG] MessengerChat: Chat is video call, cannot send text');
+      return;
+    }
+    
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      console.log('⚠️ [DEBUG] MessengerChat: WebSocket not connected', {
+        hasWs: !!ws,
+        readyState: ws?.readyState
+      });
+      showNotification('Lỗi', 'WebSocket chưa kết nối. Vui lòng thử lại.', 'error');
+      return;
+    }
 
     const message = {
       text: messageInput.trim(),
