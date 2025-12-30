@@ -133,6 +133,21 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
         exit={{ opacity: 0 }}
         className="auth-modal-overlay"
         onClick={requireAuth ? undefined : onClose}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          margin: 0,
+          padding: '20px'
+        }}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -140,6 +155,11 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           className="auth-modal-content"
           onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'relative',
+            zIndex: 99999,
+            margin: 'auto'
+          }}
         >
           {!requireAuth && (
             <button
