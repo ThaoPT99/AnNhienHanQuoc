@@ -1259,6 +1259,8 @@ app.get('/api/resources/file/:id', (req, res) => {
 
 // Resources downloads routes
 app.post('/api/resources/download', (req, res) => {
+  console.log('📥 [DEBUG] POST /api/resources/download called');
+  console.log('📥 [DEBUG] Request body:', req.body);
   const { email, resource_id, resource_title } = req.body;
   
   if (!email || !resource_id) {
