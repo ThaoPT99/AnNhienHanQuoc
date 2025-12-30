@@ -192,13 +192,25 @@ const MessengerChat = () => {
 
     websocket.onclose = () => {
       console.log('💬 MessengerChat: WebSocket closed, reconnecting...');
+      setWs(null);
+      // Reconnect after 3 seconds if user still logged in
       setTimeout(() => {
-        // Reconnect after 3 seconds
-        if (userEmail) {
-          setWs(null);
+        if (userEmail && getUserEmail()) {
+          // Trigger reconnect by clearing ws state
+          // The useEffect will detect ws is null and reconnect
+          console.log('🔄 MessengerChat: Attempting to reconnect WebSocket...');
         }
       }, 3000);
     };
+
+    websocket.onerror = (error) => {
+      console.error('💬 MessengerChat: WebSocket error:', error);
+      // Don't clear ws immediately on error, let onclose handle it
+    };
+
+    // Set websocket immediately, even if not open yet
+    // This allows UI to show connection status
+    setWs(websocket);
 
     return () => {
       websocket.close();
