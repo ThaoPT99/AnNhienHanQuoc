@@ -1839,12 +1839,46 @@ const dbHelpers = {
   },
 
   deleteUser: (user_email, callback) => {
+    // Delete from multiple tables related to user
+    // First delete from user_points
     db.run('DELETE FROM user_points WHERE user_email = ?', [user_email], function(err) {
       if (err) {
         callback(err, null);
-      } else {
-        callback(null, { deleted: this.changes > 0 });
+        return;
       }
+      const userPointsDeleted = this.changes > 0;
+      
+      // Delete from users table (authentication)
+      db.run('DELETE FROM users WHERE email = ?', [user_email], function(err2) {
+        if (err2) {
+          callback(err2, null);
+          return;
+        }
+        const usersDeleted = this.changes > 0;
+        
+        // Also delete related data (optional - you can comment these out if you want to keep data)
+        // Delete posts by user
+        db.run('DELETE FROM community_posts WHERE author_email = ?', [user_email], (err3) => {
+          if (err3) console.error('Error deleting user posts:', err3);
+        });
+        
+        // Delete comments by user
+        db.run('DELETE FROM community_comments WHERE author_email = ?', [user_email], (err3) => {
+          if (err3) console.error('Error deleting user comments:', err3);
+        });
+        
+        // Delete follows (both follower and following)
+        db.run('DELETE FROM user_follows WHERE follower_email = ? OR following_email = ?', [user_email, user_email], (err3) => {
+          if (err3) console.error('Error deleting user follows:', err3);
+        });
+        
+        // Return success if at least one was deleted
+        callback(null, { 
+          deleted: userPointsDeleted || usersDeleted,
+          userPointsDeleted,
+          usersDeleted
+        });
+      });
     });
   },
 
