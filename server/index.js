@@ -3511,14 +3511,25 @@ app.put('/api/admin/users/:email/points', (req, res) => {
 });
 
 // Delete user (admin only)
-app.delete('/api/admin/users/:email', (req, res) => {
+// Use wildcard route to handle email with special characters
+app.delete('/api/admin/users/*', (req, res) => {
   const token = req.headers['x-admin-token'];
   if (!token || token !== process.env.ADMIN_TOKEN) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
 
-  const user_email = decodeURIComponent(req.params.email);
+  // Get email from path - everything after /api/admin/users/
+  const pathAfterBase = req.path.replace('/api/admin/users/', '');
+  const user_email = decodeURIComponent(pathAfterBase);
+  
+  console.log('🗑️ [DEBUG] Delete user request:', { path: req.path, user_email });
+  
+  if (!user_email || !user_email.includes('@')) {
+    res.status(400).json({ error: 'Invalid email address' });
+    return;
+  }
+  
   dbHelpers.deleteUser(user_email, (err, result) => {
     if (err) {
       console.error('Error deleting user:', err);
@@ -3526,9 +3537,11 @@ app.delete('/api/admin/users/:email', (req, res) => {
       return;
     }
     if (!result || !result.deleted) {
+      console.log('⚠️ [DEBUG] User not found or not deleted:', { user_email, result });
       res.status(404).json({ error: 'User not found' });
       return;
     }
+    console.log('✅ [DEBUG] User deleted successfully:', { user_email });
     res.json({ success: true, message: 'User deleted successfully' });
   });
 });
