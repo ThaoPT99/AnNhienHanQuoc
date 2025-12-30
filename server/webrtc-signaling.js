@@ -118,6 +118,7 @@ class WebRTCSignalingServer {
               this.userConnections.set(userId, ws);
               console.log(`👤 [DEBUG] Server: Registered user connection: ${userId} (room: ${data.roomId})`);
               console.log(`📊 [DEBUG] Server: Total registered users: ${this.userConnections.size}`);
+              console.log(`📊 [DEBUG] Server: All registered users:`, Array.from(this.userConnections.keys()).join(', '));
               
               if (!this.rooms.has(roomId)) {
                 this.rooms.set(roomId, new Set());
@@ -228,12 +229,25 @@ class WebRTCSignalingServer {
               console.log(`📊 [DEBUG] Server: Registered users list:`, allUsers);
               
               // Try to find target user's connection (whether in room or not)
-              const targetConnection = this.userConnections.get(targetUserId);
+              // Also try case-insensitive match in case email casing differs
+              let targetConnection = this.userConnections.get(targetUserId);
+              
+              // If not found, try case-insensitive search
+              if (!targetConnection) {
+                for (const [registeredUserId, connection] of this.userConnections.entries()) {
+                  if (registeredUserId.toLowerCase() === targetUserId.toLowerCase()) {
+                    console.log(`🔍 [DEBUG] Server: Found target user with case-insensitive match: ${registeredUserId} (looking for ${targetUserId})`);
+                    targetConnection = connection;
+                    break;
+                  }
+                }
+              }
               
               console.log(`🔍 [DEBUG] Server: Looking for target user ${targetUserId}:`, {
                 found: !!targetConnection,
                 connectionState: targetConnection ? targetConnection.readyState : 'null',
-                isOpen: targetConnection ? targetConnection.readyState === WebSocket.OPEN : false
+                isOpen: targetConnection ? targetConnection.readyState === WebSocket.OPEN : false,
+                actualUserId: targetConnection ? targetConnection.userId : 'null'
               });
               
               if (targetConnection && targetConnection.readyState === WebSocket.OPEN) {
