@@ -44,7 +44,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
 
     // Create AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => {
+      console.warn('⏱️ [DEBUG] AuthModal: Request timeout after 60 seconds');
+      controller.abort();
+    }, 60000); // 60 second timeout (registration may take longer due to email sending)
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
@@ -142,11 +145,12 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
       console.error('❌ [DEBUG] AuthModal: Exception:', error);
       setLoading(false); // Set loading false on exception
       
-      if (error.name === 'AbortError') {
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.warn('⏱️ [DEBUG] AuthModal: Request was aborted (timeout or cancelled)');
         showNotification(
           'Lỗi',
-          'Request timeout. Vui lòng thử lại sau.',
-          'error'
+          'Request timeout. Server có thể đang xử lý, vui lòng đợi một chút và kiểm tra lại tài khoản đã được tạo chưa.',
+          'warning'
         );
       } else if (error.message.includes('JSON')) {
         showNotification(
