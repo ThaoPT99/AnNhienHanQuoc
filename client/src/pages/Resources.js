@@ -223,8 +223,15 @@ const Resources = () => {
           // Email is saved in localStorage, so user can download multiple files
         }
       } else {
-        const error = await response.json();
-        alert(`Có lỗi xảy ra: ${error.error || error.message || 'Vui lòng thử lại sau.'}`);
+        // Handle error response (other than 404 which is handled above)
+        const errorText = await response.text();
+        let error;
+        try {
+          error = JSON.parse(errorText);
+        } catch (e) {
+          error = { error: 'Không thể tải file', message: errorText };
+        }
+        alert(`Có lỗi xảy ra: ${error.error || error.message || 'Không thể tải file'}`);
       }
     } catch (error) {
       console.error('Download error:', error);
