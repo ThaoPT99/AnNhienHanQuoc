@@ -1773,7 +1773,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
           </div>
 
           {/* Local video (self) */}
-          <div className="local-video-container" style={{ display: isCallActive ? 'block' : 'none' }}>
+          <div className="local-video-container" style={{ display: isCallActive ? 'flex' : 'none' }}>
             <video
               ref={localVideoRef}
               autoPlay
@@ -1781,6 +1781,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               webkit-playsinline="true"
               muted
               className="local-video"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center'
+              }}
             />
             {!localStream && (
               <div className="no-video" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#000', color: 'white' }}>
