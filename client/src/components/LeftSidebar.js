@@ -1,11 +1,18 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { logout } from '../utils/auth';
 import './LeftSidebar.css';
 
 const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate, activeTab, setActiveTab, searchQuery, setSearchQuery, followingCount, followersCount }) => {
   const displayName = userName || userEmail?.split('@')[0] || 'User';
   const location = useLocation();
   const isFriendsPage = location.pathname === '/community/friends';
+
+  const handleLogout = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+      logout();
+    }
+  };
 
   return (
     <div className="left-sidebar-content">
@@ -59,6 +66,12 @@ const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate, acti
           <span className="sidebar-menu-label">Bạn bè</span>
         </Link>
       )}
+
+      {/* Logout Button */}
+      <div className="sidebar-menu-item" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+        <div className="sidebar-menu-icon">🚪</div>
+        <span className="sidebar-menu-label">Đăng xuất</span>
+      </div>
       
       {/* Additional menu items can be added here when features are implemented */}
       {/* Example:

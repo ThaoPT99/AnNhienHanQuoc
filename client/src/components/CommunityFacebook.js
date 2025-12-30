@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
+import { isLoggedIn, getUserEmail, getUserName, logout } from '../utils/auth';
 import { showNotification } from './NotificationCenter';
 import AuthModal from './AuthModal';
 import LeftSidebar from './LeftSidebar';
@@ -420,6 +420,76 @@ const CommunityAnNhien = () => {
                         {/* User Profile Link */}
                         <Link
                           to={`/community/profile/${encodeURIComponent(userEmail || '')}`}
+                          onClick={() => setShowMobileMenu(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            textDecoration: 'none',
+                            color: 'inherit'
+                          }}
+                        >
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: '600'
+                          }}>
+                            {(userName || userEmail || 'U').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: '600', fontSize: '15px' }}>{userName}</div>
+                            <div style={{ fontSize: '13px', color: '#65676b' }}>Xem trang cá nhân</div>
+                          </div>
+                        </Link>
+
+                        {/* Logout Button */}
+                        <div
+                          onClick={() => {
+                            if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                              logout();
+                              setShowMobileMenu(false);
+                            }
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '12px',
+                            cursor: 'pointer',
+                            borderRadius: '8px',
+                            marginTop: '8px'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f2f5'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        >
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: '#e4e6eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px'
+                          }}>
+                            🚪
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: '600', fontSize: '15px' }}>Đăng xuất</div>
+                            <div style={{ fontSize: '13px', color: '#65676b' }}>Thoát khỏi tài khoản</div>
+                          </div>
+                        </div>
+
+                        <Link
+                          to="/community"
                           onClick={() => setShowMobileMenu(false)}
                           style={{
                             display: 'flex',
