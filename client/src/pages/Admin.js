@@ -40,7 +40,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploadingResource, setUploadingResource] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(null);
+  const [uploadResourceFile, setUploadResourceFile] = useState(null);
   const navigate = useNavigate();
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
