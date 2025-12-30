@@ -171,12 +171,20 @@ const Resources = () => {
         }),
       });
 
+      // Check status code first
+      if (response.status === 404) {
+        // File not found - server returns JSON with error message
+        const error = await response.json();
+        alert(`⚠️ ${error.message || error.error || 'File không tồn tại'}\n\n${error.file_path ? `Đường dẫn: ${error.file_path}` : ''}`);
+        return;
+      }
+      
       if (response.ok) {
         // Check if response is a file (blob) or JSON
         const contentType = response.headers.get('content-type');
         
         if (contentType && contentType.includes('application/json')) {
-          // Error response
+          // Error response (but not 404, already handled above)
           const error = await response.json();
           alert(`Có lỗi xảy ra: ${error.error || error.message || 'Vui lòng thử lại sau.'}`);
         } else {
