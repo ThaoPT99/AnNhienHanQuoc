@@ -1258,6 +1258,12 @@ app.get('/api/resources/file/:id', (req, res) => {
 });
 
 // Resources downloads routes
+// Middleware to log all requests to /api/resources/*
+app.use('/api/resources/*', (req, res, next) => {
+  console.log(`🔍 [MIDDLEWARE] Request to /api/resources/*: ${req.method} ${req.path}`);
+  next();
+});
+
 // Test route to verify endpoint is accessible
 app.get('/api/resources/test', (req, res) => {
   console.log('✅ [TEST] GET /api/resources/test called');
@@ -1265,8 +1271,9 @@ app.get('/api/resources/test', (req, res) => {
 });
 
 app.post('/api/resources/download', (req, res) => {
-  console.log('📥 [DEBUG] POST /api/resources/download called');
+  console.log('📥 [DEBUG] POST /api/resources/download called - ENTERING HANDLER');
   console.log('📥 [DEBUG] Request URL:', req.url);
+  console.log('📥 [DEBUG] Request path:', req.path);
   console.log('📥 [DEBUG] Request method:', req.method);
   console.log('📥 [DEBUG] Request headers:', req.headers);
   console.log('📥 [DEBUG] Request body:', req.body);
