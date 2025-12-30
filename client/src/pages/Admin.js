@@ -39,6 +39,8 @@ const Admin = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [uploadingResource, setUploadingResource] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const navigate = useNavigate();
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
@@ -1387,35 +1389,121 @@ const Admin = () => {
             )}
 
             {activeTab === 'resources' && (
-              <div className="data-table-wrapper">
-                <h2 className="section-title">Lịch sử tải tài liệu ({resources.length})</h2>
-                {resources.length === 0 ? (
-                  <div className="no-data">Chưa có lượt tải nào</div>
-                ) : (
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Email</th>
-                        <th>Tài liệu</th>
-                        <th>ID Tài liệu</th>
-                        <th>Ngày tải</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {resources.map((item, index) => (
-                        <tr key={item.id}>
-                          <td>{index + 1}</td>
-                          <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
-                          <td>{item.resource_title || `Tài liệu #${item.resource_id}`}</td>
-                          <td>#{item.resource_id}</td>
-                          <td>{formatDate(item.downloaded_at)}</td>
+              <>
+                {/* Upload Resource File Section */}
+                <div className="admin-login-form" style={{ marginBottom: '30px' }}>
+                  <h2 className="section-title">📤 Upload Tài liệu</h2>
+                  <div style={{ marginBottom: '15px', padding: '15px', background: '#f0f0f0', borderRadius: '8px' }}>
+                    <p style={{ margin: '0 0 10px 0', fontWeight: '600' }}>Danh sách tài liệu cần upload:</p>
+                    <ul style={{ margin: '0', paddingLeft: '20px' }}>
+                      <li>1. checklist-ho-so-du-hoc-han-quoc.pdf</li>
+                      <li>2. huong-dan-xin-visa-d2.pdf</li>
+                      <li>3. template-thu-gioi-thieu-ban-than.docx</li>
+                      <li>4. ke-hoach-hoc-tap-mau.docx</li>
+                      <li>5. danh-sach-truong-dai-hoc-han-quoc.pdf</li>
+                      <li>6. huong-dan-luyen-thi-topik.pdf</li>
+                      <li>7. tu-vung-tieng-han-du-hoc-sinh.pdf</li>
+                      <li>8. huong-dan-tim-nha-o-han-quoc.pdf</li>
+                      <li>9. checklist-chuan-bi-len-duong.pdf</li>
+                      <li>10. huong-dan-lam-them-han-quoc.pdf</li>
+                    </ul>
+                    <p style={{ margin: '10px 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                      ⚠️ <strong>Lưu ý:</strong> Tên file phải chính xác như trên (không phân biệt hoa thường)
+                    </p>
+                  </div>
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!uploadResourceFile) {
+                      alert('Vui lòng chọn file để upload');
+                      return;
+                    }
+
+                    const token = getToken();
+                    if (!token) return;
+
+                    const formData = new FormData();
+                    formData.append('file', uploadResourceFile);
+
+                    try {
+                      setUploadingResource(true);
+                      const response = await axios.post(
+                        `${API_URL}/api/admin/resources/upload`,
+                        formData,
+                        {
+                          headers: {
+                            'x-admin-token': token,
+                            'Content-Type': 'multipart/form-data'
+                          }
+                        }
+                      );
+
+                      alert(`✅ Upload thành công!\n\nFile: ${response.data.filename}\nKích thước: ${(response.data.size / 1024).toFixed(2)} KB`);
+                      setUploadResourceFile(null);
+                      document.getElementById('resource-file-input').value = '';
+                    } catch (err) {
+                      console.error('Upload error:', err);
+                      alert(`❌ Lỗi upload: ${err.response?.data?.error || err.message || 'Không thể upload file'}`);
+                    } finally {
+                      setUploadingResource(false);
+                    }
+                  }}>
+                    <div className="form-group">
+                      <label>Chọn file PDF hoặc DOCX</label>
+                      <input
+                        id="resource-file-input"
+                        type="file"
+                        accept=".pdf,.docx"
+                        onChange={(e) => setUploadResourceFile(e.target.files[0])}
+                        disabled={uploadingResource}
+                      />
+                      {uploadResourceFile && (
+                        <p style={{ marginTop: '10px', color: '#666' }}>
+                          File đã chọn: <strong>{uploadResourceFile.name}</strong> ({(uploadResourceFile.size / 1024).toFixed(2)} KB)
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      className="refresh-btn"
+                      disabled={uploadingResource || !uploadResourceFile}
+                      style={{ opacity: (uploadingResource || !uploadResourceFile) ? 0.6 : 1 }}
+                    >
+                      {uploadingResource ? '⏳ Đang upload...' : '📤 Upload File'}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Download History */}
+                <div className="data-table-wrapper">
+                  <h2 className="section-title">Lịch sử tải tài liệu ({resources.length})</h2>
+                  {resources.length === 0 ? (
+                    <div className="no-data">Chưa có lượt tải nào</div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Email</th>
+                          <th>Tài liệu</th>
+                          <th>ID Tài liệu</th>
+                          <th>Ngày tải</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+                      </thead>
+                      <tbody>
+                        {resources.map((item, index) => (
+                          <tr key={item.id}>
+                            <td>{index + 1}</td>
+                            <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
+                            <td>{item.resource_title || `Tài liệu #${item.resource_id}`}</td>
+                            <td>#{item.resource_id}</td>
+                            <td>{formatDate(item.downloaded_at)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
             )}
           </>
         )}
