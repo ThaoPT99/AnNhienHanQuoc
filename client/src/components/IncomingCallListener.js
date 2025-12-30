@@ -18,10 +18,12 @@ const IncomingCallListener = () => {
 
   useEffect(() => {
     const userEmail = getUserEmail();
-    userEmailRef.current = userEmail;
+    // Normalize email to lowercase for consistent matching
+    const normalizedEmail = userEmail ? userEmail.toLowerCase() : null;
+    userEmailRef.current = normalizedEmail;
     
     // Only connect if user is logged in
-    if (!userEmail) {
+    if (!normalizedEmail) {
       return;
     }
     
@@ -75,8 +77,8 @@ const IncomingCallListener = () => {
           // This allows the server to know this user is online and can receive notifications
           const joinRoomMsg = {
             type: 'join-room',
-            roomId: `notifications_${userEmail}`,
-            userId: userEmail
+            roomId: `notifications_${normalizedEmail}`,
+            userId: normalizedEmail
           };
           console.log('📤 [DEBUG] IncomingCallListener: Sending join-room:', JSON.stringify(joinRoomMsg, null, 2));
           ws.send(JSON.stringify(joinRoomMsg));
@@ -99,12 +101,13 @@ const IncomingCallListener = () => {
                 callerName: data.callerName,
                 callerEmail: data.callerEmail,
                 from: data.from,
-                myEmail: userEmail
+                myEmail: normalizedEmail
               });
               
               // Verify this call is for me (check targetUserId if present)
-              if (data.targetUserId && data.targetUserId !== userEmail) {
-                console.log(`⚠️ [DEBUG] IncomingCallListener: Call not for me. Target: ${data.targetUserId}, My email: ${userEmail}`);
+              // Compare case-insensitively
+              if (data.targetUserId && data.targetUserId.toLowerCase() !== normalizedEmail) {
+                console.log(`⚠️ [DEBUG] IncomingCallListener: Call not for me. Target: ${data.targetUserId}, My email: ${normalizedEmail}`);
                 return;
               }
               
