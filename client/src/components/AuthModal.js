@@ -146,7 +146,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
           justifyContent: 'center',
           zIndex: 99999,
           margin: 0,
-          padding: '20px'
+          padding: '20px',
+          boxSizing: 'border-box'
         }}
       >
         <motion.div
