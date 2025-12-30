@@ -1258,8 +1258,17 @@ app.get('/api/resources/file/:id', (req, res) => {
 });
 
 // Resources downloads routes
+// Test route to verify endpoint is accessible
+app.get('/api/resources/test', (req, res) => {
+  console.log('✅ [TEST] GET /api/resources/test called');
+  res.json({ message: 'Resources endpoint is working', timestamp: new Date().toISOString() });
+});
+
 app.post('/api/resources/download', (req, res) => {
   console.log('📥 [DEBUG] POST /api/resources/download called');
+  console.log('📥 [DEBUG] Request URL:', req.url);
+  console.log('📥 [DEBUG] Request method:', req.method);
+  console.log('📥 [DEBUG] Request headers:', req.headers);
   console.log('📥 [DEBUG] Request body:', req.body);
   const { email, resource_id, resource_title } = req.body;
   
