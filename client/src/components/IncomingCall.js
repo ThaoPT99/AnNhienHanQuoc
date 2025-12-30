@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import './IncomingCall.css';
 
 const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onDecline }) => {
   const navigate = useNavigate();
+  const timeoutRef = useRef(null);
+  const [timeRemaining, setTimeRemaining] = useState(30); // 30 seconds
+  const CALL_TIMEOUT = 30000; // 30 seconds
   
   // Debug log when component renders
   useEffect(() => {
@@ -16,6 +19,40 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
       hasOnAccept: !!onAccept,
       hasOnDecline: !!onDecline
     });
+    
+    // Reset time remaining
+    setTimeRemaining(30);
+    
+    // Countdown timer
+    const countdownInterval = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    // Auto-decline after timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      console.log('⏰ [DEBUG] IncomingCall: Auto-declining call after timeout');
+      clearInterval(countdownInterval);
+      if (onDecline) {
+        onDecline();
+      }
+    }, CALL_TIMEOUT);
+    
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      clearInterval(countdownInterval);
+    };
   }, [callerName, callerEmail, roomId, roomLink, onAccept, onDecline]);
   
   // Play ringtone
@@ -59,6 +96,15 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
   const handleAccept = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    // Clear timeout and countdown when accepting
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
     console.log('✅ IncomingCall: Accept button clicked', { onAccept, roomLink });
     if (onAccept) {
       onAccept();
@@ -71,6 +117,15 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
   const handleDecline = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    // Clear timeout and countdown when declining
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
     console.log('❌ IncomingCall: Decline button clicked', { onDecline });
     if (onDecline) {
       onDecline();
@@ -120,6 +175,16 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
           
           <h2 className="caller-name">{callerName || callerEmail || 'Người gọi'}</h2>
           <p className="call-status">📹 Cuộc gọi video đến...</p>
+          {timeRemaining > 0 && (
+            <p className="call-timeout" style={{ 
+              fontSize: '0.9rem', 
+              color: timeRemaining <= 10 ? '#ff4444' : '#aaa',
+              marginTop: '10px',
+              fontWeight: timeRemaining <= 10 ? 'bold' : 'normal'
+            }}>
+              ⏰ Tự động từ chối sau {timeRemaining}s
+            </p>
+          )}
           
           <div className="call-actions">
             <button

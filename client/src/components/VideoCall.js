@@ -31,6 +31,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const retryCountsRef = useRef(new Map()); // Map<userId, number> - track retry attempts per user
   const ringtoneAudioRef = useRef(null);
   const MAX_RETRY_ATTEMPTS = 2; // Maximum retry attempts per user
+  const callStartTimeRef = useRef(null); // Track when call started
+  const noAnswerTimeoutRef = useRef(null); // Timeout for no answer
+  const CALL_NO_ANSWER_TIMEOUT = 60000; // 60 seconds - auto end call if no one joins
 
   // Helper function to add debug log (console only)
   const addDebugLog = (message, type = 'info') => {
@@ -134,8 +137,33 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     setShowRoomInfo(!isMobile);
     
+    // Record call start time
+    callStartTimeRef.current = Date.now();
+    
+    // Clear any existing timeout
+    if (noAnswerTimeoutRef.current) {
+      clearTimeout(noAnswerTimeoutRef.current);
+    }
+    
+    // Set timeout to auto-end call if no one joins
+    noAnswerTimeoutRef.current = setTimeout(() => {
+      // Check if there are any remote streams (people joined)
+      if (remoteStreams.size === 0 && peerConnectionsRef.current.size === 0) {
+        console.log('⏰ [DEBUG] VideoCall: No one joined after timeout, ending call');
+        setError('⏰ Không ai trả lời cuộc gọi. Cuộc gọi sẽ tự động kết thúc.');
+        setTimeout(() => {
+          endCall();
+        }, 2000); // Give user 2 seconds to see the message
+      }
+    }, CALL_NO_ANSWER_TIMEOUT);
+    
     initializeCall();
     return () => {
+      // Clear timeout on cleanup
+      if (noAnswerTimeoutRef.current) {
+        clearTimeout(noAnswerTimeoutRef.current);
+        noAnswerTimeoutRef.current = null;
+      }
       cleanup();
     };
   }, [roomId]);
@@ -674,6 +702,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                         setRemoteStreams(new Map(remoteStreamsRef.current));
                         setRemoteStream(remoteStream); // For backward compatibility
                         setIsCallActive(true);
+                        
+                        // Clear no-answer timeout since someone joined
+                        if (noAnswerTimeoutRef.current) {
+                          clearTimeout(noAnswerTimeoutRef.current);
+                          noAnswerTimeoutRef.current = null;
+                          console.log('✅ [DEBUG] VideoCall: Someone joined, cleared no-answer timeout');
+                        }
                       }
                     };
                     
@@ -788,6 +823,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                                 setRemoteStreams(new Map(remoteStreamsRef.current));
                                 setRemoteStream(remoteStream);
                                 setIsCallActive(true);
+                                
+                                // Clear no-answer timeout since someone joined
+                                if (noAnswerTimeoutRef.current) {
+                                  clearTimeout(noAnswerTimeoutRef.current);
+                                  noAnswerTimeoutRef.current = null;
+                                  console.log('✅ [DEBUG] VideoCall: Someone joined, cleared no-answer timeout');
+                                }
                               }
                             };
                             
@@ -970,6 +1012,13 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
                     // Also set as main remote stream for backward compatibility
                     setRemoteStream(remoteStream);
                     setIsCallActive(true);
+                    
+                    // Clear no-answer timeout since someone joined
+                    if (noAnswerTimeoutRef.current) {
+                      clearTimeout(noAnswerTimeoutRef.current);
+                      noAnswerTimeoutRef.current = null;
+                      console.log('✅ [DEBUG] VideoCall: Someone joined, cleared no-answer timeout');
+                    }
                   }
                 };
                 
@@ -1352,6 +1401,12 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   };
 
   const cleanup = () => {
+    // Clear no-answer timeout
+    if (noAnswerTimeoutRef.current) {
+      clearTimeout(noAnswerTimeoutRef.current);
+      noAnswerTimeoutRef.current = null;
+    }
+    
     // Stop ringtone if playing
     if (ringtoneAudioRef.current) {
       try {
