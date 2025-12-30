@@ -53,9 +53,26 @@ const verifyUserToken = (req, res, next) => {
       console.error('JWT verification error:', err.message);
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
-    req.user = decoded; // Attach decoded user info (e.g., email) to request
-    req.userEmail = decoded.email; // For convenience
-    next();
+    
+    // Check if user still exists in database (user may have been deleted)
+    dbHelpers.getUserByEmail(decoded.email, (dbErr, user) => {
+      if (dbErr) {
+        console.error('Error checking user existence:', dbErr);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      if (!user) {
+        console.log(`🚫 User ${decoded.email} has been deleted, rejecting token`);
+        return res.status(403).json({ 
+          error: 'User account has been deleted',
+          account_deleted: true
+        });
+      }
+      
+      req.user = decoded; // Attach decoded user info (e.g., email) to request
+      req.userEmail = decoded.email; // For convenience
+      next();
+    });
   });
 };
 
