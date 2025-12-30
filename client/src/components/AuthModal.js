@@ -44,15 +44,23 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      console.log('🔐 [DEBUG] AuthModal: Submitting form:', { endpoint, isLogin, formData: { ...formData, password: '***' } });
+      
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
+      console.log('📨 [DEBUG] AuthModal: Response status:', res.status, res.statusText);
+      
       const data = await res.json();
+      console.log('📨 [DEBUG] AuthModal: Response data:', data);
 
-      if (res.ok) {
+      if (res.ok || res.status === 201) { // Accept both 200 and 201
+        console.log('✅ [DEBUG] AuthModal: Request successful');
+        setLoading(false); // Set loading false immediately after success
+        
         if (isLogin) {
           // Login successful
           localStorage.setItem('authToken', data.token);
@@ -76,16 +84,18 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
           }
         } else {
           // Registration successful
+          console.log('✅ [DEBUG] AuthModal: Registration successful, switching to login form');
           showNotification(
             'Đăng ký thành công!',
-            'Tài khoản đã được tạo. Bạn có thể đăng nhập ngay.',
+            data.message || 'Tài khoản đã được tạo. Bạn có thể đăng nhập ngay.',
             'success'
           );
           setIsLogin(true); // Switch to login form
           setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password
         }
       } else {
-        console.error('Registration/Login error:', res.status, data);
+        console.error('❌ [DEBUG] AuthModal: Request failed:', res.status, data);
+        setLoading(false); // Set loading false on error
         
         // Handle email already registered
         if (res.status === 400) {
@@ -105,14 +115,13 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
         }
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('❌ [DEBUG] AuthModal: Exception:', error);
+      setLoading(false); // Set loading false on exception
       showNotification(
         'Lỗi',
         'Không thể kết nối đến server',
         'error'
       );
-    } finally {
-      setLoading(false);
     }
   };
 
