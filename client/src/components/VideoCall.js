@@ -19,6 +19,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const [friends, setFriends] = useState([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null); // { roomLink, callerName, callerEmail, roomId }
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
@@ -1408,7 +1410,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="video-call-container"
+        className={`video-call-container ${isFullscreen ? 'fullscreen' : ''}`}
+        ref={containerRef}
       >
         <div className="video-call-header">
           <div className="header-left">
@@ -1421,7 +1424,30 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               {showRoomInfo ? '📋' : 'ℹ️'}
             </button>
           </div>
-          <button className="close-btn" onClick={endCall}>×</button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button 
+              className="fullscreen-btn"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                color: 'white',
+                width: '35px',
+                height: '35px',
+                borderRadius: '50%',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {isFullscreen ? '🗗' : '🗖'}
+            </button>
+            <button className="close-btn" onClick={endCall}>×</button>
+          </div>
         </div>
 
         {showRoomInfo && (
@@ -1811,6 +1837,14 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
             style={{ background: 'rgba(102, 126, 234, 0.8)' }}
           >
             👥
+          </button>
+          <button
+            className="control-btn"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            style={{ background: 'rgba(255, 255, 255, 0.2)' }}
+          >
+            {isFullscreen ? '🗗' : '🗖'}
           </button>
           <button
             className="control-btn end-call"
