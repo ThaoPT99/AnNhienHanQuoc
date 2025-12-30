@@ -737,19 +737,33 @@ const MessengerChat = () => {
                     <input
                       type="text"
                       className="message-input"
-                      placeholder="Nhập tin nhắn..."
+                      placeholder={ws && ws.readyState === WebSocket.OPEN ? "Nhập tin nhắn..." : "Đang kết nối..."}
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      disabled={!ws}
+                      disabled={!ws || ws.readyState !== WebSocket.OPEN}
                     />
                     <button
                       type="submit"
                       className="message-send-btn"
-                      disabled={!messageInput.trim() || !ws}
+                      disabled={!messageInput.trim() || !ws || ws.readyState !== WebSocket.OPEN}
+                      title={!ws || ws.readyState !== WebSocket.OPEN ? "Đang kết nối..." : "Gửi tin nhắn"}
                     >
                       ➤
                     </button>
                   </form>
+                  {ws && ws.readyState !== WebSocket.OPEN && (
+                    <div style={{ 
+                      padding: '8px 16px', 
+                      fontSize: '12px', 
+                      color: '#65676b',
+                      textAlign: 'center',
+                      background: '#f0f2f5'
+                    }}>
+                      {ws.readyState === WebSocket.CONNECTING ? '🔄 Đang kết nối...' : 
+                       ws.readyState === WebSocket.CLOSED ? '⚠️ Đã ngắt kết nối. Đang thử kết nối lại...' : 
+                       '⚠️ Đang kết nối...'}
+                    </div>
+                  )}
                 </>
               )}
             </div>
