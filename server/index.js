@@ -1257,11 +1257,78 @@ app.get('/api/resources/file/:id', (req, res) => {
   });
 });
 
+// Configure multer for resource file uploads
+const resourceStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, resourcesDir);
+  },
+  filename: (req, file, cb) => {
+    // Use original filename to match RESOURCE_FILES mapping
+    cb(null, file.originalname);
+  }
+});
+
+const resourceUpload = multer({
+  storage: resourceStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit for PDF/DOCX files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /pdf|docx/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = file.mimetype === 'application/pdf' || 
+                     file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    
+    if (extname && mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file PDF hoặc DOCX'));
+    }
+  }
+});
+
 // Resources downloads routes
 // Test route to verify endpoint is accessible
 app.get('/api/resources/test', (req, res) => {
   console.log('✅ [TEST] GET /api/resources/test called');
   res.json({ message: 'Resources endpoint is working', timestamp: new Date().toISOString() });
+});
+
+// Upload resource file (Admin only)
+app.post('/api/admin/resources/upload', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  resourceUpload.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Error uploading resource file:', err);
+      res.status(400).json({ error: err.message });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return;
+    }
+
+    console.log('✅ Resource file uploaded:', {
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      path: req.file.path
+    });
+
+    res.json({
+      message: 'File uploaded successfully',
+      filename: req.file.filename,
+      size: req.file.size,
+      path: req.file.path
+    });
+  });
 });
 
 // POST route for downloading resources
