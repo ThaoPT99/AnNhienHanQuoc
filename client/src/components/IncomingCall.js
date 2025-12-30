@@ -6,6 +6,7 @@ import './IncomingCall.css';
 const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onDecline }) => {
   const navigate = useNavigate();
   const timeoutRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
   const [timeRemaining, setTimeRemaining] = useState(30); // 30 seconds
   const CALL_TIMEOUT = 30000; // 30 seconds
   
@@ -23,11 +24,19 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
     // Reset time remaining
     setTimeRemaining(30);
     
+    // Clear any existing interval
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    
     // Countdown timer
-    const countdownInterval = setInterval(() => {
+    countdownIntervalRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
-          clearInterval(countdownInterval);
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+          }
           return 0;
         }
         return prev - 1;
@@ -41,7 +50,10 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
     
     timeoutRef.current = setTimeout(() => {
       console.log('⏰ [DEBUG] IncomingCall: Auto-declining call after timeout');
-      clearInterval(countdownInterval);
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
       if (onDecline) {
         onDecline();
       }
@@ -50,8 +62,12 @@ const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onD
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
-      clearInterval(countdownInterval);
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
     };
   }, [callerName, callerEmail, roomId, roomLink, onAccept, onDecline]);
   
