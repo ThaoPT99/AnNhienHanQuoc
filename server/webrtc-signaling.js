@@ -93,6 +93,11 @@ class WebRTCSignalingServer {
               roomId = data.roomId;
               userId = data.userId || `user_${Date.now()}`;
               
+              // Normalize email to lowercase for consistent matching
+              if (userId && userId.includes('@')) {
+                userId = userId.toLowerCase();
+              }
+              
               // Clean up any old connections for this user first
               const oldConnection = this.userConnections.get(userId);
               if (oldConnection && oldConnection !== ws) {
@@ -196,10 +201,21 @@ class WebRTCSignalingServer {
               // Notify specific user about incoming call
               console.log('📞 [DEBUG] Server: Received incoming-call request:', JSON.stringify(data, null, 2));
               
-              const targetUserId = data.targetUserId;
+              // Normalize emails to lowercase for consistent matching
+              let targetUserId = data.targetUserId;
+              if (targetUserId && targetUserId.includes('@')) {
+                targetUserId = targetUserId.toLowerCase();
+              }
+              
               const callerName = data.callerName;
-              const callerEmail = data.callerEmail || userId || data.from;
-              const callerId = userId || data.from || callerEmail;
+              let callerEmail = data.callerEmail || userId || data.from;
+              if (callerEmail && callerEmail.includes('@')) {
+                callerEmail = callerEmail.toLowerCase();
+              }
+              let callerId = userId || data.from || callerEmail;
+              if (callerId && callerId.includes('@')) {
+                callerId = callerId.toLowerCase();
+              }
               
               console.log('📞 [DEBUG] Server: Parsed incoming-call data:', {
                 targetUserId,
