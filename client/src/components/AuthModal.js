@@ -42,6 +42,10 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
     e.preventDefault();
     setLoading(true);
 
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
       console.log('🔐 [DEBUG] AuthModal: Submitting form:', { endpoint, isLogin, formData: { ...formData, password: '***' } });
@@ -49,12 +53,31 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
       console.log('📨 [DEBUG] AuthModal: Response status:', res.status, res.statusText);
       
-      const data = await res.json();
+      // Try to parse JSON, but handle non-JSON responses
+      let data;
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch (parseError) {
+          console.error('❌ [DEBUG] AuthModal: JSON parse error:', parseError);
+          const text = await res.text();
+          console.error('❌ [DEBUG] AuthModal: Response text:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+      } else {
+        const text = await res.text();
+        console.error('❌ [DEBUG] AuthModal: Non-JSON response:', text);
+        data = { error: 'Server returned non-JSON response', message: text };
+      }
+      
       console.log('📨 [DEBUG] AuthModal: Response data:', data);
 
       if (res.ok || res.status === 201) { // Accept both 200 and 201
@@ -115,13 +138,29 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
         }
       }
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('❌ [DEBUG] AuthModal: Exception:', error);
       setLoading(false); // Set loading false on exception
-      showNotification(
-        'Lỗi',
-        'Không thể kết nối đến server',
-        'error'
-      );
+      
+      if (error.name === 'AbortError') {
+        showNotification(
+          'Lỗi',
+          'Request timeout. Vui lòng thử lại sau.',
+          'error'
+        );
+      } else if (error.message.includes('JSON')) {
+        showNotification(
+          'Lỗi',
+          'Lỗi xử lý response từ server. Vui lòng thử lại.',
+          'error'
+        );
+      } else {
+        showNotification(
+          'Lỗi',
+          error.message || 'Không thể kết nối đến server. Vui lòng thử lại.',
+          'error'
+        );
+      }
     }
   };
 
