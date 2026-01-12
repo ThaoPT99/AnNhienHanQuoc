@@ -15,6 +15,7 @@ const SchoolComparison = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterDormitory, setFilterDormitory] = useState('all');
   const [filterTopik, setFilterTopik] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [sortBy, setSortBy] = useState('ranking');
   const comparisonSectionRef = useRef(null);
@@ -88,7 +89,61 @@ const SchoolComparison = () => {
     }
   };
 
+  // Fuzzy search function - tìm kiếm không cần chính xác
+  const fuzzySearch = (text, query) => {
+    if (!query || query.trim() === '') return true;
+    
+    const normalizedText = text.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Loại bỏ dấu tiếng Việt
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'd');
+    
+    const normalizedQuery = query.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'd')
+      .trim();
+    
+    // Tìm kiếm chính xác
+    if (normalizedText.includes(normalizedQuery)) {
+      return true;
+    }
+    
+    // Tìm kiếm từng từ trong query
+    const queryWords = normalizedQuery.split(/\s+/).filter(word => word.length > 0);
+    if (queryWords.length > 0) {
+      // Kiểm tra xem tất cả các từ có xuất hiện trong text không (không cần liên tiếp)
+      const allWordsMatch = queryWords.every(word => normalizedText.includes(word));
+      if (allWordsMatch) {
+        return true;
+      }
+    }
+    
+    // Tìm kiếm theo ký tự (cho phép thiếu một số ký tự)
+    let textIndex = 0;
+    let queryIndex = 0;
+    while (textIndex < normalizedText.length && queryIndex < normalizedQuery.length) {
+      if (normalizedText[textIndex] === normalizedQuery[queryIndex]) {
+        queryIndex++;
+      }
+      textIndex++;
+    }
+    
+    // Nếu tìm thấy ít nhất 70% ký tự của query thì coi là match
+    return queryIndex >= normalizedQuery.length * 0.7;
+  };
+
   const filteredSchools = schools.filter(school => {
+    // Search filter - tìm kiếm trong tên tiếng Việt, tên tiếng Hàn, và thành phố
+    const matchesSearch = !searchQuery || 
+      fuzzySearch(school.name, searchQuery) ||
+      fuzzySearch(school.nameKr, searchQuery) ||
+      fuzzySearch(school.city, searchQuery) ||
+      (school.description && fuzzySearch(school.description, searchQuery));
+    
+    if (!matchesSearch) return false;
     const matchesMajor = filterMajor === 'all' || school.majors.includes(filterMajor);
     const matchesCity = filterCity === 'all' || school.city === filterCity;
     
@@ -171,6 +226,25 @@ const SchoolComparison = () => {
       <div className="comparison-content">
         <div className="filters-section">
           <div className="filters-basic">
+            <div className="filter-group search-group">
+              <label>🔍 Tìm kiếm trường:</label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Nhập tên trường (ví dụ: Seoul, Yonsei, SNU...)"
+                className="search-input"
+              />
+              {searchQuery && (
+                <button
+                  className="clear-search-btn"
+                  onClick={() => setSearchQuery('')}
+                  title="Xóa tìm kiếm"
+                >
+                  ×
+                </button>
+              )}
+            </div>
             <div className="filter-group">
               <label>Lọc theo ngành:</label>
               <select value={filterMajor} onChange={(e) => setFilterMajor(e.target.value)}>
