@@ -374,17 +374,6 @@ const SchoolComparison = () => {
     const { matchScore, ...school } = s;
     return school;
   });
-    switch (sortBy) {
-      case 'ranking':
-        return a.ranking - b.ranking;
-      case 'tuition-low':
-        return a.tuition - b.tuition;
-      case 'tuition-high':
-        return b.tuition - a.tuition;
-      default:
-        return a.ranking - b.ranking;
-    }
-  });
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat('vi-VN').format(num);
