@@ -51,6 +51,7 @@ const AIMatching = lazy(() => import('./pages/AIMatching'));
 const VideoCallBooking = lazy(() => import('./pages/VideoCallBooking'));
 const Login = lazy(() => import('./pages/Login'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const LuckyDraw = lazy(() => import('./pages/LuckyDraw'));
 
 function AppContent() {
   const location = useLocation();
@@ -104,6 +105,7 @@ function AppContent() {
                 <Route path="/friends" element={<Community />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/lucky-draw" element={<LuckyDraw />} />
                 </Routes>
               </Suspense>
             </main>

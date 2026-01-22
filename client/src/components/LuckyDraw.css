@@ -1,0 +1,294 @@
+.lucky-draw-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.lucky-draw-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lucky-draw-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.lucky-draw-header h2 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lucky-draw-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.lucky-draw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  padding: 14px 18px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #c33;
+  font-size: 0.9rem;
+}
+
+.lucky-draw-submit-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.lucky-draw-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.lucky-draw-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lucky-draw-result {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.result-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.result-won {
+  animation: celebrate 0.8s ease;
+}
+
+@keyframes celebrate {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.result-won h3 {
+  color: #28a745;
+  font-size: 2rem;
+  margin-bottom: 15px;
+}
+
+.result-lost h3 {
+  color: #666;
+  font-size: 2rem;
+  margin-bottom: 15px;
+}
+
+.result-message {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.reward-info {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 25px;
+  border-radius: 15px;
+  margin: 25px 0;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+}
+
+.reward-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.reward-description {
+  font-size: 1rem;
+  opacity: 0.95;
+}
+
+.result-note {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+.lucky-draw-reset-btn {
+  background: #f0f0f0;
+  color: #333;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.lucky-draw-reset-btn:hover {
+  background: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.lucky-draw-rewards-preview {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.lucky-draw-rewards-preview h4 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+
+.rewards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.reward-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.reward-name-small {
+  font-weight: 600;
+}
+
+.reward-stock {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.lucky-draw-message {
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .lucky-draw-container {
+    padding: 10px;
+    margin: 20px auto;
+  }
+
+  .lucky-draw-card {
+    padding: 25px;
+  }
+
+  .lucky-draw-header h2 {
+    font-size: 2rem;
+  }
+
+  .result-icon {
+    font-size: 4rem;
+  }
+
+  .result-won h3,
+  .result-lost h3 {
+    font-size: 1.5rem;
+  }
+
+  .reward-name {
+    font-size: 1.4rem;
+  }
+}

@@ -749,6 +749,86 @@ function initializeDatabase() {
       if (err) console.error('Error creating index:', err.message);
     });
 
+    // Create lucky_draw_rewards table
+    db.run(`CREATE TABLE IF NOT EXISTS lucky_draw_rewards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      image TEXT,
+      stock_quantity INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT (datetime('now')),
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating lucky_draw_rewards table:', err.message);
+      } else {
+        console.log('✅ Lucky draw rewards table ready');
+      }
+    });
+
+    // Create lucky_draw_participants table
+    db.run(`CREATE TABLE IF NOT EXISTS lucky_draw_participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      won INTEGER DEFAULT 0,
+      reward_id INTEGER,
+      reward_name TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (reward_id) REFERENCES lucky_draw_rewards(id)
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating lucky_draw_participants table:', err.message);
+      } else {
+        console.log('✅ Lucky draw participants table ready');
+      }
+    });
+
+    // Create lucky_draw_settings table
+    db.run(`CREATE TABLE IF NOT EXISTS lucky_draw_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      win_rate REAL DEFAULT 30.0,
+      is_active INTEGER DEFAULT 1,
+      updated_at DATETIME DEFAULT (datetime('now'))
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating lucky_draw_settings table:', err.message);
+      } else {
+        console.log('✅ Lucky draw settings table ready');
+        // Insert default settings if not exists
+        db.run(`INSERT OR IGNORE INTO lucky_draw_settings (id, win_rate, is_active) VALUES (1, 30.0, 1)`, (err) => {
+          if (err) {
+            console.error('Error inserting default lucky draw settings:', err.message);
+          }
+        });
+      }
+    });
+
+    // Create indexes for lucky draw
+    db.run(`CREATE INDEX IF NOT EXISTS idx_lucky_draw_participants_email ON lucky_draw_participants(email)`, (err) => {
+      if (err) console.error('Error creating lucky draw participants index:', err.message);
+    });
+
+    db.run(`CREATE INDEX IF NOT EXISTS idx_lucky_draw_participants_created_at ON lucky_draw_participants(created_at)`, (err) => {
+      if (err) console.error('Error creating lucky draw participants date index:', err.message);
+    });
+
+    // Insert default lucky draw rewards
+    db.run(`INSERT OR IGNORE INTO lucky_draw_rewards (name, description, stock_quantity, is_active) VALUES
+      ('Gấu bông', 'Gấu bông dễ thương', 10, 1),
+      ('Trà sữa', 'Voucher trà sữa 50k', 20, 1),
+      ('Thẻ cào điện thoại 50k', 'Thẻ cào điện thoại mệnh giá 50.000đ', 15, 1),
+      ('Thẻ cào điện thoại 100k', 'Thẻ cào điện thoại mệnh giá 100.000đ', 10, 1),
+      ('Voucher ăn uống 100k', 'Voucher ăn uống trị giá 100.000đ', 15, 1)
+    `, (err) => {
+      if (err) {
+        console.error('Error inserting default lucky draw rewards:', err.message);
+      } else {
+        console.log('✅ Default lucky draw rewards inserted');
+      }
+    });
+
     // Clean up duplicate rewards function
     const cleanupDuplicateRewards = () => {
       // Delete duplicates, keeping only the first one (lowest id)
@@ -2357,6 +2437,124 @@ const dbHelpers = {
         }
       }
     );
+  },
+
+  // Lucky Draw functions
+  getAllLuckyDrawRewards: (callback) => {
+    db.all('SELECT * FROM lucky_draw_rewards WHERE is_active = 1 ORDER BY created_at DESC', callback);
+  },
+
+  getLuckyDrawRewardById: (id, callback) => {
+    db.get('SELECT * FROM lucky_draw_rewards WHERE id = ? AND is_active = 1', [id], callback);
+  },
+
+  getLuckyDrawSettings: (callback) => {
+    db.get('SELECT * FROM lucky_draw_settings WHERE id = 1', callback);
+  },
+
+  updateLuckyDrawSettings: (winRate, isActive, callback) => {
+    db.run(
+      'UPDATE lucky_draw_settings SET win_rate = ?, is_active = ?, updated_at = datetime(\'now\') WHERE id = 1',
+      [winRate, isActive],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM lucky_draw_settings WHERE id = 1', callback);
+        }
+      }
+    );
+  },
+
+  createLuckyDrawParticipant: (participant, callback) => {
+    const { email, phone, won, reward_id, reward_name } = participant;
+    db.run(
+      'INSERT INTO lucky_draw_participants (email, phone, won, reward_id, reward_name) VALUES (?, ?, ?, ?, ?)',
+      [email, phone, won ? 1 : 0, reward_id || null, reward_name || null],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, ...participant });
+        }
+      }
+    );
+  },
+
+  checkParticipantExists: (email, phone, callback) => {
+    db.get(
+      'SELECT * FROM lucky_draw_participants WHERE email = ? OR phone = ? ORDER BY created_at DESC LIMIT 1',
+      [email, phone],
+      callback
+    );
+  },
+
+  getAllParticipants: (callback) => {
+    db.all('SELECT * FROM lucky_draw_participants ORDER BY created_at DESC', callback);
+  },
+
+  getParticipantsStats: (callback) => {
+    db.get(`
+      SELECT 
+        COUNT(*) as total_participants,
+        SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END) as total_winners,
+        SUM(CASE WHEN won = 0 THEN 1 ELSE 0 END) as total_losers
+      FROM lucky_draw_participants
+    `, callback);
+  },
+
+  updateRewardStock: (rewardId, quantity, callback) => {
+    db.run(
+      'UPDATE lucky_draw_rewards SET stock_quantity = stock_quantity - ?, updated_at = datetime(\'now\') WHERE id = ?',
+      [quantity, rewardId],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { changes: this.changes });
+        }
+      }
+    );
+  },
+
+  createLuckyDrawReward: (reward, callback) => {
+    const { name, description, image, stock_quantity } = reward;
+    db.run(
+      'INSERT INTO lucky_draw_rewards (name, description, image, stock_quantity) VALUES (?, ?, ?, ?)',
+      [name, description || null, image || null, stock_quantity || 0],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM lucky_draw_rewards WHERE id = ?', [this.lastID], callback);
+        }
+      }
+    );
+  },
+
+  updateLuckyDrawReward: (id, reward, callback) => {
+    const { name, description, image, stock_quantity, is_active } = reward;
+    db.run(
+      'UPDATE lucky_draw_rewards SET name = ?, description = ?, image = ?, stock_quantity = ?, is_active = ?, updated_at = datetime(\'now\') WHERE id = ?',
+      [name, description, image, stock_quantity, is_active !== undefined ? is_active : 1, id],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          db.get('SELECT * FROM lucky_draw_rewards WHERE id = ?', [id], callback);
+        }
+      }
+    );
+  },
+
+  deleteLuckyDrawReward: (id, callback) => {
+    db.run('DELETE FROM lucky_draw_rewards WHERE id = ?', [id], function(err) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, { deleted: this.changes > 0 });
+      }
+    });
   }
 };
 

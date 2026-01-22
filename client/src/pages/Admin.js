@@ -22,6 +22,13 @@ const Admin = () => {
   const [serviceRedemptions, setServiceRedemptions] = useState([]);
   const [documentReviews, setDocumentReviews] = useState([]);
   const [visaSupport, setVisaSupport] = useState([]);
+  const [luckyDrawParticipants, setLuckyDrawParticipants] = useState([]);
+  const [luckyDrawRewards, setLuckyDrawRewards] = useState([]);
+  const [luckyDrawStats, setLuckyDrawStats] = useState(null);
+  const [luckyDrawSettings, setLuckyDrawSettings] = useState({ win_rate: 30, is_active: 1 });
+  const [showLuckyDrawRewardModal, setShowLuckyDrawRewardModal] = useState(false);
+  const [editingLuckyDrawReward, setEditingLuckyDrawReward] = useState(null);
+  const [luckyDrawRewardForm, setLuckyDrawRewardForm] = useState({ name: '', description: '', image: '', stock_quantity: 0, is_active: 1 });
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState({
@@ -62,7 +69,7 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes, serviceRes, reviewsRes, visaRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes, serviceRes, reviewsRes, visaRes, participantsRes, rewardsRes, statsLuckyRes, settingsRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
@@ -77,7 +84,11 @@ const Admin = () => {
         axios.get(`${API_URL}/api/admin/users`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/admin/service-redemptions`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/admin/document-reviews`, { headers }).catch(() => ({ data: [] })),
-        axios.get(`${API_URL}/api/admin/visa-support`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_URL}/api/admin/visa-support`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/lucky-draw/participants`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/lucky-draw/rewards`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/admin/lucky-draw/stats`, { headers }).catch(() => ({ data: null })),
+        axios.get(`${API_URL}/api/admin/lucky-draw/settings`, { headers }).catch(() => ({ data: { win_rate: 30, is_active: 1 } }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -95,6 +106,10 @@ const Admin = () => {
       setServiceRedemptions(serviceRes.data || []);
       setDocumentReviews(reviewsRes.data || []);
       setVisaSupport(visaRes.data || []);
+      setLuckyDrawParticipants(participantsRes.data || []);
+      setLuckyDrawRewards(rewardsRes.data || []);
+      setLuckyDrawStats(statsRes.data || null);
+      setLuckyDrawSettings(settingsRes.data || { win_rate: 30, is_active: 1 });
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -401,7 +416,8 @@ const Admin = () => {
     { id: 'newsletter', label: '📧 Newsletter', count: newsletter.length, icon: '📨' },
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
-    { id: 'resources', label: '📥 Tài liệu', count: resources.length, icon: '📚' }
+    { id: 'resources', label: '📥 Tài liệu', count: resources.length, icon: '📚' },
+    { id: 'lucky-draw', label: '🎁 Vòng quay may mắn', count: luckyDrawParticipants.length, icon: '🎰' }
   ];
 
   const getCurrentData = () => {
@@ -1503,6 +1519,279 @@ const Admin = () => {
                     </table>
                   )}
                 </div>
+              </>
+            )}
+
+            {activeTab === 'lucky-draw' && (
+              <>
+                <div className="data-table-wrapper">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h2 className="section-title">🎁 Quản lý Vòng Quay May Mắn</h2>
+                    <div>
+                      <button onClick={() => {
+                        setEditingLuckyDrawReward(null);
+                        setLuckyDrawRewardForm({ name: '', description: '', image: '', stock_quantity: 0, is_active: 1 });
+                        setShowLuckyDrawRewardModal(true);
+                      }} className="refresh-btn">➕ Thêm phần quà</button>
+                    </div>
+                  </div>
+
+                  {/* Settings */}
+                  <div style={{ background: '#f8f9fa', padding: '20px', borderRadius: '10px', marginBottom: '30px' }}>
+                    <h3 style={{ marginBottom: '15px' }}>⚙️ Cài đặt</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '15px' }}>
+                      <div>
+                        <label>Tỷ lệ trúng thưởng (%)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={luckyDrawSettings.win_rate || 30}
+                          onChange={async (e) => {
+                            const newRate = parseFloat(e.target.value);
+                            const token = getToken();
+                            if (!token) return;
+                            try {
+                              await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
+                                { win_rate: newRate, is_active: luckyDrawSettings.is_active },
+                                { headers: { 'x-admin-token': token } }
+                              );
+                              setLuckyDrawSettings({ ...luckyDrawSettings, win_rate: newRate });
+                              alert('✅ Đã cập nhật tỷ lệ trúng thưởng!');
+                            } catch (err) {
+                              alert('Không thể cập nhật. Vui lòng thử lại.');
+                            }
+                          }}
+                          style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        />
+                      </div>
+                      <div>
+                        <label>Trạng thái</label>
+                        <select
+                          value={luckyDrawSettings.is_active || 1}
+                          onChange={async (e) => {
+                            const isActive = parseInt(e.target.value);
+                            const token = getToken();
+                            if (!token) return;
+                            try {
+                              await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
+                                { win_rate: luckyDrawSettings.win_rate, is_active: isActive },
+                                { headers: { 'x-admin-token': token } }
+                              );
+                              setLuckyDrawSettings({ ...luckyDrawSettings, is_active: isActive });
+                              alert('✅ Đã cập nhật trạng thái!');
+                            } catch (err) {
+                              alert('Không thể cập nhật. Vui lòng thử lại.');
+                            }
+                          }}
+                          style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        >
+                          <option value={1}>Hoạt động</option>
+                          <option value={0}>Tạm dừng</option>
+                        </select>
+                      </div>
+                    </div>
+                    {luckyDrawStats && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginTop: '15px' }}>
+                        <div style={{ background: 'white', padding: '15px', borderRadius: '8px' }}>
+                          <div style={{ fontSize: '0.9rem', color: '#666' }}>Tổng người tham gia</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#667eea' }}>{luckyDrawStats.total_participants || 0}</div>
+                        </div>
+                        <div style={{ background: 'white', padding: '15px', borderRadius: '8px' }}>
+                          <div style={{ fontSize: '0.9rem', color: '#666' }}>Số người trúng</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#28a745' }}>{luckyDrawStats.total_winners || 0}</div>
+                        </div>
+                        <div style={{ background: 'white', padding: '15px', borderRadius: '8px' }}>
+                          <div style={{ fontSize: '0.9rem', color: '#666' }}>Số người không trúng</div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#dc3545' }}>{luckyDrawStats.total_losers || 0}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Rewards Management */}
+                  <h3 style={{ marginBottom: '15px' }}>🎁 Danh sách phần quà</h3>
+                  {luckyDrawRewards.length === 0 ? (
+                    <div className="no-data">Chưa có phần quà nào</div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Tên phần quà</th>
+                          <th>Mô tả</th>
+                          <th>Số lượng còn lại</th>
+                          <th>Trạng thái</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {luckyDrawRewards.map((reward, index) => (
+                          <tr key={reward.id}>
+                            <td>{index + 1}</td>
+                            <td><strong>{reward.name}</strong></td>
+                            <td>{reward.description || '-'}</td>
+                            <td>{reward.stock_quantity || 0}</td>
+                            <td>{reward.is_active === 1 ? '✅ Hoạt động' : '❌ Tạm dừng'}</td>
+                            <td>
+                              <button onClick={() => {
+                                setEditingLuckyDrawReward(reward);
+                                setLuckyDrawRewardForm({
+                                  name: reward.name || '',
+                                  description: reward.description || '',
+                                  image: reward.image || '',
+                                  stock_quantity: reward.stock_quantity || 0,
+                                  is_active: reward.is_active || 1
+                                });
+                                setShowLuckyDrawRewardModal(true);
+                              }} style={{ marginRight: '5px', padding: '5px 10px', fontSize: '0.85rem' }}>✏️ Sửa</button>
+                              <button onClick={async () => {
+                                if (!window.confirm(`Bạn có chắc muốn xóa phần quà "${reward.name}"?`)) return;
+                                const token = getToken();
+                                if (!token) return;
+                                try {
+                                  await axios.delete(`${API_URL}/api/admin/lucky-draw/rewards/${reward.id}`, {
+                                    headers: { 'x-admin-token': token }
+                                  });
+                                  setLuckyDrawRewards(luckyDrawRewards.filter(r => r.id !== reward.id));
+                                  alert('✅ Đã xóa phần quà thành công!');
+                                } catch (err) {
+                                  alert('Không thể xóa. Vui lòng thử lại.');
+                                }
+                              }} style={{ padding: '5px 10px', fontSize: '0.85rem', background: '#dc3545', color: 'white' }}>🗑️ Xóa</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {/* Participants List */}
+                  <h3 style={{ marginTop: '40px', marginBottom: '15px' }}>👥 Danh sách người tham gia</h3>
+                  {luckyDrawParticipants.length === 0 ? (
+                    <div className="no-data">Chưa có người tham gia nào</div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Email</th>
+                          <th>Số điện thoại</th>
+                          <th>Kết quả</th>
+                          <th>Phần quà</th>
+                          <th>Thời gian</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {luckyDrawParticipants.map((participant, index) => (
+                          <tr key={participant.id}>
+                            <td>{index + 1}</td>
+                            <td><a href={`mailto:${participant.email}`}>{participant.email}</a></td>
+                            <td>{participant.phone}</td>
+                            <td>{participant.won === 1 ? <span style={{ color: '#28a745', fontWeight: 'bold' }}>🎉 Trúng</span> : <span style={{ color: '#666' }}>❌ Không trúng</span>}</td>
+                            <td>{participant.reward_name || '-'}</td>
+                            <td>{formatDate(participant.created_at)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                {/* Reward Modal */}
+                {showLuckyDrawRewardModal && (
+                  <div className="modal-overlay" onClick={() => setShowLuckyDrawRewardModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2>{editingLuckyDrawReward ? 'Sửa phần quà' : 'Thêm phần quà mới'}</h2>
+                        <button onClick={() => setShowLuckyDrawRewardModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+                      </div>
+                      
+                      <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        const token = getToken();
+                        if (!token) return;
+                        try {
+                          if (editingLuckyDrawReward) {
+                            await axios.put(`${API_URL}/api/admin/lucky-draw/rewards/${editingLuckyDrawReward.id}`, luckyDrawRewardForm, {
+                              headers: { 'x-admin-token': token }
+                            });
+                            alert('✅ Đã cập nhật phần quà thành công!');
+                          } else {
+                            await axios.post(`${API_URL}/api/admin/lucky-draw/rewards`, luckyDrawRewardForm, {
+                              headers: { 'x-admin-token': token }
+                            });
+                            alert('✅ Đã thêm phần quà thành công!');
+                          }
+                          setShowLuckyDrawRewardModal(false);
+                          fetchAllData();
+                        } catch (err) {
+                          alert('Không thể lưu. Vui lòng thử lại.');
+                        }
+                      }}>
+                        <div style={{ marginBottom: '15px' }}>
+                          <label>Tên phần quà *</label>
+                          <input
+                            type="text"
+                            value={luckyDrawRewardForm.name}
+                            onChange={(e) => setLuckyDrawRewardForm(prev => ({ ...prev, name: e.target.value }))}
+                            required
+                            placeholder="Gấu bông"
+                            style={{ width: '100%', padding: '10px', marginTop: '5px' }}
+                          />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                          <label>Mô tả</label>
+                          <textarea
+                            value={luckyDrawRewardForm.description}
+                            onChange={(e) => setLuckyDrawRewardForm(prev => ({ ...prev, description: e.target.value }))}
+                            rows="3"
+                            placeholder="Mô tả về phần quà..."
+                            style={{ width: '100%', padding: '10px', marginTop: '5px' }}
+                          />
+                        </div>
+                        <div style={{ marginBottom: '15px' }}>
+                          <label>URL ảnh</label>
+                          <input
+                            type="url"
+                            value={luckyDrawRewardForm.image}
+                            onChange={(e) => setLuckyDrawRewardForm(prev => ({ ...prev, image: e.target.value }))}
+                            placeholder="https://example.com/image.jpg"
+                            style={{ width: '100%', padding: '10px', marginTop: '5px' }}
+                          />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                          <div>
+                            <label>Số lượng</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={luckyDrawRewardForm.stock_quantity}
+                              onChange={(e) => setLuckyDrawRewardForm(prev => ({ ...prev, stock_quantity: parseInt(e.target.value) || 0 }))}
+                              style={{ width: '100%', padding: '10px', marginTop: '5px' }}
+                            />
+                          </div>
+                          <div>
+                            <label>Trạng thái</label>
+                            <select
+                              value={luckyDrawRewardForm.is_active}
+                              onChange={(e) => setLuckyDrawRewardForm(prev => ({ ...prev, is_active: parseInt(e.target.value) }))}
+                              style={{ width: '100%', padding: '10px', marginTop: '5px' }}
+                            >
+                              <option value={1}>Hoạt động</option>
+                              <option value={0}>Tạm dừng</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                          <button type="button" onClick={() => setShowLuckyDrawRewardModal(false)} style={{ padding: '10px 20px', background: '#f0f0f0' }}>Hủy</button>
+                          <button type="submit" style={{ padding: '10px 20px', background: '#667eea', color: 'white' }}>Lưu</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </>
