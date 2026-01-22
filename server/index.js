@@ -10,11 +10,14 @@ const path = require('path');
 const fs = require('fs');
 const { getVietnamTimeISO } = require('./timezone');
 // Auto-select database: Turso if configured, otherwise SQLite
-const { dbHelpers } = require(
+const dbModule = require(
   process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN 
     ? './database-turso' 
     : './database'
 );
+const { dbHelpers } = dbModule;
+// Get db instance if available (for direct queries)
+const db = dbModule.db || null;
 const { 
   isCloudinaryConfigured,
   checkCloudinaryConfig,
@@ -3896,7 +3899,7 @@ app.get('/api/admin/lucky-draw/rewards', (req, res) => {
     return;
   }
 
-  db.all('SELECT * FROM lucky_draw_rewards ORDER BY created_at DESC', (err, rewards) => {
+  dbHelpers.getAllLuckyDrawRewardsAdmin((err, rewards) => {
     if (err) {
       console.error('Error fetching rewards:', err);
       res.status(500).json({ error: err.message });
@@ -4042,5 +4045,98 @@ app.get('/api/admin/lucky-draw/settings', (req, res) => {
       return;
     }
     res.json(settings || { win_rate: 30, is_active: 1 });
+  });
+});
+
+// ==================== ADMIN SERVICE REDEMPTIONS API ====================
+// Get all service redemptions (admin only)
+app.get('/api/admin/service-redemptions', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  if (!db) {
+    return res.status(500).json({ error: 'Database not available' });
+  }
+
+  db.all(`
+    SELECT 
+      sr.*,
+      r.reward_name,
+      r.reward_type
+    FROM service_redemptions sr
+    LEFT JOIN redemptions r ON sr.redemption_id = r.id
+    ORDER BY sr.created_at DESC
+  `, (err, rows) => {
+    if (err) {
+      console.error('Error fetching service redemptions:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows || []);
+  });
+});
+
+// ==================== ADMIN DOCUMENT REVIEWS API ====================
+// Get all document reviews (admin only)
+app.get('/api/admin/document-reviews', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  if (!db) {
+    return res.status(500).json({ error: 'Database not available' });
+  }
+
+  db.all(`
+    SELECT 
+      dr.*,
+      r.reward_name,
+      r.reward_type
+    FROM document_reviews dr
+    LEFT JOIN redemptions r ON dr.redemption_id = r.id
+    ORDER BY dr.created_at DESC
+  `, (err, rows) => {
+    if (err) {
+      console.error('Error fetching document reviews:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows || []);
+  });
+});
+
+// ==================== ADMIN VISA SUPPORT API ====================
+// Get all visa support requests (admin only)
+app.get('/api/admin/visa-support', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  if (!db) {
+    return res.status(500).json({ error: 'Database not available' });
+  }
+
+  db.all(`
+    SELECT 
+      vs.*,
+      r.reward_name,
+      r.reward_type
+    FROM visa_support vs
+    LEFT JOIN redemptions r ON vs.redemption_id = r.id
+    ORDER BY vs.created_at DESC
+  `, (err, rows) => {
+    if (err) {
+      console.error('Error fetching visa support:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows || []);
   });
 });
