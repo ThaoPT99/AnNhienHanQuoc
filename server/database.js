@@ -2472,14 +2472,27 @@ const dbHelpers = {
 
   createLuckyDrawParticipant: (participant, callback) => {
     const { email, phone, won, reward_id, reward_name } = participant;
+    const wonValue = won ? 1 : 0;
+    console.log('💾 Inserting participant into database:', { email, phone, won: wonValue, reward_id, reward_name });
+    
     db.run(
       'INSERT INTO lucky_draw_participants (email, phone, won, reward_id, reward_name) VALUES (?, ?, ?, ?, ?)',
-      [email, phone, won ? 1 : 0, reward_id || null, reward_name || null],
+      [email, phone, wonValue, reward_id || null, reward_name || null],
       function(err) {
         if (err) {
+          console.error('❌ Database error inserting participant:', err);
           callback(err, null);
         } else {
-          callback(null, { id: this.lastID, ...participant });
+          const insertedParticipant = { 
+            id: this.lastID, 
+            email, 
+            phone, 
+            won: wonValue, 
+            reward_id: reward_id || null, 
+            reward_name: reward_name || null 
+          };
+          console.log('✅ Participant inserted successfully with ID:', this.lastID);
+          callback(null, insertedParticipant);
         }
       }
     );

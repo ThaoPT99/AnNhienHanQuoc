@@ -3848,6 +3848,7 @@ app.post('/api/lucky-draw/participate', (req, res) => {
             }
 
             // Create participant record
+            console.log('🎉 Creating winner participant:', { email, phone, reward_id: rewardId, reward_name: rewardName });
             dbHelpers.createLuckyDrawParticipant({
               email,
               phone,
@@ -3856,9 +3857,10 @@ app.post('/api/lucky-draw/participate', (req, res) => {
               reward_name: rewardName
             }, (err, participant) => {
               if (err) {
-                console.error('Error creating participant:', err);
+                console.error('❌ Error creating participant:', err);
                 return res.status(500).json({ error: 'Lỗi hệ thống' });
               }
+              console.log('✅ Winner participant created successfully:', participant);
               return res.json({
                 success: true,
                 won: true,
@@ -3870,6 +3872,7 @@ app.post('/api/lucky-draw/participate', (req, res) => {
         });
       } else {
         // User didn't win
+        console.log('😔 Creating loser participant:', { email, phone });
         dbHelpers.createLuckyDrawParticipant({
           email,
           phone,
@@ -3878,9 +3881,10 @@ app.post('/api/lucky-draw/participate', (req, res) => {
           reward_name: null
         }, (err, participant) => {
           if (err) {
-            console.error('Error creating participant:', err);
+            console.error('❌ Error creating participant:', err);
             return res.status(500).json({ error: 'Lỗi hệ thống' });
           }
+          console.log('✅ Loser participant created successfully:', participant);
           return res.json({
             success: true,
             won: false,
@@ -3903,11 +3907,13 @@ app.get('/api/admin/lucky-draw/participants', (req, res) => {
 
   dbHelpers.getAllParticipants((err, participants) => {
     if (err) {
-      console.error('Error fetching participants:', err);
+      console.error('❌ Error fetching participants:', err);
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(participants || []);
+    const participantsList = participants || [];
+    console.log(`📊 Fetched ${participantsList.length} participants (${participantsList.filter(p => p.won === 1).length} winners)`);
+    res.json(participantsList);
   });
 });
 

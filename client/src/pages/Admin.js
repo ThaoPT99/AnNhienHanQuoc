@@ -400,8 +400,17 @@ const Admin = () => {
 
   useEffect(() => {
     fetchAllData();
+    
+    // Auto-refresh data every 30 seconds when on lucky-draw tab
+    const interval = setInterval(() => {
+      if (activeTab === 'lucky-draw') {
+        fetchAllData();
+      }
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeTab]);
 
   const tabs = [
     { id: 'contacts', label: '📞 Liên hệ', count: contacts.length, icon: '💬' },
@@ -1662,7 +1671,16 @@ const Admin = () => {
                   )}
 
                   {/* Participants List */}
-                  <h3 style={{ marginTop: '40px', marginBottom: '15px' }}>👥 Danh sách người tham gia</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px', marginBottom: '15px' }}>
+                    <h3>👥 Danh sách người tham gia ({luckyDrawParticipants.length})</h3>
+                    <button 
+                      onClick={fetchAllData} 
+                      className="refresh-btn"
+                      style={{ padding: '8px 15px', fontSize: '0.9rem' }}
+                    >
+                      🔄 Làm mới
+                    </button>
+                  </div>
                   {luckyDrawParticipants.length === 0 ? (
                     <div className="no-data">Chưa có người tham gia nào</div>
                   ) : (
