@@ -3666,3 +3666,381 @@ app.delete('/api/admin/users/*', (req, res) => {
   });
 });
 
+// ==================== LUCKY DRAW API ====================
+
+// Get lucky draw settings and rewards (public)
+app.get('/api/lucky-draw/info', (req, res) => {
+  dbHelpers.getLuckyDrawSettings((err, settings) => {
+    if (err) {
+      console.error('Error fetching lucky draw settings:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    dbHelpers.getAllLuckyDrawRewards((err, rewards) => {
+      if (err) {
+        console.error('Error fetching lucky draw rewards:', err);
+        return res.status(500).json({ error: err.message });
+      }
+      
+      res.json({
+        settings: settings || { win_rate: 30, is_active: 1 },
+        rewards: rewards || []
+      });
+    });
+  });
+});
+
+// Participate in lucky draw
+app.post('/api/lucky-draw/participate', (req, res) => {
+  const { email, phone } = req.body;
+
+  if (!email || !phone) {
+    return res.status(400).json({ error: 'Email và số điện thoại là bắt buộc' });
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Email không hợp lệ' });
+  }
+
+  // Validate phone (Vietnamese phone format)
+  const phoneRegex = /^[0-9]{10,11}$/;
+  if (!phoneRegex.test(phone.replace(/\s+/g, ''))) {
+    return res.status(400).json({ error: 'Số điện thoại không hợp lệ (10-11 chữ số)' });
+  }
+
+  // Check if user already participated
+  dbHelpers.checkParticipantExists(email, phone, (err, existing) => {
+    if (err) {
+      console.error('Error checking participant:', err);
+      return res.status(500).json({ error: 'Lỗi hệ thống' });
+    }
+
+    if (existing) {
+      // User already participated, return their result
+      return res.json({
+        success: true,
+        already_participated: true,
+        won: existing.won === 1,
+        reward: existing.won === 1 ? {
+          id: existing.reward_id,
+          name: existing.reward_name
+        } : null,
+        message: existing.won === 1 
+          ? `Bạn đã tham gia và trúng ${existing.reward_name}!` 
+          : 'Bạn đã tham gia rồi. Chúc bạn may mắn lần sau!'
+      });
+    }
+
+    // Get settings
+    dbHelpers.getLuckyDrawSettings((err, settings) => {
+      if (err) {
+        console.error('Error fetching settings:', err);
+        return res.status(500).json({ error: 'Lỗi hệ thống' });
+      }
+
+      const winRate = (settings && settings.win_rate) || 30;
+      const isActive = (settings && settings.is_active) === 1;
+
+      if (!isActive) {
+        return res.status(400).json({ error: 'Chương trình đang tạm dừng' });
+      }
+
+      // Check if user wins (random based on win rate)
+      const random = Math.random() * 100;
+      const won = random <= winRate;
+
+      let reward = null;
+      let rewardId = null;
+      let rewardName = null;
+
+      if (won) {
+        // Get available rewards
+        dbHelpers.getAllLuckyDrawRewards((err, rewards) => {
+          if (err) {
+            console.error('Error fetching rewards:', err);
+            return res.status(500).json({ error: 'Lỗi hệ thống' });
+          }
+
+          // Filter rewards with stock > 0
+          const availableRewards = (rewards || []).filter(r => (r.stock_quantity || 0) > 0);
+
+          if (availableRewards.length === 0) {
+            // No rewards available, user doesn't win
+            dbHelpers.createLuckyDrawParticipant({
+              email,
+              phone,
+              won: false,
+              reward_id: null,
+              reward_name: null
+            }, (err, participant) => {
+              if (err) {
+                console.error('Error creating participant:', err);
+                return res.status(500).json({ error: 'Lỗi hệ thống' });
+              }
+              return res.json({
+                success: true,
+                won: false,
+                reward: null,
+                message: 'Chúc bạn may mắn lần sau!'
+              });
+            });
+            return;
+          }
+
+          // Randomly select a reward
+          const randomReward = availableRewards[Math.floor(Math.random() * availableRewards.length)];
+          reward = {
+            id: randomReward.id,
+            name: randomReward.name,
+            description: randomReward.description,
+            image: randomReward.image
+          };
+          rewardId = randomReward.id;
+          rewardName = randomReward.name;
+
+          // Update stock
+          dbHelpers.updateRewardStock(rewardId, 1, (err) => {
+            if (err) {
+              console.error('Error updating reward stock:', err);
+            }
+
+            // Create participant record
+            dbHelpers.createLuckyDrawParticipant({
+              email,
+              phone,
+              won: true,
+              reward_id: rewardId,
+              reward_name: rewardName
+            }, (err, participant) => {
+              if (err) {
+                console.error('Error creating participant:', err);
+                return res.status(500).json({ error: 'Lỗi hệ thống' });
+              }
+              return res.json({
+                success: true,
+                won: true,
+                reward: reward,
+                message: `Chúc mừng! Bạn đã trúng ${rewardName}!`
+              });
+            });
+          });
+        });
+      } else {
+        // User didn't win
+        dbHelpers.createLuckyDrawParticipant({
+          email,
+          phone,
+          won: false,
+          reward_id: null,
+          reward_name: null
+        }, (err, participant) => {
+          if (err) {
+            console.error('Error creating participant:', err);
+            return res.status(500).json({ error: 'Lỗi hệ thống' });
+          }
+          return res.json({
+            success: true,
+            won: false,
+            reward: null,
+            message: 'Chúc bạn may mắn lần sau!'
+          });
+        });
+      }
+    });
+  });
+});
+
+// Get all participants (admin only)
+app.get('/api/admin/lucky-draw/participants', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  dbHelpers.getAllParticipants((err, participants) => {
+    if (err) {
+      console.error('Error fetching participants:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(participants || []);
+  });
+});
+
+// Get participants stats (admin only)
+app.get('/api/admin/lucky-draw/stats', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  dbHelpers.getParticipantsStats((err, stats) => {
+    if (err) {
+      console.error('Error fetching stats:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(stats || { total_participants: 0, total_winners: 0, total_losers: 0 });
+  });
+});
+
+// Get all rewards (admin only - includes inactive)
+app.get('/api/admin/lucky-draw/rewards', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  db.all('SELECT * FROM lucky_draw_rewards ORDER BY created_at DESC', (err, rewards) => {
+    if (err) {
+      console.error('Error fetching rewards:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rewards || []);
+  });
+});
+
+// Create reward (admin only)
+app.post('/api/admin/lucky-draw/rewards', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    console.log('❌ Unauthorized: Missing or invalid admin token');
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const { name, description, image, stock_quantity, is_active } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Tên phần quà là bắt buộc' });
+  }
+
+  console.log('📝 Creating reward:', { name, description, image, stock_quantity, is_active });
+
+  dbHelpers.createLuckyDrawReward({
+    name,
+    description: description || null,
+    image: image || null,
+    stock_quantity: parseInt(stock_quantity) || 0,
+    is_active: is_active !== undefined ? (is_active ? 1 : 0) : 1
+  }, (err, reward) => {
+    if (err) {
+      console.error('❌ Error creating reward:', err);
+      res.status(500).json({ error: err.message || 'Lỗi khi tạo phần quà' });
+      return;
+    }
+    console.log('✅ Reward created successfully:', reward);
+    res.json(reward);
+  });
+});
+
+// Update reward (admin only)
+app.put('/api/admin/lucky-draw/rewards/:id', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const rewardId = parseInt(req.params.id);
+  const { name, description, image, stock_quantity, is_active } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Tên phần quà là bắt buộc' });
+  }
+
+  dbHelpers.updateLuckyDrawReward(rewardId, {
+    name,
+    description: description || null,
+    image: image || null,
+    stock_quantity: parseInt(stock_quantity) || 0,
+    is_active: is_active !== undefined ? (is_active ? 1 : 0) : 1
+  }, (err, reward) => {
+    if (err) {
+      console.error('Error updating reward:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!reward) {
+      res.status(404).json({ error: 'Phần quà không tồn tại' });
+      return;
+    }
+    res.json(reward);
+  });
+});
+
+// Delete reward (admin only)
+app.delete('/api/admin/lucky-draw/rewards/:id', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const rewardId = parseInt(req.params.id);
+
+  dbHelpers.deleteLuckyDrawReward(rewardId, (err, result) => {
+    if (err) {
+      console.error('Error deleting reward:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!result || !result.deleted) {
+      res.status(404).json({ error: 'Phần quà không tồn tại' });
+      return;
+    }
+    res.json({ success: true, message: 'Đã xóa phần quà thành công' });
+  });
+});
+
+// Update settings (admin only)
+app.put('/api/admin/lucky-draw/settings', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const { win_rate, is_active } = req.body;
+
+  if (win_rate === undefined || win_rate < 0 || win_rate > 100) {
+    return res.status(400).json({ error: 'Tỷ lệ trúng thưởng phải từ 0 đến 100' });
+  }
+
+  dbHelpers.updateLuckyDrawSettings(
+    parseFloat(win_rate),
+    is_active !== undefined ? (is_active ? 1 : 0) : 1,
+    (err, settings) => {
+      if (err) {
+        console.error('Error updating settings:', err);
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json(settings);
+    }
+  );
+});
+
+// Get settings (admin only)
+app.get('/api/admin/lucky-draw/settings', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  dbHelpers.getLuckyDrawSettings((err, settings) => {
+    if (err) {
+      console.error('Error fetching settings:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(settings || { win_rate: 30, is_active: 1 });
+  });
+});

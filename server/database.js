@@ -2522,10 +2522,10 @@ const dbHelpers = {
   },
 
   createLuckyDrawReward: (reward, callback) => {
-    const { name, description, image, stock_quantity } = reward;
+    const { name, description, image, stock_quantity, is_active } = reward;
     db.run(
-      'INSERT INTO lucky_draw_rewards (name, description, image, stock_quantity) VALUES (?, ?, ?, ?)',
-      [name, description || null, image || null, stock_quantity || 0],
+      'INSERT INTO lucky_draw_rewards (name, description, image, stock_quantity, is_active) VALUES (?, ?, ?, ?, ?)',
+      [name, description || null, image || null, stock_quantity || 0, is_active !== undefined ? is_active : 1],
       function(err) {
         if (err) {
           callback(err, null);

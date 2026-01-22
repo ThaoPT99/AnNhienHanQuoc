@@ -1728,7 +1728,9 @@ const Admin = () => {
                           setShowLuckyDrawRewardModal(false);
                           fetchAllData();
                         } catch (err) {
-                          alert('Không thể lưu. Vui lòng thử lại.');
+                          console.error('Error saving reward:', err);
+                          const errorMessage = err.response?.data?.error || err.message || 'Không thể lưu. Vui lòng thử lại.';
+                          alert(`❌ Lỗi: ${errorMessage}`);
                         }
                       }}>
                         <div style={{ marginBottom: '15px' }}>
