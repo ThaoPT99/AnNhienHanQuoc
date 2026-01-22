@@ -108,7 +108,7 @@ const Admin = () => {
       setVisaSupport(visaRes.data || []);
       setLuckyDrawParticipants(participantsRes.data || []);
       setLuckyDrawRewards(rewardsRes.data || []);
-      setLuckyDrawStats(statsRes.data || null);
+      setLuckyDrawStats(statsLuckyRes.data || null);
       setLuckyDrawSettings(settingsRes.data || { win_rate: 30, is_active: 1 });
       setError(null);
     } catch (err) {

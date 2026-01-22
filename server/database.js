@@ -2444,6 +2444,10 @@ const dbHelpers = {
     db.all('SELECT * FROM lucky_draw_rewards WHERE is_active = 1 ORDER BY created_at DESC', callback);
   },
 
+  getAllLuckyDrawRewardsAdmin: (callback) => {
+    db.all('SELECT * FROM lucky_draw_rewards ORDER BY created_at DESC', callback);
+  },
+
   getLuckyDrawRewardById: (id, callback) => {
     db.get('SELECT * FROM lucky_draw_rewards WHERE id = ? AND is_active = 1', [id], callback);
   },
