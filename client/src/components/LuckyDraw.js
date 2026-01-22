@@ -12,8 +12,7 @@ function LuckyDraw() {
   const [rewards, setRewards] = useState([]);
   const [settings, setSettings] = useState(null);
 
-  useEffect(() => {
-    // Load rewards and settings
+  const loadLuckyDrawInfo = () => {
     fetch(`${API_URL}/api/lucky-draw/info`)
       .then(res => res.json())
       .then(data => {
@@ -23,6 +22,27 @@ function LuckyDraw() {
       .catch(err => {
         console.error('Error loading lucky draw info:', err);
       });
+  };
+
+  useEffect(() => {
+    // Load rewards and settings initially
+    loadLuckyDrawInfo();
+
+    // Poll for settings updates every 5 seconds to detect when admin changes status
+    const interval = setInterval(() => {
+      loadLuckyDrawInfo();
+    }, 5000); // Check every 5 seconds
+
+    // Also refresh when user focuses the window (in case they switch tabs)
+    const handleFocus = () => {
+      loadLuckyDrawInfo();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const handleSubmit = async (e) => {
