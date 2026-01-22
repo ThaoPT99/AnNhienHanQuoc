@@ -20,7 +20,8 @@ const ExitIntentPopup = () => {
 
     // Detect exit intent (mouse leaving top of screen)
     const handleMouseLeave = (e) => {
-      if (!hasShown && e.clientY <= 0) {
+      const currentHasShown = localStorage.getItem('exitIntentPopupShown');
+      if (!currentHasShown && e.clientY <= 0) {
         setIsOpen(true);
         setHasShown(true);
         localStorage.setItem('exitIntentPopupShown', 'true');
@@ -30,8 +31,9 @@ const ExitIntentPopup = () => {
     // Also detect on mobile (scroll up quickly)
     let lastScrollTop = 0;
     const handleScroll = () => {
+      const currentHasShown = localStorage.getItem('exitIntentPopupShown');
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      if (!hasShown && lastScrollTop > scrollTop && scrollTop < 100) {
+      if (!currentHasShown && lastScrollTop > scrollTop && scrollTop < 100) {
         setIsOpen(true);
         setHasShown(true);
         localStorage.setItem('exitIntentPopupShown', 'true');
@@ -46,7 +48,8 @@ const ExitIntentPopup = () => {
       document.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [hasShown]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleGetOffer = () => {
     setIsOpen(false);

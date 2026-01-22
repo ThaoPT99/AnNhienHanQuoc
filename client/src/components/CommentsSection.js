@@ -10,11 +10,7 @@ const CommentsSection = ({ postId, comments: initialComments, userEmail, userNam
   const [newComment, setNewComment] = useState('');
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
-  useEffect(() => {
-    loadComments();
-  }, [postId]);
-
-  const loadComments = async () => {
+  const loadComments = React.useCallback(async () => {
     try {
       // Use the correct endpoint - GET /api/community/posts/:id returns post with comments
       const res = await fetch(`${API_URL}/api/community/posts/${postId}`);
@@ -31,7 +27,11 @@ const CommentsSection = ({ postId, comments: initialComments, userEmail, userNam
       console.error('Error loading comments:', error);
       setComments([]);
     }
-  };
+  }, [postId, API_URL]);
+
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();

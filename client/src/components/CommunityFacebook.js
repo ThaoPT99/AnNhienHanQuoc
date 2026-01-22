@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isLoggedIn, getUserEmail, getUserName, logout } from '../utils/auth';
@@ -32,20 +32,8 @@ const CommunityAnNhien = () => {
   const isAuthenticated = isLoggedIn();
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
-  // Check authentication on mount
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      setAuthMode('login');
-    } else {
-      loadUserProfile();
-      loadFriends();
-      loadPosts(true);
-    }
-  }, [isAuthenticated]);
-
   // Load user profile
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     if (!userEmail) return;
     try {
       const res = await fetch(`${API_URL}/api/social/profile/${encodeURIComponent(userEmail)}`);
@@ -59,10 +47,10 @@ const CommunityAnNhien = () => {
       console.error('Error loading profile:', error);
       setUserProfile({ email: userEmail });
     }
-  };
+  }, [userEmail, API_URL]);
 
   // Load friends list
-  const loadFriends = async () => {
+  const loadFriends = useCallback(async () => {
     if (!userEmail) return;
     try {
       const res = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
@@ -73,10 +61,10 @@ const CommunityAnNhien = () => {
     } catch (error) {
       console.error('Error loading friends:', error);
     }
-  };
+  }, [userEmail, API_URL]);
 
   // Load posts
-  const loadPosts = async (reset = false) => {
+  const loadPosts = useCallback(async (reset = false) => {
     if (reset) {
       setLoading(true);
       setPage(1);
@@ -124,7 +112,8 @@ const CommunityAnNhien = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, API_URL]);
 
   // Demo posts with reactions and comments
   const getDemoPosts = () => {
@@ -190,6 +179,18 @@ const CommunityAnNhien = () => {
     ];
   };
 
+  // Check authentication on mount
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      setAuthMode('login');
+    } else {
+      loadUserProfile();
+      loadFriends();
+      loadPosts(true);
+    }
+  }, [isAuthenticated, loadUserProfile, loadFriends, loadPosts]);
+
   // Load more posts on scroll
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -206,7 +207,7 @@ const CommunityAnNhien = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadingMore, hasMore, loading, isAuthenticated]);
+  }, [loadingMore, hasMore, loading, isAuthenticated, loadPosts]);
 
   // Handle post creation
   const handlePostCreated = (newPost) => {
