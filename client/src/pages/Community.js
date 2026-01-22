@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useSearchParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import CommunityAnNhien from '../components/CommunityFacebook';
 import ProfilePageAnNhien from '../components/ProfilePageFacebook';
 import FriendsAnNhien from '../components/FriendsAnNhien';
@@ -8,9 +8,9 @@ import './Community.css';
 
 const Community = () => {
   const { email } = useParams();
-  const [searchParams] = useSearchParams();
   const location = useLocation();
-  // const chatParam = searchParams.get('chat'); // Unused but kept for potential future use
+  // const [searchParams] = useSearchParams(); // Unused but kept for potential future use
+  // const chatParam = searchParams?.get('chat'); // Unused but kept for potential future use
 
   // If on friends page
   if (location.pathname === '/community/friends') {

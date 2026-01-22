@@ -61,6 +61,7 @@ const LanguageLearning = () => {
     if (currentLesson < lessons.length) {
       generateQuestion();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLesson]);
 
   const generateQuestion = () => {
