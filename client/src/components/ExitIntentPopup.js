@@ -6,7 +6,6 @@ import './ExitIntentPopup.css';
 
 const ExitIntentPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasShown, setHasShown] = useState(false);
   const [showConsultationForm, setShowConsultationForm] = useState(false);
   const navigate = useNavigate();
 
@@ -14,7 +13,6 @@ const ExitIntentPopup = () => {
     // Check if user has seen popup before (using localStorage)
     const hasSeenPopup = localStorage.getItem('exitIntentPopupShown');
     if (hasSeenPopup) {
-      setHasShown(true);
       return;
     }
 
@@ -23,7 +21,6 @@ const ExitIntentPopup = () => {
       const currentHasShown = localStorage.getItem('exitIntentPopupShown');
       if (!currentHasShown && e.clientY <= 0) {
         setIsOpen(true);
-        setHasShown(true);
         localStorage.setItem('exitIntentPopupShown', 'true');
       }
     };
@@ -35,7 +32,6 @@ const ExitIntentPopup = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       if (!currentHasShown && lastScrollTop > scrollTop && scrollTop < 100) {
         setIsOpen(true);
-        setHasShown(true);
         localStorage.setItem('exitIntentPopupShown', 'true');
       }
       lastScrollTop = scrollTop;
@@ -96,20 +92,20 @@ const ExitIntentPopup = () => {
                 <h2 id="exit-popup-title" className="popup-title">Đợi đã! Bạn có muốn nhận ưu đãi đặc biệt?</h2>
                 <p id="exit-popup-description" className="popup-subtitle">Đừng bỏ lỡ cơ hội du học Hàn Quốc với chi phí tốt nhất!</p>
                 
-                <ul className="popup-offers" role="list">
-                  <li className="offer-item" role="listitem">
+                <ul className="popup-offers">
+                  <li className="offer-item">
                     <span className="offer-icon" aria-hidden="true">✅</span>
                     <span>Tư vấn miễn phí 100%</span>
                   </li>
-                  <li className="offer-item" role="listitem">
+                  <li className="offer-item">
                     <span className="offer-icon" aria-hidden="true">📚</span>
                     <span>Tài liệu du học Hàn Quốc miễn phí</span>
                   </li>
-                  <li className="offer-item" role="listitem">
+                  <li className="offer-item">
                     <span className="offer-icon" aria-hidden="true">🎓</span>
                     <span>Hỗ trợ làm hồ sơ 0 đồng</span>
                   </li>
-                  <li className="offer-item" role="listitem">
+                  <li className="offer-item">
                     <span className="offer-icon" aria-hidden="true">💰</span>
                     <span>Ưu đãi học phí lên đến 50%</span>
                   </li>
