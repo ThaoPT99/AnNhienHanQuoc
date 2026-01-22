@@ -32,7 +32,7 @@ const Contact = () => {
     setSubmitStatus(null);
 
     try {
-      const response = await axios.post(`${API_URL}/api/contacts`, formData);
+      await axios.post(`${API_URL}/api/contacts`, formData);
       setSubmitStatus({ type: 'success', message: 'Gửi thông tin thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.' });
       setFormData({ name: '', email: '', phone: '', message: '' });
       

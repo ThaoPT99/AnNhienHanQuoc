@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import './IncomingCall.css';
 
 const IncomingCall = ({ callerName, callerEmail, roomId, roomLink, onAccept, onDecline }) => {
-  const navigate = useNavigate();
   const timeoutRef = useRef(null);
   const countdownIntervalRef = useRef(null);
   const [timeRemaining, setTimeRemaining] = useState(30); // 30 seconds

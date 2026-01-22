@@ -4,7 +4,7 @@ import './LiveChat.css';
 
 const LiveChat = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isOnline, setIsOnline] = useState(true); // Simulate online status
+  const [isOnline] = useState(true); // Simulate online status
 
   const quickMessages = [
     'Xin chào! Tôi muốn tư vấn về du học Hàn Quốc',

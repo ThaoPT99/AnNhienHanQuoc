@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import './UserProfile.css';
 
 const UserProfile = () => {
   const { email } = useParams();
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Unused but kept for potential future use
   const [profile, setProfile] = useState(null);
   const [followCounts, setFollowCounts] = useState({ followers_count: 0, following_count: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
@@ -20,6 +20,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
   const loadProfile = async () => {

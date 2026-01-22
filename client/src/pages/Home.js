@@ -6,7 +6,7 @@ import OptimizedImage from '../components/OptimizedImage';
 import Newsletter from '../components/Newsletter';
 import CountdownTimer from '../components/CountdownTimer';
 import Reviews from '../components/Reviews';
-import ConsultationForm from '../components/ConsultationForm';
+// import ConsultationForm from '../components/ConsultationForm'; // Unused but kept for potential future use
 import CaseStudies from '../components/CaseStudies';
 import TransparentStats from '../components/TransparentStats';
 import './Home.css';

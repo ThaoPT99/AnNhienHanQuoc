@@ -31,6 +31,7 @@ const NotificationCenter = () => {
     return () => {
       window.removeEventListener('newNotification', handleNewNotification);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addNotification = (notificationData) => {

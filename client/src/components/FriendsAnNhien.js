@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
@@ -31,7 +31,7 @@ const FriendsAnNhien = () => {
   // Mobile menu states
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [mobileMenuTab, setMobileMenuTab] = useState('friends'); // 'friends' or 'contacts'
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
+  const [, setIsMobile] = useState(window.innerWidth <= 900);
 
   const userEmail = getUserEmail();
   const userName = getUserName() || userEmail?.split('@')[0] || 'User';
@@ -48,6 +48,7 @@ const FriendsAnNhien = () => {
       loadFriends();
       loadFollowingAndFollowers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, activeTab]);
 
   // Update isMobile on resize and on mount
@@ -65,7 +66,7 @@ const FriendsAnNhien = () => {
   }, []);
 
   // Load user profile
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     if (!userEmail) return;
     try {
       const res = await fetch(`${API_URL}/api/social/profile/${encodeURIComponent(userEmail)}`);
@@ -79,10 +80,10 @@ const FriendsAnNhien = () => {
       console.error('Error loading profile:', error);
       setUserProfile({ email: userEmail });
     }
-  };
+  }, [userEmail, API_URL]);
 
   // Load friends list for right sidebar
-  const loadFriends = async () => {
+  const loadFriends = useCallback(async () => {
     if (!userEmail) return;
     try {
       const res = await fetch(`${API_URL}/api/social/following/${encodeURIComponent(userEmail)}`);
@@ -93,10 +94,10 @@ const FriendsAnNhien = () => {
     } catch (error) {
       console.error('Error loading friends:', error);
     }
-  };
+  }, [userEmail, API_URL]);
 
   // Load following and followers
-  const loadFollowingAndFollowers = async () => {
+  const loadFollowingAndFollowers = useCallback(async () => {
     if (!userEmail) return;
     setLoading(true);
     try {
@@ -147,7 +148,7 @@ const FriendsAnNhien = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userEmail, API_URL]);
 
   // Demo following data
   const getDemoFollowing = () => {

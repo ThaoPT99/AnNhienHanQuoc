@@ -71,6 +71,7 @@ const Search = () => {
     } else {
       setResults([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const performSearch = (query) => {

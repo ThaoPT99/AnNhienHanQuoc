@@ -1,6 +1,5 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import OptimizedImage from '../components/OptimizedImage';
 import './BlogPost.css';

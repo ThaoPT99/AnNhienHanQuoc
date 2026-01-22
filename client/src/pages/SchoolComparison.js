@@ -181,16 +181,13 @@ const SchoolComparison = () => {
     'gumi': ['구미', '구미대', '구미대학교'],
     'catholic kwandong': ['kwandong', '가톨릭관동', '가톨릭관동대', '가톨릭관동대학교', 'cku'],
     
-    // City names
+    // City names (removed duplicates - already defined above)
     'seoul': ['서울'],
-    'busan': ['부산'],
     'incheon': ['인천'],
-    'daegu': ['대구'],
     'daejeon': ['대전'],
     'gwangju': ['광주'],
     'suwon': ['수원'],
-    'jeonju': ['전주'],
-    'jeju': ['제주']
+    'jeonju': ['전주']
   };
 
   // Fuzzy search function - tìm kiếm chính xác hơn, ưu tiên tìm trong tên
@@ -318,6 +315,7 @@ const SchoolComparison = () => {
       
       return matchesMajor && matchesCity && matchesRanking && matchesTuition && matchesType && matchesDormitory && matchesTopik;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchQuery, filterMajor, filterCity, filterRanking, filterTuition, filterType, filterDormitory, filterTopik]);
 
   // Sắp xếp kết quả - ưu tiên match chính xác hơn
@@ -368,6 +366,7 @@ const SchoolComparison = () => {
           return a.ranking - b.ranking;
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredSchools, debouncedSearchQuery, sortBy]);
 
   const sortedSchoolsList = sortedSchools.map(s => {

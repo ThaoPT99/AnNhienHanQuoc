@@ -217,7 +217,7 @@ const SimpleChatbot = () => {
     }
 
     // === XỬ LÝ CÂU HỎI CHUNG CHUNG ===
-    if (message.match(/(là gì|what is|what\'s|định nghĩa|giải thích)/i) && message.length < 15 && !hasKeyword(message, ['cost', 'visa', 'topik', 'scholarship', 'school', 'major', 'city'])) {
+    if (message.match(/(là gì|what is|what's|định nghĩa|giải thích)/i) && message.length < 15 && !hasKeyword(message, ['cost', 'visa', 'topik', 'scholarship', 'school', 'major', 'city'])) {
       return {
         text: 'Bạn có thể hỏi cụ thể hơn không? 😊\n\nTôi có thể giúp bạn về:\n• Du học Hàn Quốc là gì?\n• TOPIK là gì?\n• Visa D-2 là gì?\n• Học bổng KGSP là gì?\n• Trường SKY là gì?\n\nBạn muốn biết về điều gì?',
         sender: 'bot',

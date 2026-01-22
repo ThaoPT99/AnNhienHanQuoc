@@ -85,6 +85,7 @@ const ProgressTracker = () => {
     // Update current step
     const completedCount = steps.filter(step => progress[step.id]).length;
     setCurrentStep(completedCount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress]);
 
   const toggleStep = (stepId) => {

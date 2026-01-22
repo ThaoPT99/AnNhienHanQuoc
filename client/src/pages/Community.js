@@ -10,7 +10,7 @@ const Community = () => {
   const { email } = useParams();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const chatParam = searchParams.get('chat');
+  // const chatParam = searchParams.get('chat'); // Unused but kept for potential future use
 
   // If on friends page
   if (location.pathname === '/community/friends') {

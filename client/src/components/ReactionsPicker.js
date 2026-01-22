@@ -78,18 +78,18 @@ const ReactionsPicker = ({ postId, commentId, userEmail, onReactionChange, curre
     return reactionsCount.reduce((sum, r) => sum + (r.count || 0), 0);
   };
 
-  const getMainReaction = () => {
-    if (!reactionsCount || !Array.isArray(reactionsCount) || reactionsCount.length === 0) {
-      return { type: 'like', icon: '👍' };
-    }
-    // Get reaction with highest count
-    const topReaction = reactionsCount.reduce((max, r) => 
-      (r.count || 0) > (max.count || 0) ? r : max
-    );
-    return REACTION_TYPES.find(r => r.type === topReaction.reaction_type) || REACTION_TYPES[0];
-  };
+  // const getMainReaction = () => { // Unused but kept for potential future use
+  //   if (!reactionsCount || !Array.isArray(reactionsCount) || reactionsCount.length === 0) {
+  //     return { type: 'like', icon: '👍' };
+  //   }
+  //   // Get reaction with highest count
+  //   const topReaction = reactionsCount.reduce((max, r) => 
+  //     (r.count || 0) > (max.count || 0) ? r : max
+  //   );
+  //   return REACTION_TYPES.find(r => r.type === topReaction.reaction_type) || REACTION_TYPES[0];
+  // };
 
-  const mainReaction = getMainReaction();
+  // const mainReaction = getMainReaction(); // Unused but kept for potential future use
   const totalCount = getTotalReactions();
 
   const getReactionLabel = () => {

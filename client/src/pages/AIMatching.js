@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
 import './AIMatching.css';
 
 const AIMatching = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Unused but kept for potential future use
   const [step, setStep] = useState(1);
   const [questionnaire, setQuestionnaire] = useState({
     user_email: '',
@@ -30,6 +29,7 @@ const AIMatching = () => {
       setQuestionnaire(prev => ({ ...prev, user_email: userEmail }));
       loadExistingQuestionnaire();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
   const loadExistingQuestionnaire = async () => {

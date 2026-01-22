@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
 import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/pointsSystem';
 import './Quiz.css';

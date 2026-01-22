@@ -36,6 +36,7 @@ const Dashboard = () => {
     
     window.addEventListener('pointsUpdated', handlePointsUpdate);
     return () => window.removeEventListener('pointsUpdated', handlePointsUpdate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboardData = async () => {

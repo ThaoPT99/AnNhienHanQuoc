@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -88,9 +88,10 @@ const Gamification = () => {
     window.addEventListener('pointsUpdated', handlePointsUpdate);
     
     return () => window.removeEventListener('pointsUpdated', handlePointsUpdate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = useCallback(async () => {
     try {
       setLoadingLeaderboard(true);
       const response = await axios.get(`${API_URL}/api/leaderboard?limit=50`);
@@ -120,7 +121,7 @@ const Gamification = () => {
     } finally {
       setLoadingLeaderboard(false);
     }
-  };
+  }, [API_URL]);
 
   const handleEmailSubmit = async () => {
     if (!emailInput || !emailInput.includes('@')) {

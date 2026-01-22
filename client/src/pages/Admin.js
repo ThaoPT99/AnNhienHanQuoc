@@ -18,7 +18,7 @@ const Admin = () => {
   const [communityPosts, setCommunityPosts] = useState([]);
   const [eventList, setEventList] = useState([]);
   const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
+  // const [editingUser, setEditingUser] = useState(null); // Unused but kept for potential future use
   const [serviceRedemptions, setServiceRedemptions] = useState([]);
   const [documentReviews, setDocumentReviews] = useState([]);
   const [visaSupport, setVisaSupport] = useState([]);
@@ -420,20 +420,21 @@ const Admin = () => {
     { id: 'lucky-draw', label: '🎁 Vòng quay may mắn', count: luckyDrawParticipants.length, icon: '🎰' }
   ];
 
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case 'contacts': return contacts;
-      case 'consultations': return consultations;
-      case 'bookings': return bookings;
-      case 'visits': return visits;
-      case 'community': return communityPosts;
-      case 'newsletter': return newsletter;
-      case 'events': return events;
-      case 'recruitment': return recruitment;
-      case 'resources': return resources;
-      default: return [];
-    }
-  };
+  // const getCurrentData = () => { // Unused but kept for potential future use
+  // const _getCurrentData = () => {
+  //   switch (activeTab) {
+  //     case 'contacts': return contacts;
+  //     case 'consultations': return consultations;
+  //     case 'bookings': return bookings;
+  //     case 'visits': return visits;
+  //     case 'community': return communityPosts;
+  //     case 'newsletter': return newsletter;
+  //     case 'events': return events;
+  //     case 'recruitment': return recruitment;
+  //     case 'resources': return resources;
+  //     default: return [];
+  //   }
+  // }; // Unused but kept for potential future use
 
   return (
     <div className="admin-page">

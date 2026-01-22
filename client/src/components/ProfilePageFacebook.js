@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { isLoggedIn, getUserEmail, getUserName } from '../utils/auth';
+import { getUserEmail } from '../utils/auth';
 import { showNotification } from './NotificationCenterFacebook';
 import CreatePostBox from './CreatePostBox';
 import PostCard from './PostCard';
@@ -77,6 +77,7 @@ const ProfilePageAnNhien = () => {
   useEffect(() => {
     setIsOwnProfile(profileEmail === currentUserEmail);
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, profileEmail]);
 
   const loadProfile = async () => {

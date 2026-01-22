@@ -86,6 +86,7 @@ const VideoCallBooking = () => {
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const loadFriends = async () => {

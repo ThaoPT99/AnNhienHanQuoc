@@ -24,6 +24,7 @@ const VerifyEmail = () => {
       setStatus('error');
       setMessage('Thiếu thông tin xác thực. Vui lòng kiểm tra lại link trong email.');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, email]);
 
   const verifyEmail = async () => {

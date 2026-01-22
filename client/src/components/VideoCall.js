@@ -122,7 +122,6 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
     bundlePolicy: 'max-bundle', // Bundle RTP and RTCP together
     rtcpMuxPolicy: 'require', // Require RTCP multiplexing
     // Optimize for peer-to-peer connection (reduce TURN dependency)
-    iceCandidatePoolSize: 10,
     // Increase connection timeout for better NAT traversal
     iceConnectionReceivingTimeout: 30000, // 30 seconds
     iceBackupCandidatePairPingInterval: 25000 // 25 seconds
@@ -166,6 +165,7 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
       }
       cleanup();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
   // Update local video element when stream changes
@@ -1324,6 +1324,9 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
               setRemoteStream(null);
             }
             break;
+          default:
+            addDebugLog(`⚠️ Unknown message type: ${data.type}`, 'warn');
+            break;
         }
       };
 
@@ -1382,8 +1385,8 @@ const VideoCall = ({ roomId, onClose, userEmail, userName }) => {
   const acceptCall = () => {
     if (incomingCall && incomingCall.roomLink) {
       // Navigate to the room by extracting roomId from roomLink
-      const urlParts = incomingCall.roomLink.split('/');
-      const roomIdFromLink = urlParts[urlParts.length - 1];
+      // const urlParts = incomingCall.roomLink.split('/'); // Unused
+      // const roomIdFromLink = urlParts[urlParts.length - 1]; // Unused
       
       // Close current connection if any
       cleanup();

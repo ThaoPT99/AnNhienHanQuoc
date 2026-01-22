@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Search from './Search';
 import AuthModal from './AuthModal';
 // NotificationCenterFacebook removed - only available in Community page
-import { isLoggedIn, getUserEmail, logout } from '../utils/auth';
+import { isLoggedIn, getUserEmail } from '../utils/auth';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -14,9 +14,8 @@ const Navbar = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
   const [loggedIn, setLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState(null);
+  const [, setUserEmail] = useState(null);
   const location = useLocation();
-  const navigate = useNavigate();
   const moreMenuRef = useRef(null);
 
   useEffect(() => {
@@ -88,7 +87,7 @@ const Navbar = () => {
     { path: '/recruitment', label: 'Tuyển dụng', icon: '💼' }
   ];
 
-  const allNavItems = [...mainNavItems, ...moreNavItems];
+  // const allNavItems = [...mainNavItems, ...moreNavItems]; // Unused but kept for potential future use
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -115,11 +114,11 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    logout();
-    setLoggedIn(false);
-    setUserEmail(null);
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   setLoggedIn(false);
+  //   setUserEmail(null);
+  // }; // Unused but kept for potential future use
 
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Điều hướng chính">

@@ -43,10 +43,12 @@ const Redemption = () => {
     loadRewards();
     loadUserPoints();
     loadUserEmail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     filterRewards();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, rewards]);
 
   useEffect(() => {

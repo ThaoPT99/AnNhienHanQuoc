@@ -94,17 +94,17 @@ const LeftSidebar = ({ userEmail, userName, userProfile, friends, navigate, acti
       {false && (
         <div className="sidebar-footer">
           <div className="sidebar-footer-links">
-            <a href="#" className="sidebar-footer-link">Quyền riêng tư</a>
+            <button type="button" className="sidebar-footer-link">Quyền riêng tư</button>
             <span> · </span>
-            <a href="#" className="sidebar-footer-link">Điều khoản</a>
+            <button type="button" className="sidebar-footer-link">Điều khoản</button>
             <span> · </span>
-            <a href="#" className="sidebar-footer-link">Quảng cáo</a>
+            <button type="button" className="sidebar-footer-link">Quảng cáo</button>
             <span> · </span>
-            <a href="#" className="sidebar-footer-link">Lựa chọn quảng cáo</a>
+            <button type="button" className="sidebar-footer-link">Lựa chọn quảng cáo</button>
             <span> · </span>
-            <a href="#" className="sidebar-footer-link">Cookie</a>
+            <button type="button" className="sidebar-footer-link">Cookie</button>
             <span> · </span>
-            <a href="#" className="sidebar-footer-link">Xem thêm</a>
+            <button type="button" className="sidebar-footer-link">Xem thêm</button>
           </div>
         </div>
       )}

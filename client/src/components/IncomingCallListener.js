@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
 import { getUserEmail } from '../utils/auth';
 import IncomingCall from './IncomingCall';
 
@@ -9,12 +8,11 @@ import IncomingCall from './IncomingCall';
  * even when the user is not in a video call
  */
 const IncomingCallListener = () => {
-  const navigate = useNavigate();
   const [incomingCall, setIncomingCall] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const userEmailRef = useRef(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [, setIsConnected] = useState(false);
 
   useEffect(() => {
     const userEmail = getUserEmail();

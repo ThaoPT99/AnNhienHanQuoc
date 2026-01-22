@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { getUserEmail, getUserName } from '../utils/auth';
 import { getRelativeTime } from '../utils/timezone';
@@ -215,6 +214,7 @@ const MessengerChat = () => {
     return () => {
       websocket.close();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userEmail]);
 
   // Listen for new video call requests from UI
@@ -286,6 +286,7 @@ const MessengerChat = () => {
         setSelectedChat(prev => ({ ...prev, messages: savedMessages }));
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChat]);
 
   // Scroll to bottom when messages change
@@ -612,6 +613,7 @@ const MessengerChat = () => {
       delete window.startMessengerVideoCall;
       delete window.startMessengerTextChat;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChats, selectedChat]); // Include dependencies to update functions when state changes
 
   // Always maintain WebSocket connection (even when not on Community page)

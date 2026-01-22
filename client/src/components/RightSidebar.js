@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import './RightSidebar.css';
 
 const RightSidebar = ({ userEmail, friends, navigate }) => {
   const [contacts, setContacts] = useState([]);
-  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   useEffect(() => {
     if (friends && friends.length > 0) {

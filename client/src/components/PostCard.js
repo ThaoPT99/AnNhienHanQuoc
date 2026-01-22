@@ -28,6 +28,7 @@ const PostCard = ({ post, userEmail, userName, onUpdate, navigate }) => {
       loadPostReaction();
       loadCommentsCount();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post.id, userEmail, post._demo]);
 
   const loadPostReaction = async () => {
