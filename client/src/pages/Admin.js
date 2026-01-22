@@ -1569,28 +1569,21 @@ const Admin = () => {
                       </div>
                       <div>
                         <label>Trạng thái</label>
-                        <select
-                          value={luckyDrawSettings.is_active || 1}
-                          onChange={async (e) => {
-                            const isActive = parseInt(e.target.value);
-                            const token = getToken();
-                            if (!token) return;
-                            try {
-                              await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
-                                { win_rate: luckyDrawSettings.win_rate, is_active: isActive },
-                                { headers: { 'x-admin-token': token } }
-                              );
-                              setLuckyDrawSettings({ ...luckyDrawSettings, is_active: isActive });
-                              alert('✅ Đã cập nhật trạng thái!');
-                            } catch (err) {
-                              alert('Không thể cập nhật. Vui lòng thử lại.');
-                            }
-                          }}
-                          style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        >
-                          <option value={1}>Hoạt động</option>
-                          <option value={0}>Tạm dừng</option>
-                        </select>
+                        <div style={{ 
+                          width: '100%', 
+                          padding: '8px', 
+                          marginTop: '5px',
+                          background: '#e8f5e9',
+                          borderRadius: '4px',
+                          color: '#2e7d32',
+                          fontWeight: '600',
+                          border: '1px solid #4caf50'
+                        }}>
+                          ✅ Luôn hoạt động (Không thể tắt)
+                        </div>
+                        <p style={{ marginTop: '5px', fontSize: '0.85rem', color: '#666' }}>
+                          Chương trình vòng quay may mắn được cấu hình để luôn hoạt động
+                        </p>
                       </div>
                     </div>
                     {luckyDrawStats && (
