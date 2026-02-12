@@ -1234,6 +1234,7 @@ const Admin = () => {
                         <th>STT</th>
                         <th>Email</th>
                         <th>Tên</th>
+                        <th>Số điện thoại</th>
                         <th>Nguồn</th>
                         <th>Trạng thái</th>
                         <th>Ngày đăng ký</th>
@@ -1245,6 +1246,13 @@ const Admin = () => {
                           <td>{index + 1}</td>
                           <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
                           <td>{item.name || <em>Không có</em>}</td>
+                          <td>
+                            {item.phone ? (
+                              <a href={`tel:${item.phone}`}>{item.phone}</a>
+                            ) : (
+                              <em>Không có</em>
+                            )}
+                          </td>
                           <td>{item.source || 'website'}</td>
                           <td>
                             <span className={`status-badge ${item.status}`}>

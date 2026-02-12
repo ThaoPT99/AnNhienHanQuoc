@@ -846,10 +846,15 @@ app.post('/api/contacts', (req, res) => {
 
 // Newsletter routes
 app.post('/api/newsletter/subscribe', (req, res) => {
-  const { email, name } = req.body;
+  const { email, name, phone } = req.body;
   
   if (!email) {
     res.status(400).json({ error: 'Email is required' });
+    return;
+  }
+
+  if (!phone) {
+    res.status(400).json({ error: 'Phone number is required' });
     return;
   }
 
@@ -860,7 +865,17 @@ app.post('/api/newsletter/subscribe', (req, res) => {
     return;
   }
 
-  dbHelpers.subscribeNewsletter({ email, name, source: 'website' }, (err, subscriber) => {
+  // Clean phone number (remove spaces)
+  const cleanPhone = phone.replace(/\s+/g, '');
+
+  // Validate phone format (Vietnamese phone numbers: 10-11 digits, may start with 0 or +84)
+  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+  if (!phoneRegex.test(cleanPhone)) {
+    res.status(400).json({ error: 'Invalid phone number format. Please use Vietnamese phone number format (e.g., 0912345678 or +84912345678)' });
+    return;
+  }
+
+  dbHelpers.subscribeNewsletter({ email, name, phone: cleanPhone, source: 'website' }, (err, subscriber) => {
     if (err) {
       if (err.message === 'Email already subscribed') {
         res.status(409).json({ error: 'Email already subscribed' });

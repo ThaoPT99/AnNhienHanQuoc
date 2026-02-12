@@ -115,6 +115,7 @@ function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL UNIQUE,
       name TEXT,
+      phone TEXT,
       status TEXT DEFAULT 'active',
       subscribed_at DATETIME DEFAULT (datetime('now')),
       unsubscribed_at DATETIME,
@@ -124,6 +125,13 @@ function initializeDatabase() {
         console.error('Error creating newsletter table:', err.message);
       } else {
         console.log('✅ Newsletter table ready');
+      }
+    });
+
+    // Add phone column to newsletter table if it doesn't exist (for existing databases)
+    db.run(`ALTER TABLE newsletter ADD COLUMN phone TEXT`, (alterErr) => {
+      if (alterErr && !alterErr.message.includes('duplicate column')) {
+        console.error('Error adding phone column to newsletter:', alterErr.message);
       }
     });
 
@@ -1075,10 +1083,10 @@ const dbHelpers = {
 
   // Newsletter functions
   subscribeNewsletter: (subscriber, callback) => {
-    const { email, name, source } = subscriber;
+    const { email, name, phone, source } = subscriber;
     db.run(
-      'INSERT OR IGNORE INTO newsletter (email, name, source) VALUES (?, ?, ?)',
-      [email, name || null, source || 'website'],
+      'INSERT OR IGNORE INTO newsletter (email, name, phone, source) VALUES (?, ?, ?, ?)',
+      [email, name || null, phone || null, source || 'website'],
       function(err) {
         if (err) {
           callback(err, null);
@@ -1086,7 +1094,7 @@ const dbHelpers = {
           // Email already exists
           callback(new Error('Email already subscribed'), null);
         } else {
-          callback(null, { id: this.lastID, email, name, subscribed: true });
+          callback(null, { id: this.lastID, email, name, phone, subscribed: true });
         }
       }
     );
