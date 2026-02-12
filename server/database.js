@@ -200,6 +200,7 @@ function initializeDatabase() {
     db.run(`CREATE TABLE IF NOT EXISTS resources_downloads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL,
+      phone TEXT NOT NULL,
       resource_id INTEGER NOT NULL,
       resource_title TEXT,
       downloaded_at DATETIME DEFAULT (datetime('now'))
@@ -208,6 +209,16 @@ function initializeDatabase() {
         console.error('Error creating resources_downloads table:', err.message);
       } else {
         console.log('✅ Resources downloads table ready');
+        // Add phone column if it doesn't exist (migration)
+        // Note: SQLite doesn't support adding NOT NULL columns to existing tables easily
+        // So we add it as nullable first, then update existing records if needed
+        db.run(`ALTER TABLE resources_downloads ADD COLUMN phone TEXT`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column')) {
+            console.error('Error adding phone column to resources_downloads:', alterErr.message);
+          } else if (!alterErr) {
+            console.log('✅ Added phone column to resources_downloads table');
+          }
+        });
       }
     });
 
@@ -523,6 +534,7 @@ function initializeDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
+      phone TEXT,
       display_name TEXT,
       email_verified INTEGER DEFAULT 0,
       verification_token TEXT,
@@ -534,6 +546,12 @@ function initializeDatabase() {
         console.error('Error creating users table:', err.message);
       } else {
         console.log('✅ Users table ready');
+        // Add phone column if it doesn't exist (migration)
+        db.run(`ALTER TABLE users ADD COLUMN phone TEXT`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column')) {
+            console.error('Error adding phone column to users:', alterErr.message);
+          }
+        });
         // Create index for users
         db.run(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`, (err) => {
           if (err) console.error('Error creating users email index:', err.message);
@@ -1333,10 +1351,10 @@ const dbHelpers = {
 
   // Resource download functions
   recordResourceDownload: (download, callback) => {
-    const { email, resource_id, resource_title } = download;
+    const { email, phone, resource_id, resource_title } = download;
     db.run(
-      'INSERT INTO resources_downloads (email, resource_id, resource_title) VALUES (?, ?, ?)',
-      [email, resource_id, resource_title || null],
+      'INSERT INTO resources_downloads (email, phone, resource_id, resource_title) VALUES (?, ?, ?, ?)',
+      [email, phone, resource_id, resource_title || null],
       function(err) {
         if (err) {
           callback(err, null);
@@ -2355,10 +2373,10 @@ const dbHelpers = {
     });
   },
 
-  createUser: (email, passwordHash, verificationToken, callback) => {
+  createUser: (email, passwordHash, verificationToken, phone, callback) => {
     db.run(
-      'INSERT INTO users (email, password_hash, verification_token) VALUES (?, ?, ?)',
-      [email, passwordHash, verificationToken],
+      'INSERT INTO users (email, password_hash, verification_token, phone) VALUES (?, ?, ?, ?)',
+      [email, passwordHash, verificationToken, phone || null],
       function(err) {
         if (err) {
           callback(err, null);

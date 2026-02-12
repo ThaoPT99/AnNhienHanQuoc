@@ -5,12 +5,15 @@ import { addPoints, POINTS_REWARDS, showPointsNotification } from '../utils/poin
 import './Resources.css';
 
 const Resources = () => {
-  // Load email from localStorage on mount
+  // Load email and phone from localStorage on mount
   const [email, setEmail] = useState(() => {
     return localStorage.getItem('resource_download_email') || '';
   });
+  const [phone, setPhone] = useState(() => {
+    return localStorage.getItem('resource_download_phone') || '';
+  });
   const [submitted, setSubmitted] = useState(() => {
-    return !!localStorage.getItem('resource_download_email');
+    return !!(localStorage.getItem('resource_download_email') && localStorage.getItem('resource_download_phone'));
   });
   const [selectedResource, setSelectedResource] = useState(null);
 
@@ -142,15 +145,16 @@ const Resources = () => {
     ? resources
     : resources.filter(r => r.category === selectedCategory);
 
-  // Save email to localStorage whenever it changes
+  // Save email and phone to localStorage whenever they change
   useEffect(() => {
-    if (email && submitted) {
+    if (email && phone && submitted) {
       localStorage.setItem('resource_download_email', email);
+      localStorage.setItem('resource_download_phone', phone);
     }
-  }, [email, submitted]);
+  }, [email, phone, submitted]);
 
   const handleDownload = async (resource) => {
-    if (!submitted || !email) {
+    if (!submitted || !email || !phone) {
       setSelectedResource(resource);
       return;
     }
@@ -166,6 +170,7 @@ const Resources = () => {
         },
         body: JSON.stringify({
           email: email,
+          phone: phone.replace(/\s+/g, ''), // Remove spaces
           resource_id: resource.id,
           resource_title: resource.title
         }),
@@ -241,25 +246,39 @@ const Resources = () => {
 
   const handleEmailSubmit = (e) => {
     e.preventDefault();
-    if (email && email.includes('@')) {
-      setSubmitted(true);
-      // Save email to localStorage
-      localStorage.setItem('resource_download_email', email);
-      // If there's a selected resource, download it immediately
-      if (selectedResource) {
-        handleDownload(selectedResource);
-      }
-    } else {
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
       alert('Vui lòng nhập email hợp lệ');
+      return;
+    }
+    
+    // Validate phone (Vietnamese phone numbers: 10-11 digits, may start with 0 or +84)
+    const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+    const cleanPhone = phone.replace(/\s+/g, ''); // Remove spaces
+    if (!phone || !phoneRegex.test(cleanPhone)) {
+      alert('Vui lòng nhập số điện thoại hợp lệ (VD: 0912345678 hoặc +84912345678)');
+      return;
+    }
+    
+    setSubmitted(true);
+    // Save email and phone to localStorage
+    localStorage.setItem('resource_download_email', email);
+    localStorage.setItem('resource_download_phone', cleanPhone);
+    // If there's a selected resource, download it immediately
+    if (selectedResource) {
+      handleDownload(selectedResource);
     }
   };
 
   const handleClearEmail = () => {
-    if (window.confirm('Bạn có muốn xóa email và nhập lại không?')) {
+    if (window.confirm('Bạn có muốn xóa thông tin và nhập lại không?')) {
       setEmail('');
+      setPhone('');
       setSubmitted(false);
       setSelectedResource(null);
       localStorage.removeItem('resource_download_email');
+      localStorage.removeItem('resource_download_phone');
     }
   };
 
@@ -305,7 +324,7 @@ const Resources = () => {
           >
             <div className="email-form-card">
               <h3>📧 Nhận tài liệu miễn phí</h3>
-              <p>Để tải tài liệu, vui lòng cung cấp email của bạn. Bạn chỉ cần nhập email một lần và có thể tải nhiều tài liệu.</p>
+              <p>Để tải tài liệu, vui lòng cung cấp email và số điện thoại của bạn. Bạn chỉ cần nhập một lần và có thể tải nhiều tài liệu.</p>
               <form onSubmit={handleEmailSubmit} className="email-form">
                 <input
                   type="email"
@@ -314,6 +333,17 @@ const Resources = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="email-input"
+                />
+                <input
+                  type="tel"
+                  placeholder="Nhập số điện thoại (VD: 0912345678)"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  pattern="(\+84|0)[0-9]{9,10}"
+                  title="Vui lòng nhập số điện thoại hợp lệ (VD: 0912345678 hoặc +84912345678)"
+                  className="email-input"
+                  style={{ marginTop: '10px' }}
                 />
                 <button type="submit" className="submit-email-btn">
                   Xác nhận
@@ -328,19 +358,22 @@ const Resources = () => {
             className="email-form-section"
           >
             <div className="email-form-card" style={{ background: '#d4edda', border: '2px solid #28a745' }}>
-              <h3>✅ Email đã được xác nhận</h3>
+              <h3>✅ Thông tin đã được xác nhận</h3>
               <p style={{ marginBottom: '10px' }}>
                 <strong>Email:</strong> {email}
               </p>
+              <p style={{ marginBottom: '10px' }}>
+                <strong>Số điện thoại:</strong> {phone}
+              </p>
               <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '15px' }}>
-                Bạn có thể tải nhiều tài liệu mà không cần nhập lại email.
+                Bạn có thể tải nhiều tài liệu mà không cần nhập lại thông tin.
               </p>
               <button 
                 onClick={handleClearEmail} 
                 className="submit-email-btn"
                 style={{ background: '#dc3545', fontSize: '0.9em', padding: '8px 16px' }}
               >
-                Đổi email
+                Đổi thông tin
               </button>
             </div>
           </motion.div>

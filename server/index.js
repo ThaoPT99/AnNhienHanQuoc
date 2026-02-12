@@ -419,13 +419,21 @@ const verifyAdminToken = (req, res, next) => {
 // ==================== USER AUTHENTICATION ENDPOINTS ====================
 // User Registration
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name, phone } = req.body;
 
-  console.log('📝 Registration attempt:', { email, hasPassword: !!password, passwordLength: password?.length, name });
+  console.log('📝 Registration attempt:', { email, hasPassword: !!password, passwordLength: password?.length, name, phone });
 
-  if (!email || !password) {
-    console.log('❌ Missing email or password');
-    return res.status(400).json({ error: 'Email and password are required' });
+  if (!email || !password || !phone) {
+    console.log('❌ Missing email, password, or phone');
+    return res.status(400).json({ error: 'Email, password, and phone number are required' });
+  }
+
+  // Validate phone format (Vietnamese phone numbers: 10-11 digits, may start with 0 or +84)
+  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+  const cleanPhone = phone.replace(/\s+/g, ''); // Remove spaces
+  if (!phoneRegex.test(cleanPhone)) {
+    console.log('❌ Invalid phone format:', cleanPhone);
+    return res.status(400).json({ error: 'Invalid phone number format. Please use Vietnamese phone number format (e.g., 0912345678 or +84912345678)' });
   }
 
   // Validate email format
@@ -481,7 +489,7 @@ app.post('/api/auth/register', async (req, res) => {
       const verificationToken = crypto.randomBytes(32).toString('hex');
 
       // Create user
-      dbHelpers.createUser(email, passwordHash, verificationToken, async (err, userId) => {
+      dbHelpers.createUser(email, passwordHash, verificationToken, cleanPhone, async (err, userId) => {
         if (err) {
           console.error('Error creating user:', err);
           return res.status(500).json({ error: 'Error creating account' });
@@ -1342,10 +1350,10 @@ app.post('/api/resources/download', (req, res) => {
   console.log('📥 [DEBUG] Request method:', req.method);
   console.log('📥 [DEBUG] Request headers:', req.headers);
   console.log('📥 [DEBUG] Request body:', req.body);
-  const { email, resource_id, resource_title } = req.body;
+  const { email, phone, resource_id, resource_title } = req.body;
   
-  if (!email || !resource_id) {
-    res.status(400).json({ error: 'Email and resource_id are required' });
+  if (!email || !phone || !resource_id) {
+    res.status(400).json({ error: 'Email, phone number, and resource_id are required' });
     return;
   }
 
@@ -1353,6 +1361,14 @@ app.post('/api/resources/download', (req, res) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  // Validate phone format (Vietnamese phone numbers: 10-11 digits, may start with 0 or +84)
+  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+  const cleanPhone = phone.replace(/\s+/g, ''); // Remove spaces
+  if (!phoneRegex.test(cleanPhone)) {
+    res.status(400).json({ error: 'Invalid phone number format. Please use Vietnamese phone number format (e.g., 0912345678 or +84912345678)' });
     return;
   }
 
@@ -1379,8 +1395,8 @@ app.post('/api/resources/download', (req, res) => {
   
   if (!fileExists) {
     console.log('❌ [DEBUG] File does not exist at path:', filePath);
-    // Record download attempt even if file doesn't exist
-    dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
+      // Record download attempt even if file doesn't exist
+      dbHelpers.recordResourceDownload({ email, phone: cleanPhone, resource_id, resource_title }, (err, download) => {
       if (err) {
         console.error('❌ [DEBUG] Error recording download:', err);
         res.status(500).json({ error: err.message });
@@ -1399,7 +1415,7 @@ app.post('/api/resources/download', (req, res) => {
 
   // Record download
   console.log('📥 [DEBUG] Recording download in database...');
-  dbHelpers.recordResourceDownload({ email, resource_id, resource_title }, (err, download) => {
+  dbHelpers.recordResourceDownload({ email, phone: cleanPhone, resource_id, resource_title }, (err, download) => {
     if (err) {
       console.error('❌ [DEBUG] Database error:', err);
       res.status(500).json({ error: err.message });
