@@ -200,7 +200,7 @@ function initializeDatabase() {
     db.run(`CREATE TABLE IF NOT EXISTS resources_downloads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL,
-      phone TEXT NOT NULL,
+      phone TEXT,
       resource_id INTEGER NOT NULL,
       resource_title TEXT,
       downloaded_at DATETIME DEFAULT (datetime('now'))
