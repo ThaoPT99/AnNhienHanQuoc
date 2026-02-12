@@ -14,6 +14,7 @@ const Gamification = () => {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailInput, setEmailInput] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
@@ -129,8 +130,22 @@ const Gamification = () => {
       return;
     }
 
+    if (!phoneInput) {
+      alert('Vui lòng nhập số điện thoại!');
+      return;
+    }
+
+    // Validate phone format (Vietnamese phone numbers)
+    const cleanPhone = phoneInput.replace(/\s+/g, '');
+    const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      alert('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (ví dụ: 0912345678)');
+      return;
+    }
+
     const email = emailInput.trim();
     localStorage.setItem('userEmail', email);
+    localStorage.setItem('userPhone', cleanPhone);
     setUserEmail(email);
     setShowEmailModal(false);
     
@@ -431,22 +446,33 @@ const Gamification = () => {
       {showEmailModal && (
         <div className="modal-overlay" onClick={() => setShowEmailModal(false)}>
           <div className="modal-content email-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>📧 Nhập email để tham gia bảng xếp hạng</h3>
+            <h3>📧 Nhập thông tin để tham gia bảng xếp hạng</h3>
             <p className="modal-description">
-              Nhập email của bạn để đồng bộ điểm và tham gia bảng xếp hạng. Email chỉ dùng để hiển thị trên leaderboard.
+              Nhập email và số điện thoại của bạn để đồng bộ điểm và tham gia bảng xếp hạng.
             </p>
             <input
               type="email"
-              placeholder="Email của bạn (ví dụ: yourname@email.com)"
+              placeholder="Email của bạn * (ví dụ: yourname@email.com)"
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
+              required
+              className="email-input"
+              style={{ marginBottom: '10px' }}
+            />
+            <input
+              type="tel"
+              placeholder="Số điện thoại * (ví dụ: 0912345678)"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              required
+              pattern="(\+84|0)[0-9]{9,10}"
+              className="email-input"
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   handleEmailSubmit();
                 }
               }}
               autoFocus
-              className="email-input"
             />
             <div className="modal-actions">
               <button onClick={() => setShowEmailModal(false)} className="btn-cancel">
@@ -454,7 +480,7 @@ const Gamification = () => {
               </button>
               <button 
                 onClick={handleEmailSubmit}
-                disabled={!emailInput || !emailInput.includes('@')}
+                disabled={!emailInput || !emailInput.includes('@') || !phoneInput}
                 className="btn-submit"
               >
                 Xác nhận

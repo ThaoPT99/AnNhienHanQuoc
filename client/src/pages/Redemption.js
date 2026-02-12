@@ -13,6 +13,7 @@ const Redemption = () => {
   const [loading, setLoading] = useState(true);
   const [redeeming, setRedeeming] = useState(null);
   const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [redemptionHistory, setRedemptionHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -78,7 +79,9 @@ const Redemption = () => {
 
   const loadUserEmail = () => {
     const email = localStorage.getItem('userEmail') || '';
+    const phone = localStorage.getItem('userPhone') || '';
     setUserEmail(email);
+    setUserPhone(phone);
   };
 
   const loadRedemptionHistory = async (email) => {
@@ -104,14 +107,11 @@ const Redemption = () => {
       return;
     }
 
-    // Check if user has email
-    let email = userEmail;
-    if (!email) {
-      const inputEmail = prompt('Vui lòng nhập email để đổi phần thưởng:');
-      if (!inputEmail) return;
-      email = inputEmail;
-      localStorage.setItem('userEmail', email);
-      setUserEmail(email);
+    // Check if user has email and phone
+    if (!userEmail || !userPhone) {
+      setSelectedReward(reward);
+      setShowEmailModal(true);
+      return;
     }
 
     // For Phase 2 rewards (service), show form modal
@@ -137,7 +137,7 @@ const Redemption = () => {
       return;
     }
 
-    await processRedemption(reward, email);
+    await processRedemption(reward, userEmail);
   };
 
   const processRedemption = async (reward, email, additionalData = {}) => {
@@ -348,35 +348,199 @@ const Redemption = () => {
       {showEmailModal && (
         <div className="modal-overlay" onClick={() => setShowEmailModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Nhập email để xem lịch sử</h3>
+            <h3>Nhập thông tin để {selectedReward ? 'đổi phần thưởng' : 'xem lịch sử'}</h3>
             <input
               type="email"
-              placeholder="Email của bạn"
+              placeholder="Email của bạn *"
               value={userEmail}
               onChange={(e) => setUserEmail(e.target.value)}
+              required
+              style={{ marginBottom: '10px', width: '100%', padding: '10px' }}
+            />
+            <input
+              type="tel"
+              placeholder="Số điện thoại * (ví dụ: 0912345678)"
+              value={userPhone}
+              onChange={(e) => setUserPhone(e.target.value)}
+              required
+              pattern="(\+84|0)[0-9]{9,10}"
+              style={{ width: '100%', padding: '10px' }}
               onKeyPress={(e) => {
-                if (e.key === 'Enter' && userEmail) {
-                  localStorage.setItem('userEmail', userEmail);
-                  loadRedemptionHistory(userEmail);
-                  setShowHistory(true);
-                  setShowEmailModal(false);
+                if (e.key === 'Enter' && userEmail && userPhone) {
+                  const cleanPhone = userPhone.replace(/\s+/g, '');
+                  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+                  if (phoneRegex.test(cleanPhone)) {
+                    localStorage.setItem('userEmail', userEmail);
+                    localStorage.setItem('userPhone', cleanPhone);
+                    if (!selectedReward) {
+                      loadRedemptionHistory(userEmail);
+                      setShowHistory(true);
+                    } else {
+                      // If redeeming, continue with redemption
+                      const reward = selectedReward;
+                      setSelectedReward(null);
+                      // For Phase 2 rewards (service), show form modal
+                      if (reward.category === 'service' && reward.type === 'service') {
+                        setSelectedReward(reward);
+                        if (reward.value && reward.value.includes('CONSULTATION')) {
+                          setShowServiceModal(true);
+                        } else if (reward.value && reward.value.includes('REVIEW')) {
+                          setShowReviewModal(true);
+                        } else if (reward.value && reward.value.includes('VISA')) {
+                          setShowVisaModal(true);
+                        } else {
+                          setShowServiceModal(true);
+                        }
+                      } else {
+                        // For Phase 1 rewards, proceed directly
+                        if (window.confirm(`Bạn có chắc muốn đổi "${reward.name}" với ${reward.points_required} điểm?`)) {
+                          processRedemption(reward, userEmail);
+                        }
+                      }
+                    }
+                    setShowEmailModal(false);
+                  } else {
+                    alert('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (ví dụ: 0912345678)');
+                  }
                 }
               }}
             />
             <div className="modal-actions">
-              <button onClick={() => setShowEmailModal(false)}>Hủy</button>
+              <button onClick={() => {
+                setShowEmailModal(false);
+                setSelectedReward(null);
+              }}>Hủy</button>
               <button
                 onClick={() => {
-                  if (userEmail) {
-                    localStorage.setItem('userEmail', userEmail);
+                  if (!userEmail || !userPhone) {
+                    alert('Vui lòng nhập đầy đủ email và số điện thoại!');
+                    return;
+                  }
+                  const cleanPhone = userPhone.replace(/\s+/g, '');
+                  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+                  if (!phoneRegex.test(cleanPhone)) {
+                    alert('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (ví dụ: 0912345678)');
+                    return;
+                  }
+                  localStorage.setItem('userEmail', userEmail);
+                  localStorage.setItem('userPhone', cleanPhone);
+                  const reward = selectedReward;
+                  setShowEmailModal(false);
+                  setSelectedReward(null);
+                  
+                  if (!reward) {
+                    // View history
                     loadRedemptionHistory(userEmail);
                     setShowHistory(true);
-                    setShowEmailModal(false);
+                  } else {
+                    // Continue with redemption
+                    // For Phase 2 rewards (service), show form modal
+                    if (reward.category === 'service' && reward.type === 'service') {
+                      setSelectedReward(reward);
+                      if (reward.value && reward.value.includes('CONSULTATION')) {
+                        setShowServiceModal(true);
+                      } else if (reward.value && reward.value.includes('REVIEW')) {
+                        setShowReviewModal(true);
+                      } else if (reward.value && reward.value.includes('VISA')) {
+                        setShowVisaModal(true);
+                      } else {
+                        setShowServiceModal(true);
+                      }
+                    } else {
+                      // For Phase 1 rewards, proceed directly
+                      if (window.confirm(`Bạn có chắc muốn đổi "${reward.name}" với ${reward.points_required} điểm?`)) {
+                        processRedemption(reward, userEmail);
+                      }
+                    }
                   }
                 }}
-                disabled={!userEmail}
+                disabled={!userEmail || !userPhone}
               >
-                Xem lịch sử
+                {selectedReward ? 'Xác nhận' : 'Xem lịch sử'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email & Phone Modal - Updated */}
+      {showEmailModal && (
+        <div className="modal-overlay" onClick={() => {
+          setShowEmailModal(false);
+          setSelectedReward(null);
+        }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Nhập thông tin để {selectedReward ? 'đổi phần thưởng' : 'xem lịch sử'}</h3>
+            <input
+              type="email"
+              placeholder="Email của bạn *"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              required
+              style={{ marginBottom: '10px', width: '100%', padding: '10px' }}
+            />
+            <input
+              type="tel"
+              placeholder="Số điện thoại * (ví dụ: 0912345678)"
+              value={userPhone}
+              onChange={(e) => setUserPhone(e.target.value)}
+              required
+              pattern="(\+84|0)[0-9]{9,10}"
+              style={{ width: '100%', padding: '10px' }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && userEmail && userPhone) {
+                  const cleanPhone = userPhone.replace(/\s+/g, '');
+                  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+                  if (phoneRegex.test(cleanPhone)) {
+                    localStorage.setItem('userEmail', userEmail);
+                    localStorage.setItem('userPhone', cleanPhone);
+                    if (!selectedReward) {
+                      loadRedemptionHistory(userEmail);
+                      setShowHistory(true);
+                    } else {
+                      // If redeeming, continue with redemption
+                      handleRedeem(selectedReward);
+                    }
+                    setShowEmailModal(false);
+                    setSelectedReward(null);
+                  } else {
+                    alert('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (ví dụ: 0912345678)');
+                  }
+                }
+              }}
+            />
+            <div className="modal-actions">
+              <button onClick={() => {
+                setShowEmailModal(false);
+                setSelectedReward(null);
+              }}>Hủy</button>
+              <button
+                onClick={() => {
+                  if (!userEmail || !userPhone) {
+                    alert('Vui lòng nhập đầy đủ email và số điện thoại!');
+                    return;
+                  }
+                  const cleanPhone = userPhone.replace(/\s+/g, '');
+                  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+                  if (!phoneRegex.test(cleanPhone)) {
+                    alert('Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (ví dụ: 0912345678)');
+                    return;
+                  }
+                  localStorage.setItem('userEmail', userEmail);
+                  localStorage.setItem('userPhone', cleanPhone);
+                  if (!selectedReward) {
+                    loadRedemptionHistory(userEmail);
+                    setShowHistory(true);
+                  } else {
+                    // If redeeming, continue with redemption
+                    handleRedeem(selectedReward);
+                  }
+                  setShowEmailModal(false);
+                  setSelectedReward(null);
+                }}
+                disabled={!userEmail || !userPhone}
+              >
+                {selectedReward ? 'Xác nhận' : 'Xem lịch sử'}
               </button>
             </div>
           </div>
