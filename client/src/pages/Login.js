@@ -30,6 +30,31 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate phone for registration
+    if (!isLogin) {
+      if (!formData.phone || formData.phone.trim() === '') {
+        showNotification(
+          'Lỗi',
+          'Vui lòng nhập số điện thoại',
+          'error'
+        );
+        return;
+      }
+      
+      // Validate phone format
+      const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+      const cleanPhone = formData.phone.replace(/\s+/g, '');
+      if (!phoneRegex.test(cleanPhone)) {
+        showNotification(
+          'Lỗi',
+          'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678 hoặc +84912345678)',
+          'error'
+        );
+        return;
+      }
+    }
+    
     setLoading(true);
 
     try {
