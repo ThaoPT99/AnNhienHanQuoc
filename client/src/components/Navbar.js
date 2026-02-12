@@ -75,6 +75,7 @@ const Navbar = () => {
     { path: '/events', label: 'Sự kiện', icon: '📅' },
     { path: '/videos', label: 'Video', icon: '🎥' },
     { path: '/community', label: 'Cộng đồng', icon: '💬' },
+    { path: '/lucky-draw', label: 'Vòng quay may mắn', icon: '🎰' },
     { path: '/progress-tracker', label: 'Theo dõi hồ sơ', icon: '📊' },
     { path: '/referral', label: 'Giới thiệu bạn bè', icon: '🎁' },
     { path: '/gamification', label: 'Điểm thưởng', icon: '🎮' },
