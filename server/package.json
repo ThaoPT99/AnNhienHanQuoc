@@ -7,9 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "backup": "node backup-db.js",
-    "backup:auto": "node backup-db.js --auto",
-    "enable-lucky-draw": "node run-enable-lucky-draw.js",
-    "enable-lucky-draw": "node enable-lucky-draw.js"
+    "backup:auto": "node backup-db.js --auto"
   },
   "dependencies": {
     "axios": "^1.6.0",
