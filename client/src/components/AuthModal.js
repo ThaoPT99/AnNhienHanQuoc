@@ -149,19 +149,45 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
         console.error('❌ [DEBUG] AuthModal: Request failed:', res.status, data);
         setLoading(false); // Set loading false on error
         
-        // Handle email already registered
+        // Handle different error cases
         if (res.status === 400) {
+          // Email already registered or validation error
+          if (!isLogin) {
+            showNotification(
+              'Email đã được đăng ký',
+              data.message || 'Email này đã được đăng ký. Vui lòng đăng nhập thay vì đăng ký mới.',
+              'info'
+            );
+            setIsLogin(true); // Switch to login form
+            setFormData({ email: formData.email, password: '', name: '', phone: '' }); // Keep email, clear password
+          } else {
+            showNotification(
+              'Lỗi',
+              data.error || data.message || 'Thông tin đăng nhập không hợp lệ',
+              'error'
+            );
+          }
+        } else if (res.status === 401) {
+          // Invalid email or password
           showNotification(
-            'Email đã được đăng ký',
-            data.message || 'Email này đã được đăng ký. Vui lòng đăng nhập thay vì đăng ký mới.',
-            'info'
+            'Đăng nhập thất bại',
+            data.error || 'Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.',
+            'error'
           );
-          setIsLogin(true); // Switch to login form
-          setFormData({ email: formData.email, password: '', name: '', phone: '' }); // Keep email, clear password
+          // Clear password field
+          setFormData({ ...formData, password: '' });
+        } else if (res.status === 403) {
+          // Email not verified
+          showNotification(
+            'Email chưa được xác thực',
+            data.error || data.message || 'Vui lòng kiểm tra email và xác thực tài khoản trước khi đăng nhập.',
+            'warning'
+          );
         } else {
+          // Other errors
           showNotification(
             'Lỗi',
-            data.error || data.message || 'Có lỗi xảy ra',
+            data.error || data.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.',
             'error'
           );
         }
