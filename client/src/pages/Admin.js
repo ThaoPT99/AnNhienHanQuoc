@@ -1594,35 +1594,77 @@ const Admin = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '15px' }}>
                       <div>
                         <label>Tỷ lệ trúng thưởng (%)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          value={luckyDrawSettings.win_rate || 30}
-                          onChange={async (e) => {
-                            const newRate = parseFloat(e.target.value);
-                            const token = getToken();
-                            if (!token) return;
-                            try {
-                              const response = await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
-                                { win_rate: newRate, is_active: luckyDrawSettings.is_active !== undefined ? luckyDrawSettings.is_active : 1 },
-                                { headers: { 'x-admin-token': token } }
-                              );
-                              // Update state with response from server to ensure sync
-                              if (response.data) {
-                                setLuckyDrawSettings(response.data);
-                              } else {
-                                setLuckyDrawSettings({ ...luckyDrawSettings, win_rate: newRate });
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            value={luckyDrawSettings.win_rate || 30}
+                            onChange={(e) => {
+                              // Only update local state, don't call API yet
+                              const newRate = parseFloat(e.target.value) || 0;
+                              setLuckyDrawSettings({ ...luckyDrawSettings, win_rate: newRate });
+                            }}
+                            onBlur={async (e) => {
+                              // Call API when user leaves the input field
+                              const newRate = parseFloat(e.target.value) || 30;
+                              const token = getToken();
+                              if (!token) return;
+                              try {
+                                const response = await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
+                                  { win_rate: newRate, is_active: luckyDrawSettings.is_active !== undefined ? luckyDrawSettings.is_active : 1 },
+                                  { headers: { 'x-admin-token': token } }
+                                );
+                                // Update state with response from server to ensure sync
+                                if (response.data) {
+                                  setLuckyDrawSettings(response.data);
+                                }
+                                alert('✅ Đã cập nhật tỷ lệ trúng thưởng!');
+                              } catch (err) {
+                                console.error('Error updating win rate:', err);
+                                alert('Không thể cập nhật. Vui lòng thử lại.');
+                                // Revert to original value on error
+                                const settingsRes = await axios.get(`${API_URL}/api/admin/lucky-draw/settings`, {
+                                  headers: { 'x-admin-token': token }
+                                });
+                                if (settingsRes.data) {
+                                  setLuckyDrawSettings(settingsRes.data);
+                                }
                               }
-                              alert('✅ Đã cập nhật tỷ lệ trúng thưởng!');
-                            } catch (err) {
-                              console.error('Error updating win rate:', err);
-                              alert('Không thể cập nhật. Vui lòng thử lại.');
-                            }
-                          }}
-                          style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                        />
+                            }}
+                            onKeyDown={(e) => {
+                              // Call API when user presses Enter
+                              if (e.key === 'Enter') {
+                                e.target.blur();
+                              }
+                            }}
+                            style={{ flex: 1, padding: '8px', marginTop: '5px' }}
+                          />
+                          <button
+                            onClick={async () => {
+                              const newRate = luckyDrawSettings.win_rate || 30;
+                              const token = getToken();
+                              if (!token) return;
+                              try {
+                                const response = await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
+                                  { win_rate: newRate, is_active: luckyDrawSettings.is_active !== undefined ? luckyDrawSettings.is_active : 1 },
+                                  { headers: { 'x-admin-token': token } }
+                                );
+                                if (response.data) {
+                                  setLuckyDrawSettings(response.data);
+                                }
+                                alert('✅ Đã cập nhật tỷ lệ trúng thưởng!');
+                              } catch (err) {
+                                console.error('Error updating win rate:', err);
+                                alert('Không thể cập nhật. Vui lòng thử lại.');
+                              }
+                            }}
+                            style={{ padding: '8px 15px', marginTop: '5px', background: '#667eea', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                          >
+                            Lưu
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label>Trạng thái</label>
