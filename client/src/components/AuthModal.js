@@ -11,7 +11,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: ''
+    name: '',
+    phone: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +22,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
   useEffect(() => {
     if (isOpen) {
       setIsLogin(initialMode === 'login');
-      setFormData({ email: '', password: '', name: '' });
+      setFormData({ email: '', password: '', name: '', phone: '' });
     }
   }, [isOpen, initialMode]);
 
@@ -40,6 +41,31 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate phone for registration
+    if (!isLogin) {
+      if (!formData.phone || formData.phone.trim() === '') {
+        showNotification(
+          'Lỗi',
+          'Vui lòng nhập số điện thoại',
+          'error'
+        );
+        return;
+      }
+      
+      // Validate phone format
+      const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+      const cleanPhone = formData.phone.replace(/\s+/g, '');
+      if (!phoneRegex.test(cleanPhone)) {
+        showNotification(
+          'Lỗi',
+          'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678 hoặc +84912345678)',
+          'error'
+        );
+        return;
+      }
+    }
+    
     setLoading(true);
 
     // Create AbortController for timeout
@@ -117,7 +143,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
             'success'
           );
           setIsLogin(true); // Switch to login form
-          setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password
+          setFormData({ email: formData.email, password: '', name: '', phone: '' }); // Keep email, clear password
         }
       } else {
         console.error('❌ [DEBUG] AuthModal: Request failed:', res.status, data);
@@ -131,7 +157,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
             'info'
           );
           setIsLogin(true); // Switch to login form
-          setFormData({ email: formData.email, password: '', name: '' }); // Keep email, clear password
+          setFormData({ email: formData.email, password: '', name: '', phone: '' }); // Keep email, clear password
         } else {
           showNotification(
             'Lỗi',
@@ -256,6 +282,22 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
               />
             </div>
 
+            {!isLogin && (
+              <div className="form-group">
+                <label>Số điện thoại</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="0912345678 hoặc +84912345678"
+                  required={!isLogin}
+                  pattern="(\+84|0)[0-9]{9,10}"
+                  title="Vui lòng nhập số điện thoại hợp lệ (VD: 0912345678 hoặc +84912345678)"
+                />
+              </div>
+            )}
+
             <div className="form-group">
               <label>Mật khẩu</label>
               <input
@@ -282,7 +324,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
                 className="link-btn"
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setFormData({ email: '', password: '', name: '' });
+                  setFormData({ email: '', password: '', name: '', phone: '' });
                 }}
               >
                 {isLogin ? 'Đăng ký ngay' : 'Đăng nhập'}
