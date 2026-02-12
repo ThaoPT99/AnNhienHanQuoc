@@ -29,6 +29,7 @@ const Admin = () => {
   const [showLuckyDrawRewardModal, setShowLuckyDrawRewardModal] = useState(false);
   const [editingLuckyDrawReward, setEditingLuckyDrawReward] = useState(null);
   const [luckyDrawRewardForm, setLuckyDrawRewardForm] = useState({ name: '', description: '', image: '', stock_quantity: 0, is_active: 1 });
+  const [scholarshipInquiries, setScholarshipInquiries] = useState([]);
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventForm, setEventForm] = useState({
@@ -69,7 +70,7 @@ const Admin = () => {
       setLoading(true);
       const headers = { 'x-admin-token': token };
 
-      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes, serviceRes, reviewsRes, visaRes, participantsRes, rewardsRes, statsLuckyRes, settingsRes] = await Promise.all([
+      const [contactsRes, newsletterRes, eventsRes, recruitmentRes, resourcesRes, consultationsRes, bookingsRes, visitsRes, statsRes, communityRes, eventListRes, usersRes, serviceRes, reviewsRes, visaRes, participantsRes, rewardsRes, statsLuckyRes, settingsRes, scholarshipInquiriesRes] = await Promise.all([
         axios.get(`${API_URL}/api/contacts`, { headers }),
         axios.get(`${API_URL}/api/newsletter/subscribers`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/events/registrations`, { headers }).catch(() => ({ data: [] })),
@@ -88,7 +89,8 @@ const Admin = () => {
         axios.get(`${API_URL}/api/admin/lucky-draw/participants`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/admin/lucky-draw/rewards`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/admin/lucky-draw/stats`, { headers }).catch(() => ({ data: null })),
-        axios.get(`${API_URL}/api/admin/lucky-draw/settings`, { headers }).catch(() => ({ data: { win_rate: 30, is_active: 1 } }))
+        axios.get(`${API_URL}/api/admin/lucky-draw/settings`, { headers }).catch(() => ({ data: { win_rate: 30, is_active: 1 } })),
+        axios.get(`${API_URL}/api/admin/scholarship/inquiries`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setContacts(contactsRes.data || []);
@@ -110,6 +112,7 @@ const Admin = () => {
       setLuckyDrawRewards(rewardsRes.data || []);
       setLuckyDrawStats(statsLuckyRes.data || null);
       setLuckyDrawSettings(settingsRes.data || { win_rate: 30, is_active: 1 });
+      setScholarshipInquiries(scholarshipInquiriesRes.data || []);
       setError(null);
     } catch (err) {
       setError('Không thể tải dữ liệu. Vui lòng kiểm tra kết nối server hoặc đăng nhập lại.');
@@ -426,7 +429,8 @@ const Admin = () => {
     { id: 'events', label: '📅 Sự kiện', count: events.length, icon: '🎉' },
     { id: 'recruitment', label: '💼 Tuyển dụng', count: recruitment.length, icon: '👔' },
     { id: 'resources', label: '📥 Tài liệu', count: resources.length, icon: '📚' },
-    { id: 'lucky-draw', label: '🎁 Vòng quay may mắn', count: luckyDrawParticipants.length, icon: '🎰' }
+    { id: 'lucky-draw', label: '🎁 Vòng quay may mắn', count: luckyDrawParticipants.length, icon: '🎰' },
+    { id: 'scholarship-inquiries', label: '🎓 Tìm học bổng', count: scholarshipInquiries.length, icon: '🎓' }
   ];
 
   // const getCurrentData = () => { // Unused but kept for potential future use
@@ -1818,6 +1822,66 @@ const Admin = () => {
                     </table>
                   )}
                 </div>
+
+            {activeTab === 'scholarship-inquiries' && (
+              <div className="data-table-wrapper">
+                <h2 className="section-title">🎓 Danh sách người tìm học bổng ({scholarshipInquiries.length})</h2>
+                {scholarshipInquiries.length === 0 ? (
+                  <div className="no-data">Chưa có người nào để lại thông tin</div>
+                ) : (
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Họ và tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Thông tin profile</th>
+                        <th>Số học bổng phù hợp</th>
+                        <th>Ngày gửi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scholarshipInquiries.map((inquiry, index) => {
+                        let profileData = {};
+                        let matchedScholarships = [];
+                        try {
+                          profileData = inquiry.profile_data ? JSON.parse(inquiry.profile_data) : {};
+                          matchedScholarships = inquiry.matched_scholarships ? JSON.parse(inquiry.matched_scholarships) : [];
+                        } catch (e) {
+                          console.error('Error parsing inquiry data:', e);
+                        }
+                        return (
+                          <tr key={inquiry.id}>
+                            <td>{index + 1}</td>
+                            <td><strong>{inquiry.name}</strong></td>
+                            <td><a href={`mailto:${inquiry.email}`}>{inquiry.email}</a></td>
+                            <td>
+                              {inquiry.phone ? (
+                                <a href={`tel:${inquiry.phone}`}>{inquiry.phone}</a>
+                              ) : (
+                                <em>Không có</em>
+                              )}
+                            </td>
+                            <td>
+                              <div style={{ fontSize: '0.9rem' }}>
+                                {profileData.gpa && <div>GPA: {profileData.gpa}</div>}
+                                {profileData.topik && <div>TOPIK: {profileData.topik}</div>}
+                                {profileData.major && <div>Ngành: {profileData.major}</div>}
+                                {profileData.english && <div>✓ Có tiếng Anh</div>}
+                                {profileData.financialNeed && <div>✓ Cần hỗ trợ tài chính</div>}
+                              </div>
+                            </td>
+                            <td>{matchedScholarships.length} học bổng</td>
+                            <td>{formatDate(inquiry.created_at)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
 
                 {/* Reward Modal */}
                 {showLuckyDrawRewardModal && (

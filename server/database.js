@@ -159,6 +159,24 @@ function initializeDatabase() {
       }
     });
 
+    // Create scholarship_inquiries table
+    db.run(`CREATE TABLE IF NOT EXISTS scholarship_inquiries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      profile_data TEXT,
+      matched_scholarships TEXT,
+      created_at DATETIME DEFAULT (datetime('now')),
+      status TEXT DEFAULT 'pending'
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating scholarship_inquiries table:', err.message);
+      } else {
+        console.log('✅ Scholarship inquiries table ready');
+      }
+    });
+
     // Create event_details table (for event information)
     db.run(`CREATE TABLE IF NOT EXISTS event_details (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2674,6 +2692,26 @@ const dbHelpers = {
         callback(null, { deleted: this.changes });
       }
     });
+  },
+
+  // Scholarship inquiry functions
+  createScholarshipInquiry: (inquiry, callback) => {
+    const { name, email, phone, profile_data, matched_scholarships } = inquiry;
+    db.run(
+      'INSERT INTO scholarship_inquiries (name, email, phone, profile_data, matched_scholarships) VALUES (?, ?, ?, ?, ?)',
+      [name, email, phone, JSON.stringify(profile_data || {}), JSON.stringify(matched_scholarships || [])],
+      function(err) {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, { id: this.lastID, name, email, phone });
+        }
+      }
+    );
+  },
+
+  getAllScholarshipInquiries: (callback) => {
+    db.all('SELECT * FROM scholarship_inquiries ORDER BY created_at DESC', callback);
   }
 };
 

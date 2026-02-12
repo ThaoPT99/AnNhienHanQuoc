@@ -3180,6 +3180,7 @@ server.listen(PORT, () => {
   console.log(`   - POST /api/leaderboard/sync`);
   console.log(`   - GET /api/rewards`);
   console.log(`   - POST /api/rewards/redeem`);
+  console.log(`   - POST /api/scholarship/inquiry`);
   
   // Initialize Cloudinary check at runtime (not during build)
   // This prevents Railway from trying to resolve secrets during build phase
@@ -3817,6 +3818,66 @@ app.post('/api/lucky-draw/participate', (req, res) => {
         });
       }
     });
+  });
+});
+
+// Scholarship inquiry routes
+app.post('/api/scholarship/inquiry', (req, res) => {
+  const { name, email, phone, profile, matchedScholarships } = req.body;
+  
+  if (!name || !email || !phone) {
+    res.status(400).json({ error: 'Name, email, and phone are required' });
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  // Clean phone number (remove spaces)
+  const cleanPhone = phone.replace(/\s+/g, '');
+
+  // Validate phone format (Vietnamese phone numbers: 10-11 digits, may start with 0 or +84)
+  const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
+  if (!phoneRegex.test(cleanPhone)) {
+    res.status(400).json({ error: 'Invalid phone number format. Please use Vietnamese phone number format (e.g., 0912345678 or +84912345678)' });
+    return;
+  }
+
+  dbHelpers.createScholarshipInquiry({
+    name,
+    email,
+    phone: cleanPhone,
+    profile_data: profile || {},
+    matched_scholarships: matchedScholarships || []
+  }, (err, inquiry) => {
+    if (err) {
+      console.error('Error creating scholarship inquiry:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.status(201).json({ message: 'Inquiry submitted successfully', inquiry });
+  });
+});
+
+// Get all scholarship inquiries (admin only)
+app.get('/api/admin/scholarship/inquiries', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  dbHelpers.getAllScholarshipInquiries((err, inquiries) => {
+    if (err) {
+      console.error('Error fetching scholarship inquiries:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(inquiries || []);
   });
 });
 
