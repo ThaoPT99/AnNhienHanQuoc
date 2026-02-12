@@ -1510,6 +1510,7 @@ const Admin = () => {
                         <tr>
                           <th>STT</th>
                           <th>Email</th>
+                          <th>Số điện thoại</th>
                           <th>Tài liệu</th>
                           <th>ID Tài liệu</th>
                           <th>Ngày tải</th>
@@ -1520,6 +1521,13 @@ const Admin = () => {
                           <tr key={item.id}>
                             <td>{index + 1}</td>
                             <td><a href={`mailto:${item.email}`}>{item.email}</a></td>
+                            <td>
+                              {item.phone ? (
+                                <a href={`tel:${item.phone}`}>{item.phone}</a>
+                              ) : (
+                                <em style={{ color: '#999' }}>Không có</em>
+                              )}
+                            </td>
                             <td>{item.resource_title || `Tài liệu #${item.resource_id}`}</td>
                             <td>#{item.resource_id}</td>
                             <td>{formatDate(item.downloaded_at)}</td>
