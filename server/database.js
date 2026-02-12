@@ -778,7 +778,7 @@ function initializeDatabase() {
     // Create lucky_draw_rewards table
     db.run(`CREATE TABLE IF NOT EXISTS lucky_draw_rewards (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
+      name TEXT NOT NULL UNIQUE,
       description TEXT,
       image TEXT,
       stock_quantity INTEGER DEFAULT 0,
@@ -790,6 +790,12 @@ function initializeDatabase() {
         console.error('Error creating lucky_draw_rewards table:', err.message);
       } else {
         console.log('✅ Lucky draw rewards table ready');
+        // Add UNIQUE constraint to name column if it doesn't exist (for existing databases)
+        db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_lucky_draw_rewards_name_unique ON lucky_draw_rewards(name)`, (indexErr) => {
+          if (indexErr && !indexErr.message.includes('already exists')) {
+            console.error('Error creating unique index on lucky_draw_rewards.name:', indexErr.message);
+          }
+        });
       }
     });
 
@@ -840,18 +846,30 @@ function initializeDatabase() {
       if (err) console.error('Error creating lucky draw participants date index:', err.message);
     });
 
-    // Insert default lucky draw rewards
-    db.run(`INSERT OR IGNORE INTO lucky_draw_rewards (name, description, stock_quantity, is_active) VALUES
-      ('Gấu bông', 'Gấu bông dễ thương', 10, 1),
-      ('Trà sữa', 'Voucher trà sữa 50k', 20, 1),
-      ('Thẻ cào điện thoại 50k', 'Thẻ cào điện thoại mệnh giá 50.000đ', 15, 1),
-      ('Thẻ cào điện thoại 100k', 'Thẻ cào điện thoại mệnh giá 100.000đ', 10, 1),
-      ('Voucher ăn uống 100k', 'Voucher ăn uống trị giá 100.000đ', 15, 1)
-    `, (err) => {
+    // Insert default lucky draw rewards only if table is empty
+    db.get('SELECT COUNT(*) as count FROM lucky_draw_rewards', (err, row) => {
       if (err) {
-        console.error('Error inserting default lucky draw rewards:', err.message);
+        console.error('Error checking lucky draw rewards count:', err.message);
+        return;
+      }
+      
+      // Only insert default rewards if table is empty
+      if (row && row.count === 0) {
+        db.run(`INSERT INTO lucky_draw_rewards (name, description, stock_quantity, is_active) VALUES
+          ('Gấu bông', 'Gấu bông dễ thương', 10, 1),
+          ('Trà sữa', 'Voucher trà sữa 50k', 20, 1),
+          ('Thẻ cào điện thoại 50k', 'Thẻ cào điện thoại mệnh giá 50.000đ', 15, 1),
+          ('Thẻ cào điện thoại 100k', 'Thẻ cào điện thoại mệnh giá 100.000đ', 10, 1),
+          ('Voucher ăn uống 100k', 'Voucher ăn uống trị giá 100.000đ', 15, 1)
+        `, (insertErr) => {
+          if (insertErr) {
+            console.error('Error inserting default lucky draw rewards:', insertErr.message);
+          } else {
+            console.log('✅ Default lucky draw rewards inserted (table was empty)');
+          }
+        });
       } else {
-        console.log('✅ Default lucky draw rewards inserted');
+        console.log('✅ Lucky draw rewards table already has data, skipping default insert');
       }
     });
 
