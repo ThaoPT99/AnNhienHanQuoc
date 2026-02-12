@@ -2505,17 +2505,32 @@ const dbHelpers = {
   },
 
   updateLuckyDrawSettings: (winRate, isActive, callback) => {
-    db.run(
-      'UPDATE lucky_draw_settings SET win_rate = ?, is_active = ?, updated_at = datetime(\'now\') WHERE id = 1',
-      [winRate, isActive],
-      function(err) {
-        if (err) {
-          callback(err, null);
-        } else {
-          db.get('SELECT * FROM lucky_draw_settings WHERE id = 1', callback);
+    // If isActive is undefined, only update win_rate
+    if (isActive === undefined) {
+      db.run(
+        'UPDATE lucky_draw_settings SET win_rate = ?, updated_at = datetime(\'now\') WHERE id = 1',
+        [winRate],
+        function(err) {
+          if (err) {
+            callback(err, null);
+          } else {
+            db.get('SELECT * FROM lucky_draw_settings WHERE id = 1', callback);
+          }
         }
-      }
-    );
+      );
+    } else {
+      db.run(
+        'UPDATE lucky_draw_settings SET win_rate = ?, is_active = ?, updated_at = datetime(\'now\') WHERE id = 1',
+        [winRate, isActive],
+        function(err) {
+          if (err) {
+            callback(err, null);
+          } else {
+            db.get('SELECT * FROM lucky_draw_settings WHERE id = 1', callback);
+          }
+        }
+      );
+    }
   },
 
   createLuckyDrawParticipant: (participant, callback) => {
@@ -2618,6 +2633,16 @@ const dbHelpers = {
         callback(err, null);
       } else {
         callback(null, { deleted: this.changes > 0 });
+      }
+    });
+  },
+
+  deleteAllLuckyDrawRewards: (callback) => {
+    db.run('DELETE FROM lucky_draw_rewards', function(err) {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, { deleted: this.changes });
       }
     });
   }

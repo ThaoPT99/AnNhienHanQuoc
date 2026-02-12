@@ -3190,7 +3190,7 @@ server.listen(PORT, () => {
     console.log('ℹ️  Cloudinary not configured, using local storage');
   }
 
-  // Auto-enable lucky draw on server startup (ensure it's always active)
+  // Initialize lucky draw settings on server startup (if not exists)
   setTimeout(() => {
     dbHelpers.getLuckyDrawSettings((err, settings) => {
       if (err) {
@@ -3198,32 +3198,18 @@ server.listen(PORT, () => {
         return;
       }
       
-      // If settings exist but is_active is 0, force it to 1
-      if (settings && settings.is_active !== 1) {
-        console.log('🔄 Auto-enabling lucky draw program (ensuring it stays active)...');
-        dbHelpers.updateLuckyDrawSettings(
-          settings.win_rate || 30,
-          1, // Force is_active = 1
-          (updateErr, updatedSettings) => {
-            if (updateErr) {
-              console.error('❌ Error auto-enabling lucky draw:', updateErr.message);
-            } else {
-              console.log('✅ Lucky draw program is now active and will stay active');
-            }
-          }
-        );
-      } else if (!settings) {
-        // If no settings exist, create with is_active = 1
-        console.log('🔄 Initializing lucky draw settings (ensuring it stays active)...');
+      if (!settings) {
+        // If no settings exist, create with default values
+        console.log('🔄 Initializing lucky draw settings...');
         dbHelpers.updateLuckyDrawSettings(30, 1, (updateErr, updatedSettings) => {
           if (updateErr) {
             console.error('❌ Error initializing lucky draw settings:', updateErr.message);
           } else {
-            console.log('✅ Lucky draw program initialized and active');
+            console.log('✅ Lucky draw program initialized');
           }
         });
       } else {
-        console.log('✅ Lucky draw program is already active');
+        console.log('✅ Lucky draw settings loaded');
       }
     });
   }, 2000); // Wait 2 seconds for database to be fully ready
@@ -3969,8 +3955,25 @@ app.delete('/api/admin/lucky-draw/rewards/:id', (req, res) => {
   });
 });
 
+// Delete all lucky draw rewards (admin only)
+app.delete('/api/admin/lucky-draw/rewards', (req, res) => {
+  const token = req.headers['x-admin-token'];
+  if (!token || token !== process.env.ADMIN_TOKEN) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  dbHelpers.deleteAllLuckyDrawRewards((err, result) => {
+    if (err) {
+      console.error('Error deleting all rewards:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ success: true, message: `Đã xóa ${result.deleted} phần quà thành công` });
+  });
+});
+
 // Update settings (admin only)
-// NOTE: is_active is always forced to 1 to keep lucky draw always active
 app.put('/api/admin/lucky-draw/settings', (req, res) => {
   const token = req.headers['x-admin-token'];
   if (!token || token !== process.env.ADMIN_TOKEN) {
@@ -3984,22 +3987,20 @@ app.put('/api/admin/lucky-draw/settings', (req, res) => {
     return res.status(400).json({ error: 'Tỷ lệ trúng thưởng phải từ 0 đến 100' });
   }
 
-  // Force is_active to always be 1 (always active)
-  // This ensures the lucky draw program is always running
-  const forcedIsActive = 1;
+  if (is_active !== undefined && is_active !== 0 && is_active !== 1) {
+    return res.status(400).json({ error: 'Trạng thái phải là 0 (tắt) hoặc 1 (bật)' });
+  }
 
   dbHelpers.updateLuckyDrawSettings(
     parseFloat(win_rate),
-    forcedIsActive,
+    is_active !== undefined ? parseInt(is_active) : undefined,
     (err, settings) => {
       if (err) {
         console.error('Error updating settings:', err);
         res.status(500).json({ error: err.message });
         return;
       }
-      // Ensure response always shows is_active = 1
-      const response = { ...settings, is_active: 1 };
-      res.json(response);
+      res.json(settings);
     }
   );
 });
@@ -4018,9 +4019,7 @@ app.get('/api/admin/lucky-draw/settings', (req, res) => {
       res.status(500).json({ error: err.message });
       return;
     }
-    // Always return is_active = 1 to ensure it's always active
     const response = settings || { win_rate: 30, is_active: 1 };
-    response.is_active = 1; // Force to always be active
     res.json(response);
   });
 });
