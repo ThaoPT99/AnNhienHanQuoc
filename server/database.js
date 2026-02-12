@@ -816,13 +816,25 @@ function initializeDatabase() {
         console.log('✅ Lucky draw participants table ready');
         // Create unique indexes to ensure each email and phone can only participate once
         db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_lucky_draw_participants_email ON lucky_draw_participants(email)`, (indexErr) => {
-          if (indexErr && !indexErr.message.includes('already exists')) {
-            console.error('Error creating unique index on email:', indexErr.message);
+          if (indexErr) {
+            if (indexErr.message.includes('UNIQUE constraint') || indexErr.message.includes('duplicate')) {
+              console.log('⚠️  Unique index on email already exists or duplicate data found');
+            } else {
+              console.error('❌ Error creating unique index on email:', indexErr.message);
+            }
+          } else {
+            console.log('✅ Unique index on email created successfully');
           }
         });
         db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_lucky_draw_participants_phone ON lucky_draw_participants(phone)`, (indexErr) => {
-          if (indexErr && !indexErr.message.includes('already exists')) {
-            console.error('Error creating unique index on phone:', indexErr.message);
+          if (indexErr) {
+            if (indexErr.message.includes('UNIQUE constraint') || indexErr.message.includes('duplicate')) {
+              console.log('⚠️  Unique index on phone already exists or duplicate data found');
+            } else {
+              console.error('❌ Error creating unique index on phone:', indexErr.message);
+            }
+          } else {
+            console.log('✅ Unique index on phone created successfully');
           }
         });
       }
@@ -2555,11 +2567,11 @@ const dbHelpers = {
       function(err) {
         if (err) {
           // Check if error is due to duplicate email or phone
-          if (err.message.includes('UNIQUE constraint') || err.message.includes('unique constraint')) {
-            console.error('❌ Duplicate participant detected:', { email, phone });
+          if (err.message && (err.message.includes('UNIQUE constraint') || err.message.includes('unique constraint') || err.message.includes('duplicate'))) {
+            console.error('❌ Duplicate participant detected:', { email, phone, error: err.message });
             callback(new Error('Email hoặc số điện thoại này đã tham gia rồi'), null);
           } else {
-            console.error('❌ Database error inserting participant:', err);
+            console.error('❌ Database error inserting participant:', { email, phone, error: err.message || err });
             callback(err, null);
           }
         } else {

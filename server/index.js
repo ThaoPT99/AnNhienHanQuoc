@@ -3729,12 +3729,14 @@ app.post('/api/lucky-draw/participate', (req, res) => {
               reward_name: null
             }, (err, participant) => {
               if (err) {
-                console.error('Error creating participant:', err);
+                console.error('❌ Error creating participant (no rewards):', err);
                 if (err.message && err.message.includes('đã tham gia')) {
                   return res.status(400).json({ error: err.message });
                 }
-                return res.status(500).json({ error: 'Lỗi hệ thống' });
+                console.error('❌ Full error details:', { email, phone, error: err.message || err });
+                return res.status(500).json({ error: 'Lỗi hệ thống khi lưu kết quả' });
               }
+              console.log('✅ Participant (no rewards) created successfully:', participant);
               return res.json({
                 success: true,
                 won: false,
