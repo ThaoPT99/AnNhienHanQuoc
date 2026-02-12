@@ -1605,13 +1605,19 @@ const Admin = () => {
                             const token = getToken();
                             if (!token) return;
                             try {
-                              await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
-                                { win_rate: newRate, is_active: luckyDrawSettings.is_active },
+                              const response = await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
+                                { win_rate: newRate, is_active: luckyDrawSettings.is_active !== undefined ? luckyDrawSettings.is_active : 1 },
                                 { headers: { 'x-admin-token': token } }
                               );
-                              setLuckyDrawSettings({ ...luckyDrawSettings, win_rate: newRate });
+                              // Update state with response from server to ensure sync
+                              if (response.data) {
+                                setLuckyDrawSettings(response.data);
+                              } else {
+                                setLuckyDrawSettings({ ...luckyDrawSettings, win_rate: newRate });
+                              }
                               alert('✅ Đã cập nhật tỷ lệ trúng thưởng!');
                             } catch (err) {
+                              console.error('Error updating win rate:', err);
                               alert('Không thể cập nhật. Vui lòng thử lại.');
                             }
                           }}
@@ -1621,19 +1627,25 @@ const Admin = () => {
                       <div>
                         <label>Trạng thái</label>
                         <select
-                          value={luckyDrawSettings.is_active || 1}
+                          value={luckyDrawSettings.is_active !== undefined ? luckyDrawSettings.is_active : 1}
                           onChange={async (e) => {
                             const newIsActive = parseInt(e.target.value);
                             const token = getToken();
                             if (!token) return;
                             try {
-                              await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
+                              const response = await axios.put(`${API_URL}/api/admin/lucky-draw/settings`, 
                                 { win_rate: luckyDrawSettings.win_rate || 30, is_active: newIsActive },
                                 { headers: { 'x-admin-token': token } }
                               );
-                              setLuckyDrawSettings({ ...luckyDrawSettings, is_active: newIsActive });
+                              // Update state with response from server to ensure sync
+                              if (response.data) {
+                                setLuckyDrawSettings(response.data);
+                              } else {
+                                setLuckyDrawSettings({ ...luckyDrawSettings, is_active: newIsActive });
+                              }
                               alert(`✅ Đã ${newIsActive === 1 ? 'bật' : 'tắt'} vòng quay may mắn!`);
                             } catch (err) {
+                              console.error('Error updating lucky draw settings:', err);
                               alert('Không thể cập nhật. Vui lòng thử lại.');
                             }
                           }}
@@ -1643,7 +1655,7 @@ const Admin = () => {
                           <option value={0}>❌ Tạm dừng</option>
                         </select>
                         <p style={{ marginTop: '5px', fontSize: '0.85rem', color: '#666' }}>
-                          {luckyDrawSettings.is_active === 1 
+                          {(luckyDrawSettings.is_active !== undefined ? luckyDrawSettings.is_active : 1) === 1 
                             ? 'Chương trình vòng quay may mắn đang hoạt động' 
                             : 'Chương trình vòng quay may mắn đang tạm dừng'}
                         </p>
