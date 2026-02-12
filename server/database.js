@@ -814,6 +814,17 @@ function initializeDatabase() {
         console.error('Error creating lucky_draw_participants table:', err.message);
       } else {
         console.log('✅ Lucky draw participants table ready');
+        // Create unique indexes to ensure each email and phone can only participate once
+        db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_lucky_draw_participants_email ON lucky_draw_participants(email)`, (indexErr) => {
+          if (indexErr && !indexErr.message.includes('already exists')) {
+            console.error('Error creating unique index on email:', indexErr.message);
+          }
+        });
+        db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_lucky_draw_participants_phone ON lucky_draw_participants(phone)`, (indexErr) => {
+          if (indexErr && !indexErr.message.includes('already exists')) {
+            console.error('Error creating unique index on phone:', indexErr.message);
+          }
+        });
       }
     });
 
@@ -2543,8 +2554,14 @@ const dbHelpers = {
       [email, phone, wonValue, reward_id || null, reward_name || null],
       function(err) {
         if (err) {
-          console.error('❌ Database error inserting participant:', err);
-          callback(err, null);
+          // Check if error is due to duplicate email or phone
+          if (err.message.includes('UNIQUE constraint') || err.message.includes('unique constraint')) {
+            console.error('❌ Duplicate participant detected:', { email, phone });
+            callback(new Error('Email hoặc số điện thoại này đã tham gia rồi'), null);
+          } else {
+            console.error('❌ Database error inserting participant:', err);
+            callback(err, null);
+          }
         } else {
           const insertedParticipant = { 
             id: this.lastID, 

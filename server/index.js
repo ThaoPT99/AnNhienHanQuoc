@@ -3730,6 +3730,9 @@ app.post('/api/lucky-draw/participate', (req, res) => {
             }, (err, participant) => {
               if (err) {
                 console.error('Error creating participant:', err);
+                if (err.message && err.message.includes('đã tham gia')) {
+                  return res.status(400).json({ error: err.message });
+                }
                 return res.status(500).json({ error: 'Lỗi hệ thống' });
               }
               return res.json({
@@ -3770,6 +3773,9 @@ app.post('/api/lucky-draw/participate', (req, res) => {
             }, (err, participant) => {
               if (err) {
                 console.error('❌ Error creating participant:', err);
+                if (err.message && err.message.includes('đã tham gia')) {
+                  return res.status(400).json({ error: err.message });
+                }
                 return res.status(500).json({ error: 'Lỗi hệ thống' });
               }
               console.log('✅ Winner participant created successfully:', participant);
@@ -3794,6 +3800,9 @@ app.post('/api/lucky-draw/participate', (req, res) => {
         }, (err, participant) => {
           if (err) {
             console.error('❌ Error creating participant:', err);
+            if (err.message && err.message.includes('đã tham gia')) {
+              return res.status(400).json({ error: err.message });
+            }
             return res.status(500).json({ error: 'Lỗi hệ thống' });
           }
           console.log('✅ Loser participant created successfully:', participant);
