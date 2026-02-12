@@ -668,6 +668,7 @@ const Admin = () => {
                         <th>Hạng</th>
                         <th>Email</th>
                         <th>Tên</th>
+                        <th>Số điện thoại</th>
                         <th>Xác thực</th>
                         <th>Điểm</th>
                         <th>Level</th>
@@ -701,6 +702,13 @@ const Admin = () => {
                           </td>
                           <td><a href={`mailto:${user.user_email}`}>{user.user_email}</a></td>
                           <td>{user.user_name || user.display_name || '-'}</td>
+                          <td>
+                            {user.phone ? (
+                              <a href={`tel:${user.phone}`}>{user.phone}</a>
+                            ) : (
+                              <em style={{ color: '#999' }}>Không có</em>
+                            )}
+                          </td>
                           <td>
                             {user.email_verified === true ? (
                               <span style={{

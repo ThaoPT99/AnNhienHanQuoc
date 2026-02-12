@@ -1829,6 +1829,7 @@ const dbHelpers = {
           `SELECT 
             email,
             display_name,
+            phone,
             email_verified,
             created_at as registered_at,
             last_login
@@ -1858,7 +1859,8 @@ const dbHelpers = {
                 last_updated: user.last_updated,
                 email_verified: null,
                 registered_at: user.created_at,
-                last_login: null
+                last_login: null,
+                phone: null
               });
             });
             
@@ -1871,6 +1873,7 @@ const dbHelpers = {
                 existing.email_verified = authUser.email_verified === 1;
                 existing.registered_at = authUser.registered_at || existing.registered_at;
                 existing.last_login = authUser.last_login;
+                existing.phone = authUser.phone || existing.phone;
               } else {
                 // New user from auth table (not in user_points yet)
                 usersMap.set(authUser.email, {
@@ -1884,7 +1887,8 @@ const dbHelpers = {
                   last_updated: authUser.registered_at,
                   email_verified: authUser.email_verified === 1,
                   registered_at: authUser.registered_at,
-                  last_login: authUser.last_login
+                  last_login: authUser.last_login,
+                  phone: authUser.phone || null
                 });
               }
             });
