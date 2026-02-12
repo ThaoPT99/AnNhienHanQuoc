@@ -3700,6 +3700,9 @@ app.post('/api/lucky-draw/participate', (req, res) => {
       // Check if user wins (random based on win rate)
       const random = Math.random() * 100;
       const won = random <= winRate;
+      
+      // Debug logging
+      console.log(`🎲 Lucky Draw - Email: ${email}, Win Rate: ${winRate}%, Random: ${random.toFixed(2)}, Won: ${won}`);
 
       let reward = null;
       let rewardId = null;
