@@ -23,7 +23,7 @@ const Login = () => {
   // Check if already logged in
   useEffect(() => {
     if (isAuthenticated()) {
-      const redirectTo = searchParams.get('redirect') || '/community';
+      const redirectTo = searchParams.get('redirect') || '/';
       navigate(redirectTo);
     }
   }, [navigate, searchParams]);
@@ -80,9 +80,24 @@ const Login = () => {
             'success'
           );
 
-          // Redirect to previous page or community
-          const redirectTo = searchParams.get('redirect') || '/community';
-          navigate(redirectTo);
+          // Redirect logic:
+          // 1. If redirect param exists, go there
+          // 2. If user came from another page (referrer), go back
+          // 3. Otherwise, go to home page
+          const redirectParam = searchParams.get('redirect');
+          if (redirectParam) {
+            navigate(redirectParam);
+          } else {
+            // Check if user came from another page
+            const referrer = document.referrer;
+            if (referrer && referrer.includes(window.location.origin) && !referrer.includes('/login')) {
+              // Go back to previous page
+              window.history.back();
+            } else {
+              // Go to home page
+              navigate('/');
+            }
+          }
         } else {
           // Registration successful
           showNotification(

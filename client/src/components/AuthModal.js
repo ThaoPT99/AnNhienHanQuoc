@@ -131,7 +131,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
           
           if (!requireAuth) {
             onClose();
-            // Reload page to update navbar state
+            // Stay on current page, just reload to update navbar state
+            // This keeps user on the same page they were viewing
             window.location.reload();
           }
         } else {
