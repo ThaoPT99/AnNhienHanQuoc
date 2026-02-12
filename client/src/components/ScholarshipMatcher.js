@@ -190,10 +190,8 @@ const ScholarshipMatcher = () => {
 
       setMatchedScholarships(sorted);
       setIsAnalyzing(false);
-      // Show contact form after getting results
-      if (sorted.length > 0) {
-        setShowContactForm(true);
-      }
+      // Always show contact form at the top
+      setShowContactForm(true);
     }, 1500);
   };
 
@@ -273,6 +271,165 @@ const ScholarshipMatcher = () => {
       </div>
 
       <div className="matcher-content">
+        {/* Contact Form - Display at top */}
+        {showContactForm && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="contact-form-section"
+            style={{
+              marginBottom: '30px',
+              padding: '30px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '12px',
+              border: '2px solid #667eea',
+              color: 'white',
+              boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+            }}
+          >
+            <h3 style={{ marginBottom: '15px', fontSize: '1.5rem', color: 'white' }}>
+              📞 Để lại thông tin để được tư vấn về học bổng
+            </h3>
+            <p style={{ marginBottom: '20px', color: 'rgba(255, 255, 255, 0.9)', fontSize: '1rem' }}>
+              Điền thông tin liên hệ để chúng tôi có thể hỗ trợ bạn tốt nhất về các học bổng phù hợp
+            </p>
+            <form onSubmit={handleContactSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'white' }}>
+                    Họ và tên *
+                  </label>
+                  <input
+                    type="text"
+                    value={contactInfo.name}
+                    onChange={(e) => setContactInfo({ ...contactInfo, name: e.target.value })}
+                    required
+                    placeholder="Nhập họ và tên của bạn"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      fontSize: '16px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'white' }}>
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={contactInfo.email}
+                    onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                    required
+                    placeholder="example@email.com"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      fontSize: '16px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'white' }}>
+                    Số điện thoại *
+                  </label>
+                  <input
+                    type="tel"
+                    value={contactInfo.phone}
+                    onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                    required
+                    pattern="(\+84|0)[0-9]{9,10}"
+                    placeholder="0912345678"
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      fontSize: '16px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)'
+                    }}
+                  />
+                </div>
+              </div>
+              {submitStatus && (
+                <div style={{
+                  padding: '12px',
+                  borderRadius: '8px',
+                  marginBottom: '15px',
+                  backgroundColor: submitStatus.type === 'success' ? 'rgba(212, 237, 218, 0.9)' : 'rgba(248, 215, 218, 0.9)',
+                  color: submitStatus.type === 'success' ? '#155724' : '#721c24',
+                  border: `1px solid ${submitStatus.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+                }}>
+                  {submitStatus.message}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    flex: 1,
+                    padding: '12px 24px',
+                    background: 'white',
+                    color: '#667eea',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    opacity: isSubmitting ? 0.6 : 1,
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting) {
+                      e.target.style.transform = 'scale(1.02)';
+                      e.target.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.2)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                >
+                  {isSubmitting ? 'Đang gửi...' : 'Gửi thông tin'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowContactForm(false);
+                    setContactInfo({ name: '', email: '', phone: '' });
+                    setSubmitStatus(null);
+                  }}
+                  style={{
+                    padding: '12px 24px',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                >
+                  Bỏ qua
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
         <div className="profile-form">
           <h3>📝 Thông tin của bạn</h3>
           <div className="form-grid">
@@ -438,142 +595,6 @@ const ScholarshipMatcher = () => {
           <div className="no-results">
             <p>Chưa có kết quả. Vui lòng điền thông tin và nhấn "Tìm học bổng phù hợp"</p>
           </div>
-        )}
-
-        {/* Contact Form */}
-        {showContactForm && matchedScholarships.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="contact-form-section"
-            style={{
-              marginTop: '40px',
-              padding: '30px',
-              background: '#f8f9fa',
-              borderRadius: '12px',
-              border: '2px solid #667eea'
-            }}
-          >
-            <h3 style={{ marginBottom: '20px', color: '#667eea' }}>
-              📞 Để lại thông tin để được tư vấn về học bổng
-            </h3>
-            <p style={{ marginBottom: '20px', color: '#666' }}>
-              Điền thông tin liên hệ để chúng tôi có thể hỗ trợ bạn tốt nhất về các học bổng phù hợp
-            </p>
-            <form onSubmit={handleContactSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>
-                    Họ và tên *
-                  </label>
-                  <input
-                    type="text"
-                    value={contactInfo.name}
-                    onChange={(e) => setContactInfo({ ...contactInfo, name: e.target.value })}
-                    required
-                    placeholder="Nhập họ và tên của bạn"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd',
-                      fontSize: '16px'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={contactInfo.email}
-                    onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
-                    required
-                    placeholder="example@email.com"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd',
-                      fontSize: '16px'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>
-                    Số điện thoại *
-                  </label>
-                  <input
-                    type="tel"
-                    value={contactInfo.phone}
-                    onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
-                    required
-                    pattern="(\+84|0)[0-9]{9,10}"
-                    placeholder="0912345678"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd',
-                      fontSize: '16px'
-                    }}
-                  />
-                </div>
-              </div>
-              {submitStatus && (
-                <div style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  marginBottom: '15px',
-                  backgroundColor: submitStatus.type === 'success' ? '#d4edda' : '#f8d7da',
-                  color: submitStatus.type === 'success' ? '#155724' : '#721c24',
-                  border: `1px solid ${submitStatus.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
-                }}>
-                  {submitStatus.message}
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  style={{
-                    flex: 1,
-                    padding: '12px 24px',
-                    background: '#667eea',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    opacity: isSubmitting ? 0.6 : 1
-                  }}
-                >
-                  {isSubmitting ? 'Đang gửi...' : 'Gửi thông tin'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowContactForm(false);
-                    setContactInfo({ name: '', email: '', phone: '' });
-                    setSubmitStatus(null);
-                  }}
-                  style={{
-                    padding: '12px 24px',
-                    background: '#f0f0f0',
-                    color: '#333',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Bỏ qua
-                </button>
-              </div>
-            </form>
-          </motion.div>
         )}
       </div>
     </div>
