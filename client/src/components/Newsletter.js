@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { validateVietnamesePhone, validateEmail } from '../utils/validation';
+import { apiPost, getEndpointUrl } from '../utils/api';
+import { API_ENDPOINTS } from '../config/api';
 import './Newsletter.css';
 
 const Newsletter = ({ variant = 'default' }) => {
@@ -14,42 +17,38 @@ const Newsletter = ({ variant = 'default' }) => {
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    // Validate phone number
-    if (!phone) {
-      setSubmitStatus({ type: 'error', message: 'Vui lòng nhập số điện thoại' });
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      setSubmitStatus({ type: 'error', message: emailValidation.error });
       setIsSubmitting(false);
       return;
     }
 
-    // Validate phone format (Vietnamese phone numbers)
-    const cleanPhone = phone.replace(/\s+/g, '');
-    const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
-    if (!phoneRegex.test(cleanPhone)) {
-      setSubmitStatus({ type: 'error', message: 'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (ví dụ: 0912345678)' });
+    // Validate phone number
+    const phoneValidation = validateVietnamesePhone(phone);
+    if (!phoneValidation.isValid) {
+      setSubmitStatus({ type: 'error', message: phoneValidation.error });
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
-      
-      const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, name, phone: cleanPhone }),
-      });
+      const result = await apiPost(
+        getEndpointUrl('NEWSLETTER.SUBSCRIBE'),
+        { email, name, phone: phoneValidation.cleanPhone }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         setSubmitStatus({ type: 'success', message: 'Đăng ký thành công! Cảm ơn bạn đã quan tâm.' });
         setEmail('');
         setName('');
         setPhone('');
       } else {
-        setSubmitStatus({ type: 'error', message: data.error || 'Có lỗi xảy ra. Vui lòng thử lại sau.' });
+        setSubmitStatus({ 
+          type: 'error', 
+          message: result.error?.message || 'Có lỗi xảy ra. Vui lòng thử lại sau.' 
+        });
       }
     } catch (error) {
       setSubmitStatus({ type: 'error', message: 'Có lỗi xảy ra. Vui lòng thử lại sau.' });

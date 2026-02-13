@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { showNotification } from './NotificationCenter';
 import { isAuthenticated } from '../utils/auth';
+import { validateVietnamesePhone, validateEmail, validatePassword } from '../utils/validation';
+import { apiPost, getEndpointUrl } from '../utils/api';
+import { API_ENDPOINTS, TIMEOUTS } from '../utils/constants';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false, onSuccess }) => {
@@ -15,8 +18,6 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
     phone: ''
   });
   const [loading, setLoading] = useState(false);
-
-  const API_URL = process.env.REACT_APP_API_URL || 'https://annhienhanquoc-production.up.railway.app';
 
   // Reset form when modal opens/closes or mode changes
   useEffect(() => {
@@ -42,28 +43,29 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate email
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      showNotification('Lỗi', emailValidation.error, 'error');
+      return;
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      showNotification('Lỗi', passwordValidation.error, 'error');
+      return;
+    }
+    
     // Validate phone for registration
     if (!isLogin) {
-      if (!formData.phone || formData.phone.trim() === '') {
-        showNotification(
-          'Lỗi',
-          'Vui lòng nhập số điện thoại',
-          'error'
-        );
+      const phoneValidation = validateVietnamesePhone(formData.phone);
+      if (!phoneValidation.isValid) {
+        showNotification('Lỗi', phoneValidation.error, 'error');
         return;
       }
-      
-      // Validate phone format
-      const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
-      const cleanPhone = formData.phone.replace(/\s+/g, '');
-      if (!phoneRegex.test(cleanPhone)) {
-        showNotification(
-          'Lỗi',
-          'Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (VD: 0912345678 hoặc +84912345678)',
-          'error'
-        );
-        return;
-      }
+      // Use cleaned phone number
+      formData.phone = phoneValidation.cleanPhone;
     }
     
     setLoading(true);
@@ -71,45 +73,42 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
     // Create AbortController for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.warn('⏱️ [DEBUG] AuthModal: Request timeout after 60 seconds');
+      console.warn('⏱️ [DEBUG] AuthModal: Request timeout after', TIMEOUTS.AUTH / 1000, 'seconds');
       controller.abort();
-    }, 60000); // 60 second timeout (registration may take longer due to email sending)
+    }, TIMEOUTS.AUTH);
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const endpoint = isLogin ? getEndpointUrl('AUTH.LOGIN') : getEndpointUrl('AUTH.REGISTER');
       console.log('🔐 [DEBUG] AuthModal: Submitting form:', { endpoint, isLogin, formData: { ...formData, password: '***' } });
       
-      const res = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        signal: controller.signal
-      });
+      const result = await apiPost(
+        endpoint,
+        formData,
+        false // No auth required for login/register
+      );
+
+      // Handle timeout
+      if (result.error?.type === 'network' && result.error?.originalError?.name === 'AbortError') {
+        clearTimeout(timeoutId);
+        showNotification(
+          'Lỗi',
+          'Request timeout. Server có thể đang xử lý, vui lòng đợi một chút và kiểm tra lại tài khoản đã được tạo chưa.',
+          'warning'
+        );
+        setLoading(false);
+        return;
+      }
 
       clearTimeout(timeoutId);
-      console.log('📨 [DEBUG] AuthModal: Response status:', res.status, res.statusText);
       
-      // Try to parse JSON, but handle non-JSON responses
-      let data;
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          data = await res.json();
-        } catch (parseError) {
-          console.error('❌ [DEBUG] AuthModal: JSON parse error:', parseError);
-          const text = await res.text();
-          console.error('❌ [DEBUG] AuthModal: Response text:', text);
-          throw new Error('Invalid JSON response from server');
-        }
-      } else {
-        const text = await res.text();
-        console.error('❌ [DEBUG] AuthModal: Non-JSON response:', text);
-        data = { error: 'Server returned non-JSON response', message: text };
-      }
-      
+      // Use result.data instead of parsing response
+      const data = result.data || {};
+      const res = result.response;
+
+      console.log('📨 [DEBUG] AuthModal: Response status:', res?.status, res?.statusText);
       console.log('📨 [DEBUG] AuthModal: Response data:', data);
 
-      if (res.ok || res.status === 201) { // Accept both 200 and 201
+      if (result.success && (res?.ok || res?.status === 201)) { // Accept both 200 and 201
         console.log('✅ [DEBUG] AuthModal: Request successful');
         setLoading(false); // Set loading false immediately after success
         
@@ -196,28 +195,13 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false
     } catch (error) {
       clearTimeout(timeoutId);
       console.error('❌ [DEBUG] AuthModal: Exception:', error);
-      setLoading(false); // Set loading false on exception
+      setLoading(false);
       
-      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
-        console.warn('⏱️ [DEBUG] AuthModal: Request was aborted (timeout or cancelled)');
-        showNotification(
-          'Lỗi',
-          'Request timeout. Server có thể đang xử lý, vui lòng đợi một chút và kiểm tra lại tài khoản đã được tạo chưa.',
-          'warning'
-        );
-      } else if (error.message.includes('JSON')) {
-        showNotification(
-          'Lỗi',
-          'Lỗi xử lý response từ server. Vui lòng thử lại.',
-          'error'
-        );
-      } else {
-        showNotification(
-          'Lỗi',
-          error.message || 'Không thể kết nối đến server. Vui lòng thử lại.',
-          'error'
-        );
-      }
+      showNotification(
+        'Lỗi',
+        error.message || 'Không thể kết nối đến server. Vui lòng thử lại.',
+        'error'
+      );
     }
   };
 
