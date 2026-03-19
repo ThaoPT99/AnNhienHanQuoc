@@ -5,7 +5,7 @@ import { showNotification } from './NotificationCenter';
 import { isAuthenticated } from '../utils/auth';
 import { validateVietnamesePhone, validateEmail, validatePassword } from '../utils/validation';
 import { apiPost, getEndpointUrl } from '../utils/api';
-import { API_ENDPOINTS, TIMEOUTS } from '../utils/constants';
+import { TIMEOUTS } from '../utils/constants';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose, initialMode = 'login', requireAuth = false, onSuccess }) => {

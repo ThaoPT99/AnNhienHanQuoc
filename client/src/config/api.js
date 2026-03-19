@@ -154,10 +154,12 @@ export const getEndpointUrl = (endpoint, params = {}) => {
   return buildApiUrl(current);
 };
 
-export default {
+const apiConfig = {
   API_URL,
   buildApiUrl,
   getApiUrl,
   getEndpointUrl,
   API_ENDPOINTS
 };
+
+export default apiConfig;

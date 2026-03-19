@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { validateVietnamesePhone, validateEmail } from '../utils/validation';
 import { apiPost, getEndpointUrl } from '../utils/api';
-import { API_ENDPOINTS } from '../config/api';
 import './Newsletter.css';
 
 const Newsletter = ({ variant = 'default' }) => {
