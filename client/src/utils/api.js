@@ -3,7 +3,7 @@
  * Common functions for making API requests
  */
 
-import { API_URL, buildApiUrl } from '../config/api';
+import { API_URL, buildApiUrl, getEndpointUrl } from '../config/api';
 import { getAuthToken } from './auth';
 
 /**
@@ -247,5 +247,5 @@ export const apiDelete = async (endpoint, requireAuth = false) => {
   return apiRequest(endpoint, { method: 'DELETE' }, requireAuth);
 };
 
-// Export API_URL for backward compatibility
-export { API_URL };
+// Export API_URL and getEndpointUrl for backward compatibility
+export { API_URL, getEndpointUrl };
