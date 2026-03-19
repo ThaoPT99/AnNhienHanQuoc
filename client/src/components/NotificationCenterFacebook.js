@@ -69,8 +69,8 @@ const NotificationCenterAnNhien = () => {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(newNotification.title, {
         body: newNotification.message,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
+        icon: '/logo.png',
+        badge: '/logo.png',
         tag: newNotification.id.toString()
       });
     }
