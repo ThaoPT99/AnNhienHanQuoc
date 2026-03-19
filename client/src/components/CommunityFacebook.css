@@ -81,6 +81,12 @@
   display: block;
 }
 
+.community-logo-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
 /* Search bar */
 .community-search-fb {
   flex: 1;

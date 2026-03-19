@@ -51,7 +51,7 @@ export const getSiteUrl = (path = '') => {
 };
 
 export const getLogoUrl = () => {
-  return getSiteUrl('/favicon.svg');
+  return getSiteUrl('/logo.png');
 };
 
 export default SITE_CONFIG;

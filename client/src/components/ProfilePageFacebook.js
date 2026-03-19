@@ -180,7 +180,7 @@ const ProfilePageAnNhien = () => {
       <header className="community-header-fb">
         <div className="community-header-fb-container">
           <Link to="/community" className="community-logo-fb">
-            <span>Du Học An Nhiên</span>
+            <img src="/logo.png" alt="Du Học An Nhiên" className="community-logo-img" />
           </Link>
           <div className="community-search-fb">
             <div className="search-input-fb">

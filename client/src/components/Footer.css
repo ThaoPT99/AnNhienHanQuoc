@@ -139,6 +139,21 @@
   margin-bottom: 20px;
 }
 
+.brand-logo-wrapper a {
+  text-decoration: none;
+}
+
+.footer-logo-img {
+  height: 56px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.brand-logo-wrapper a:hover .footer-logo-img {
+  transform: scale(1.05);
+}
+
 .brand-icon-wrapper {
   position: relative;
   display: inline-block;

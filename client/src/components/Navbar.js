@@ -146,15 +146,11 @@ const Navbar = () => {
             onClick={scrollToTop}
             aria-label="Du học An Nhiên - Về trang chủ"
           >
-            <div className="logo-icon-wrapper" aria-hidden="true">
-              <span className="logo-icon" aria-hidden="true">🇰🇷</span>
-              <div className="logo-icon-glow"></div>
-            </div>
-            <div className="logo-text-wrapper">
-              <span className="logo-kr" aria-hidden="true">KR</span>
-              <span className="logo-main">Du học An Nhiên</span>
-            </div>
-            <div className="logo-shine" aria-hidden="true"></div>
+            <img 
+              src="/logo.png" 
+              alt="Du học An Nhiên - Du học Hàn Quốc" 
+              className="navbar-logo-img"
+            />
           </Link>
         </motion.div>
 

@@ -126,6 +126,17 @@
   overflow: hidden;
 }
 
+.navbar-logo-img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover .navbar-logo-img {
+  transform: scale(1.05);
+}
+
 .navbar-logo::before {
   content: '';
   position: absolute;
@@ -604,12 +615,8 @@
     font-size: 1.1rem;
   }
 
-  .logo-main {
-    font-size: 1.2rem;
-  }
-
-  .logo-kr {
-    font-size: 1rem;
+  .navbar-logo-img {
+    height: 42px;
   }
 }
 
@@ -709,16 +716,8 @@
     border-radius: 4px 4px 0 0;
   }
 
-  .logo-main {
-    font-size: 1.1rem;
-  }
-
-  .logo-kr {
-    font-size: 0.9rem;
-  }
-
-  .logo-icon {
-    font-size: 1.6rem;
+  .navbar-logo-img {
+    height: 38px;
   }
 }
 

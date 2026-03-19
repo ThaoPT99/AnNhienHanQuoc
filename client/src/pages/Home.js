@@ -78,8 +78,7 @@ const Home = () => {
           >
             <div className="hero-badge">
               <div className="hero-logo">
-                <span className="hero-logo-icon">🇰🇷</span>
-                <span className="hero-logo-text">Du học An Nhiên</span>
+                <img src="/logo.png" alt="Du học An Nhiên" className="hero-logo-img" />
               </div>
               <span className="badge-icon">✨</span>
               <span>Khởi đầu hành trình mới</span>

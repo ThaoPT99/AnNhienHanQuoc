@@ -349,7 +349,7 @@ const FriendsAnNhien = () => {
         <div className="community-header-fb-container">
           {/* Logo */}
           <Link to="/community" className="community-logo-fb">
-            <span>Du Học An Nhiên</span>
+            <img src="/logo.png" alt="Du Học An Nhiên" className="community-logo-img" />
           </Link>
 
           {/* Search bar */}

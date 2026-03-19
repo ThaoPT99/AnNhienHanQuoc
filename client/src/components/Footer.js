@@ -54,14 +54,9 @@ const Footer = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="brand-logo-wrapper">
-              <div className="brand-icon-wrapper" aria-hidden="true">
-                <span className="brand-icon" aria-hidden="true">🇰🇷</span>
-                <div className="brand-icon-glow"></div>
-              </div>
-              <h3 className="brand-title">
-                <span className="brand-kr" aria-hidden="true">KR</span>
-                <span className="brand-main">Du học An Nhiên</span>
-              </h3>
+              <Link to="/" onClick={scrollToTop}>
+                <img src="/logo.png" alt="Du học An Nhiên - Du học Hàn Quốc" className="footer-logo-img" />
+              </Link>
             </div>
             <p className="brand-tagline">
               <span className="tagline-icon" aria-hidden="true">✨</span>
